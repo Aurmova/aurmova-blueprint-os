@@ -1,4 +1,5 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js";\nimport { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
