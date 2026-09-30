@@ -1,5 +1,6 @@
 import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js";
 import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js";
+import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -36,12 +37,44 @@ function newCustomer(selected="") {
  <div class="notice">建立後，系統只會建立資料骨架，不會執行或推測任何數字心理學計算。完整分析僅保留在 Josephine 私人諮詢區。</div><div class="actions"><button class="btn btn-primary" type="submit">建立私人檔案</button><a class="btn btn-light" href="#home">取消</a></div></form>`;
 }
 function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${c.consultationType}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
-function workspace(){const id=new URLSearchParams(location.hash.split('?')[1]).get('id');const c=loadCustomers().find(x=>x.id===id);const a=c?calculateBlueprint(c.birthday):null;const age=c?ageFromBirthday(c.birthday):null;const phase=a?phaseForAge(age):null;const p=a?.positions;
-return `${header("Consultation Workspace","Josephine 私人諮詢區",c?`${c.name} · ${c.consultationType} · ${c.birthday}`:"請先從歷史檔案開啟一位顧客。")}
-<section class="workspace-grid"><article class="card zone private"><div class="zone-label">▣ JOSEPHINE ONLY</div><h2>內部分析資料</h2>${a?`<div class="metric-grid internal-metrics"><div class="metric"><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div class="metric"><span>內心碼</span><strong>${a.innerCode}</strong></div><div class="metric"><span>坐鎮碼 MNO</span><strong>${a.seatCode}</strong></div></div><p class="subtitle">目前年齡 ${age} · 所屬 ${phase} 階段</p><div class="code-grid"><div><b>父親基因</b><span>I ${p.I} · J ${p.J} · M ${p.M}</span></div><div><b>母親基因</b><span>K ${p.K} · L ${p.L} · N ${p.N}</span></div></div>`:'<p class="subtitle">尚未選擇顧客。</p>'}<div class="tag-list">${INTERNAL_TERMS.map(x=>`<span class="tag">${x}</span>`).join("")}</div></article>
-<article class="card zone public"><div class="zone-label">◇ CLIENT REPORT</div><h2>顧客簡版報告區</h2><p class="subtitle">只允許 Josephine 人工確認後輸出；內部位置碼、公式、父母基因、坐鎮碼及提詞稿不會自動帶入。</p><div class="tag-list"><span class="tag">姓名</span><span class="tag">性別</span><span class="tag">生日</span><span class="tag">生肖</span><span class="tag">星座</span><span class="tag">主性格簡介</span></div></article></section>
-${a?`<div class="section-head"><div><p class="eyebrow">Golden 20-Year Phases</p><h2>三階段能量</h2></div></div><section class="card phase-grid">${Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>過程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>結果 ${v.result.join("")}</span></div>`).join("")}</section>`:''}`}
-
+function workspace(){
+ const id=new URLSearchParams(location.hash.split('?')[1]).get('id');
+ const c=loadCustomers().find(x=>x.id===id);
+ const a=c?calculateBlueprint(c.birthday):null;
+ const age=c?ageFromBirthday(c.birthday):null;
+ const phase=a?phaseForAge(age):null;
+ const p=a?.positions;
+ const profile=a?PERSONALITY_LIBRARY[a.mainPersonality]:null;
+ if(!c) return `${header("Consultation Workspace","AURMOVA 咨询工作台","请先从历史档案开启一位顾客。")}<section class="card empty"><h3>尚未选择顾客</h3><p>从历史档案开启顾客后，完整咨询资料会显示在这里。</p><a class="btn btn-primary" href="#history">前往历史档案</a></section>`;
+ const phaseCards=Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>过程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>结果 ${v.result.join("")}</span></div>`).join("");
+ const focus=FOCUS_OPTIONS.map((x,i)=>`<label class="focus-chip"><input type="checkbox" ${i<6?'checked':''}><span>${x}</span></label>`).join("");
+ return `${header("AURMOVA · PRIVATE CONSULTATION","AURMOVA 咨询工作台","透过数字认识自己｜透过美学展现魅力")}
+ <section class="client-summary card">
+   <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
+   <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · ${age}岁 · ${c.consultationType}</p></div>
+   <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
+   <div class="quick-actions"><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+ </section>
+ <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
+ <div class="section-head"><div><p class="eyebrow">Josephine Only</p><h2>数字结构 · 仅供后台使用</h2></div><span class="private-pill">PRIVATE</span></div>
+ <section class="structure-grid">
+  <article class="card gene-card"><small>父亲基因</small><h3>I · J · M</h3><div class="big-code">${p.I}　${p.J}　${p.M}</div><p>I ${p.I} · J ${p.J} · M ${p.M}</p></article>
+  <article class="card gene-card"><small>母亲基因</small><h3>K · L · N</h3><div class="big-code">${p.K}　${p.L}　${p.N}</div><p>K ${p.K} · L ${p.L} · N ${p.N}</p></article>
+  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article>
+ </section>
+ <section class="card phases"><div class="card-heading"><div><small>20-YEAR ENERGY</small><h2>三阶段能量</h2></div><span>因果 → 过程 → 结果</span></div><div class="phase-grid">${phaseCards}</div></section>
+ <div class="section-head"><div><p class="eyebrow">Consultation Focus</p><h2>选择本次咨询重点</h2></div></div>
+ <section class="card focus-panel"><div class="focus-grid">${focus}</div><button class="btn btn-primary" id="generate-script">生成本次咨询提词稿</button></section>
+ <div class="section-head"><div><p class="eyebrow">Personality Reading</p><h2>${profile.title}</h2></div></div>
+ <section class="reading-grid">
+   <article class="card reading-card positive"><span class="reading-label">正面优势</span><ul>${profile.positive.map(x=>`<li>${x}</li>`).join("")}</ul></article>
+   <article class="card reading-card negative"><span class="reading-label">负面表现</span><ul>${profile.negative.map(x=>`<li>${x}</li>`).join("")}</ul></article>
+   <article class="card reading-card growth"><span class="reading-label">成长方向</span><ul>${profile.growth.map(x=>`<li>${x}</li>`).join("")}</ul></article>
+ </section>
+ <section class="card wealth-card"><div class="card-heading"><div><small>WEALTH PATTERN</small><h2>财富模式</h2></div><span>咨询倾向参考，不作收益保证</span></div><div class="wealth-grid"><div><b>财富天赋</b><p>${profile.wealth.talent}</p></div><div><b>财富卡点</b><p>${profile.wealth.block}</p></div><div><b>财富成长建议</b><p>${profile.wealth.advice}</p></div></div></section>
+ <section class="card script-panel" id="script-panel"><div class="script-nav"><b>咨询提词稿</b><span class="active">01 核心主题</span><span>02 数字解析</span><span>03 生活场景</span><span>04 开解方向</span><span>05 提问顾客</span><span>06 总结建议</span></div><div class="script-body"><p class="eyebrow">Josephine Consultation Notes</p><h2>从「${profile.title}」开始理解</h2><p>这组数字不是替顾客决定人生，而是用来整理她较常出现的行为倾向与选择模式。咨询时先从她真实经历验证，再进入建议。</p><h3>可以这样开场</h3><p>「我先从你的主性格 ${a.mainPersonality} 来看。你可能比较容易展现出 ${profile.positive.slice(0,2).join("、")} 的一面；但在压力比较大的时候，也可能出现 ${profile.negative.slice(0,2).join("、")}。你觉得哪一部分最像现在的自己？」</p><h3>可追问顾客</h3><div class="question-box">最近有没有一件事，让你明显感觉自己在“想做自己”和“顾虑别人／现实”之间拉扯？当时你最后怎么决定？</div></div></section>
+ <div class="internal-footer">完整计算、父母基因、坐镇码、位置码、联合码与咨询话术仅供 Josephine 后台使用，不自动出现在顾客报告。</div>`;
+}
 
 function showToast(message) {
   const toast = document.querySelector("#toast");
