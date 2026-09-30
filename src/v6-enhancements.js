@@ -204,13 +204,17 @@ function refreshConsultationConsole(step){
   const old=document.querySelector("#v7-answer-console"); if(old) old.outerHTML=consultationConsole(c,a,phase,Number(step)||0);
 }
 function scriptMarkup(c,a,phase){
-  const profile=PERSONALITY_LIBRARY[a.mainPersonality],mainDetail=MAIN_DETAIL[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]),missing=a.combinedEnergy.missing;
+  const profile=PERSONALITY_LIBRARY[a.mainPersonality],mainDetail=MAIN_DETAIL[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]);
   const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
+  const triangleHighlights=[1,2,3,4,5,6,7,8,9].map(n=>{
+    const innerCount=Number(a.innerEnergy?.counts?.[n]||0),outerCount=Number(a.outerEnergy?.counts?.[n]||0);
+    return {n,innerCount,outerCount,result:getTrianglePattern(n,innerCount,outerCount)};
+  }).filter(x=>x.result&&(x.innerCount===0||x.outerCount===0||x.innerCount>=2));
   const items=[
     ["01 核心主题",'<h2>先从顾客现在真正想解决的事情开始</h2><p>主性格 '+a.mainPersonality+' · '+esc(profile.title)+'。当前处于 '+phase+'：'+esc(meta.theme)+'。</p><div class="question-box">今天我不会一开始就告诉你“你是什么样的人”。我想先听你现在最想看懂的一件事，再把数字与真实经历一层层对上。</div>'],
     ["02 数字解析",'<h2>数字结构不是单看一个号码</h2><p>父亲基因 '+code(Object.values(a.fatherGenes))+' · 母亲基因 '+code(Object.values(a.motherGenes))+' · 坐镇码 '+a.seatCode+' · 内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'。</p><p>当前阶段四组：'+groups.join(" → ")+'。</p>'+(mainDetail?'<div class="question-box"><b>主性格 '+a.mainPersonality+'：</b> '+esc(mainDetail.thinking)+' '+esc(mainDetail.behavior)+'<br><b>压力时：</b>'+esc(mainDetail.stress)+'<br><b>天赋：</b>'+esc(mainDetail.talents)+'</div>':"")],
     ["03 生活场景",'<h2>'+phase+' · '+esc(meta.theme)+'</h2><p>'+esc(meta.description)+'</p><div class="question-box">最近在这个领域有没有一件事情反复发生？你当时通常先顾自己、顾关系、顾结果，还是先观察再决定？</div>'],
-    ["04 开解方向",'<h2>从缺少与过强的能量找平衡</h2><p>内外综合缺少：'+(missing.length?missing.join("、"):"无明显缺失")+'。缺失不等于“没有能力”，而是比较不自动，需要通过选择、练习与环境来建立。</p><div class="question-box">'+(missing.slice(0,3).map(n=>n+'号：'+esc(ENERGY_LIBRARY[n].low)).join("<br>")||"这一盘内外1–9都有出现，重点转向重复次数与位置。")+'</div>'],
+    ["04 开解方向",'<h2>从三角形内外数字表现找调整方向</h2><p>这里不再用“内三角能量／外三角能量／内外综合能量”的读法，而是按照三角形内外有没有这个数字，以及三角形内出现次数来判断。</p><div class="question-box">'+(triangleHighlights.length?triangleHighlights.slice(0,6).map(x=>x.n+'号｜'+esc(x.result.state)+'：'+esc(x.result.description)).join("<br>"):"这张盘内外结构没有明显缺失或高重复，继续结合位置与联合码看。")+'</div>'],
     ["05 提问顾客",'<h2>用真实经历验证，而不是替顾客下结论</h2><div class="question-box">1）你最近最卡的是关系、事业、金钱、家庭，还是自己的方向？<br>2）压力最大的时候，你最常重复哪一种反应？<br>3）'+(phase==="21–40"?"你在工作和朋友关系里最容易承担什么角色？":phase==="41–60"?"你带孩子或下属时最容易要求他们做到什么？":"现在的家庭关系与晚年生活里，你最想保留和调整的是什么？")+'</div>'],
     ["06 总结建议",'<h2>把数字翻译成现实行动</h2><p>今年个人流年 '+y.number+' · '+esc(y.title)+'：'+esc(y.summary)+'</p><div class="question-box">数字不是替你决定，而是帮你看见自己最容易重复的模式。今天先选一个最需要调整的地方，把它变成下一步行动。</div>']
   ];
