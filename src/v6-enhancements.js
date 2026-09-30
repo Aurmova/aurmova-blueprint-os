@@ -3,6 +3,7 @@ import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=2026093
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
+import { getTrianglePattern } from "./triangle-pattern-library.js?v=20260930-v11";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -29,6 +30,27 @@ function energyBlock(scan,scope){
   const notes=(info.missing.length?info.missing:[{number:"✓",name:"没有明显缺失",low:"这一层1–9都有出现，继续结合位置与重复次数判断。"}]).map(x=>'<div><strong>'+esc(x.number)+' · '+esc(x.name)+'</strong><span>'+esc(x.low)+'</span></div>').join("");
   return '<article class="card energy-card"><div class="energy-head"><div><small>SYSTEM DERIVATION</small><h3>'+esc(info.title)+'</h3></div><span>'+esc((scan.values||[]).join(" · "))+'</span></div><p>'+esc(info.note)+'</p><div class="energy-line"><b>拥有的能量</b><div>'+present+'</div></div><div class="energy-line"><b>缺少的能量</b><div>'+missing+'</div></div><div class="energy-line"><b>重复放大的能量</b><div>'+repeated+'</div></div><div class="energy-meaning-grid">'+notes+'</div></article>';
 }
+function trianglePatternCard(a,number){
+  const innerCount=Number(a.innerEnergy?.counts?.[number]||0);
+  const outerCount=Number(a.outerEnergy?.counts?.[number]||0);
+  const result=getTrianglePattern(number,innerCount,outerCount);
+  if(!result) return "";
+  return '<article class="triangle-pattern-card">'
+    +'<div class="triangle-pattern-number">'+number+'</div>'
+    +'<div class="triangle-pattern-main"><div class="triangle-pattern-state">'+esc(result.state)+'</div>'
+    +'<p>'+esc(result.description)+'</p>'
+    +'<div class="triangle-pattern-counts"><span>三角形内：'+innerCount+'个</span><span>三角形外：'+outerCount+'个</span><span>'+esc(result.source)+'</span></div></div>'
+    +'</article>';
+}
+function trianglePatternSection(a){
+  return '<section id="v11-triangle-patterns">'
+    +'<div class="section-head"><div><p class="eyebrow">TRIANGLE INNER × OUTER</p><h2>三角形内外数字表现</h2></div><span class="source-tag">按你提供的“6种精准表现”资料读取</span></div>'
+    +'<div class="triangle-definition card"><div><b>三角形内</b><span>I · J · K · L · M · N · O</span><p>代表内在性格、真实自我。</p></div><div><b>三角形外</b><span>X · W · S · Q · P · R · V · U · T</span><p>代表外在表现、社交面具。</p></div></div>'
+    +'<div class="formula-note">系统不是把“内、外、内外”当成三种能量，而是先看每一个数字在三角形内／外有没有出现：内缺外有、内有外缺、内外都缺；如果内外都有，再按三角形内出现1次、2次、3次读取对应表现。超过3次时先保留实际次数，不自行杜撰解释。</div>'
+    +'<div class="triangle-pattern-grid">'+[1,2,3,4,5,6,7,8,9].map(n=>trianglePatternCard(a,n)).join("")+'</div>'
+    +'</section>';
+}
+
 function jointBlock(c,label){
   const structured=getFlootKnowledge(c);
   const legacy=findJointCode(c);
@@ -255,9 +277,10 @@ function enhanceWorkspace(){
     const badge=phases.querySelector(".card-heading>span");if(badge)badge.textContent="三个阶段都可以点击";
   }
 
-  if(phases&&!document.querySelector("#v6-energy")){
-    const wrap=document.createElement("section");wrap.id="v6-energy";wrap.innerHTML='<div class="section-head"><div><p class="eyebrow">Energy Map</p><h2>内三角 × 外三角 × 内外综合</h2></div><span class="source-tag">系统推导｜依据你的公式与位置结构</span></div><div class="energy-grid">'+energyBlock(a.innerEnergy,"inner")+energyBlock(a.outerEnergy,"outer")+energyBlock(a.combinedEnergy,"combined")+'</div>';
-    phases.after(wrap);
+  if(phases&&!document.querySelector("#v11-triangle-patterns")){
+    const wrap=document.createElement("div");
+    wrap.innerHTML=trianglePatternSection(a);
+    phases.after(wrap.firstElementChild);
   }
 
   const script=document.querySelector("#script-panel");
