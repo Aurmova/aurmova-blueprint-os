@@ -84,3 +84,20 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .secondary-code-row small{display:block;margin-top:4px;font-size:9px;color:#9b7b49}
 .six-joint-codes{margin:10px 0 18px}.six-code-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.six-code-grid>div{padding:13px 10px;border:1px solid var(--line);background:#fffdf9;text-align:center}.six-code-grid small{display:block;font-size:9px;color:var(--muted);letter-spacing:.06em}.six-code-grid strong{display:block;margin-top:4px;font:500 22px var(--serif);color:#8b6d40}
 @media(max-width:1050px){.six-code-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:800px){.six-code-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* AURMOVA triangle inner/outer six-pattern reading */
+#v11-triangle-patterns{margin-top:24px}
+.triangle-definition{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;overflow:hidden;margin-bottom:12px}
+.triangle-definition>div{padding:16px 18px}.triangle-definition>div+div{border-left:1px solid var(--line)}
+.triangle-definition b{display:block;font:500 17px var(--serif);color:#7f6339}
+.triangle-definition span{display:block;margin-top:5px;font-size:10px;letter-spacing:.06em;color:var(--gold)}
+.triangle-definition p{margin:7px 0 0;color:var(--muted);font-size:11px}
+.triangle-pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.triangle-pattern-card{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:start;padding:15px;border:1px solid var(--line);background:#fffdf9}
+.triangle-pattern-number{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#f4ead8;color:#8b6d40;font:500 21px var(--serif)}
+.triangle-pattern-state{font-weight:600;color:#3d382f;margin-bottom:6px}
+.triangle-pattern-main p{margin:0;color:#5e574e;font-size:12px;line-height:1.75}
+.triangle-pattern-counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.triangle-pattern-counts span{font-size:9px;color:#806846;background:#faf4e9;border:1px solid #eadcc5;padding:5px 7px}
+@media(max-width:1050px){.triangle-pattern-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.triangle-definition{grid-template-columns:1fr}.triangle-definition>div+div{border-left:0;border-top:1px solid var(--line)}.triangle-pattern-grid{grid-template-columns:1fr}}
