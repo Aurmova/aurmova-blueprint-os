@@ -63,7 +63,7 @@ function parseBirthday(birthday) {
 
 export function calculateEnvironmentYear(targetYear = new Date().getFullYear()) {
   const year = Number(targetYear);
-  const raw = sumDigits(year);
+  const raw = 1 + 2 + sumDigits(year);
   const number = reduce(raw);
   return {
     year,
