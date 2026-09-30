@@ -1,4 +1,4 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, PHASE_META } from "./engine/blueprint.js?v=20260930-v10";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20260930-v12";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
@@ -85,11 +85,107 @@ function phaseButtons(a,current){
     return '<button type="button" class="phase-card '+(name===current?"current selected":"")+'" data-v6-phase="'+name+'"><small>'+name+(name===current?" · 当前":"")+'</small><b>'+esc(m.theme)+'</b><span>因果 '+code(v.cause)+'</span><span>过程 '+code(v.process1)+' · '+code(v.process2)+'</span><span>结果 '+code(v.result)+'</span><em>点击查看完整解析 →</em></button>';
   }).join("");
 }
-function yearPanel(c,target){
-  const set=calculateYearCycleSet(c.birthday,target||new Date().getFullYear());
-  const cards=[["去年",set.previous],["今年",set.current],["明年",set.next]].map(([label,y])=>'<article class="year-card '+(label==="今年"?"current-year":"")+'"><small>'+label+'</small><h3>'+y.year+' · 流年 '+y.number+'</h3><b>'+esc(y.title)+'</b><p>'+esc(y.summary)+'</p></article>').join("");
-  return '<div class="module-render"><div class="card-heading"><div><small>GOLDEN YEAR</small><h2>黄金流年 · 自动运算</h2></div><span>已确认公式</span></div><div class="year-control"><label>分析年份 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+(target||new Date().getFullYear())+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div><div class="formula-note">个人流年 = 出生日数字和 + 出生月份数字和 + 分析年份数字和 → 化简至 1–9。此公式来自你旧版 AURMOVA 已保存算法；未确认来源的流年公式不会自行杜撰。</div><div class="year-cycle-grid">'+cards+'</div></div>';
+const YEAR_REGION_META = {
+  father:{label:"内三角形左侧",title:"父亲基因／权威关系",focus:"父亲、上级、权威人物、早年习得的独立行动模式",lesson:"从外在要求回到自己的判断"},
+  mother:{label:"内三角形右侧",title:"母亲基因／情感支持",focus:"母亲、亲密关系、安全感、被照顾与照顾人的模式",lesson:"看清关系里的重复反应与情感需求"},
+  core:{label:"内三角形核心",title:"主性格／核心行为",focus:"最核心的性格底色、选择方式与长期行为习惯",lesson:"核心性格正在被这一年的主题重新整理"},
+  career:{label:"外三角形左侧",title:"事业／朋友 · 21–40岁",focus:"事业、工作、朋友、同事、社交圈与专业发展",lesson:"今年的主场更容易落在工作与人际发展的现实场景"},
+  team:{label:"外三角形上方",title:"孩子／下属 · 41–60岁",focus:"孩子、下属、团队、培养别人、管理与授权",lesson:"今年更容易透过带人、教人、放手或管理方式看到课题"},
+  family:{label:"外三角形右侧",title:"家庭／晚年 · 61岁+",focus:"家庭关系、长期生活方式、资源沉淀与晚年生活品质",lesson:"今年更容易从家庭与长期生活规划看见真正想要的状态"}
+};
+
+const YEAR7_REGION_EXAMPLES = {
+  father:"重新审视父亲、上级或权威关系；从“别人告诉我的”转向“我自己想通的”。",
+  mother:"重新审视亲密关系中的情感模式；练习先想清楚再回应，而不是本能反应。",
+  core:"核心性格进入向内整理期；适合深度学习、研究、写作与重新想清楚方向。",
+  career:"事业节奏可能放慢，更适合打磨专业、筛选关系与想明白下一步，而不是只冲业绩。",
+  team:"带孩子／下属的方式需要从“手把手控制”转向“给空间、让对方尝试”。",
+  family:"家庭与长远生活进入思考期；关系中的留白、空间与认真沟通会变得重要。"
+};
+
+function yearRegions(a){
+  return [
+    {key:"father",code:a.fatherCode},
+    {key:"mother",code:a.motherCode},
+    {key:"core",code:a.seatCode},
+    {key:"career",code:(a.jointCodes6?.SWX||[]).join("")},
+    {key:"team",code:(a.jointCodes6?.RQP||[]).join("")},
+    {key:"family",code:(a.jointCodes6?.TVU||[]).join("")}
+  ].map(x=>({...x,...YEAR_REGION_META[x.key]}));
 }
+
+function regionYearCopy(number,region){
+  if(number===7 && YEAR7_REGION_EXAMPLES[region.key]) return YEAR7_REGION_EXAMPLES[region.key];
+  const y=YEAR_THEMES[number];
+  return "流年"+number+"「"+y.title+"」落在这里时，会把“"+region.focus+"”放到今年更明显的位置。重点是："+region.lesson+"。";
+}
+
+function yearPriorityTable(){
+  return '<div class="year-priority card"><div class="card-heading"><div><small>READING PRIORITY</small><h3>黄金流年解读优先级</h3></div><span>先主旋律，再看细节</span></div>'
+    +'<div class="priority-row"><b>流年数</b><span>★★★★★</span><em>全年总基调／9年循环位置</em></div>'
+    +'<div class="priority-row"><b>流年落位</b><span>★★★★</span><em>影响哪个生活领域</em></div>'
+    +'<div class="priority-row"><b>流年联合码</b><span>★★★</span><em>今年的起因 → 过程 → 结果</em></div>'
+    +'<div class="priority-row"><b>大环境叠加</b><span>★★</span><em>同向加速还是节奏拉扯</em></div>'
+    +'</div>';
+}
+
+function yearNineCycle(currentNumber){
+  return '<div class="nine-cycle">'+[1,2,3,4,5,6,7,8,9].map(n=>{
+    const y=YEAR_THEMES[n];
+    return '<div class="nine-year '+(n===currentNumber?'active':'')+'"><strong>'+n+'</strong><span>'+esc(y.title)+'</span><small>'+esc(y.cycle)+' · '+esc(y.rhythm)+'</small></div>';
+  }).join("")+'</div>';
+}
+
+function yearLocationPanel(a,personal){
+  const regions=yearRegions(a);
+  const hits=regions.filter(r=>String(r.code).includes(String(personal.number)));
+  const cards=regions.map(r=>{
+    const hit=String(r.code).includes(String(personal.number));
+    return '<button type="button" class="year-region-card '+(hit?'hit':'')+'" data-v12-year-region="'+r.key+'">'
+      +'<small>'+esc(r.label)+'</small><b>'+esc(r.title)+'</b><span>'+esc(r.code)+'</span>'
+      +(hit?'<em>命盘中有流年数 '+personal.number+'</em>':'')
+      +'</button>';
+  }).join("");
+  const note=hits.length
+    ? '当前命盘里，流年数 '+personal.number+' 出现在 '+hits.map(x=>x.title).join('、')+'。如果同一个数字同时出现在多个区域，系统不会擅自指定唯一“主场”；先显示全部命中位置，再由Josephine结合流年落位公式与真实事件确认。'
+    : '当前六个主要区域代码里没有直接出现流年数 '+personal.number+'。这不代表没有流年影响；流年本身仍是全年主旋律。落位的最终自动算法仍以你的原始流年落位公式为准。';
+  return '<div class="year-location-wrap"><div class="card-heading"><div><small>YEAR POSITION</small><h3>第二优先 · 流年数落在命盘哪里</h3></div><span>流年数 = 什么能量｜位置 = 哪个领域</span></div><div class="year-region-grid">'+cards+'</div><div class="formula-note">'+esc(note)+'</div><div id="v12-year-region-detail" class="year-region-detail"><div class="empty-mini">点击一个区域，查看这个流年数字落在该生活领域时怎么解读。</div></div></div>';
+}
+
+function yearJointPanel(){
+  return '<div class="year-joint-wrap"><div class="card-heading"><div><small>YEAR JOINT CODE</small><h3>第三优先 · 流年联合码</h3></div><span>起因 → 过程 → 结果</span></div>'
+    +'<p class="panel-note">你目前已经明确“流年联合码是完整三位组合”，但这次资料没有给出三位数如何从流年与命盘自动生成的最终公式。系统暂时不自行发明公式。你可以先手动输入已算好的三位码，系统直接调用81组资料库；等你给我原始公式后再改为全自动。</p>'
+    +'<div class="year-joint-control"><input id="v12-year-joint-input" inputmode="numeric" maxlength="3" placeholder="例如 573"><button type="button" class="btn btn-light" id="v12-year-joint-lookup">读取联合码</button></div>'
+    +'<div id="v12-year-joint-output" class="year-region-detail"><div class="empty-mini">输入3位流年联合码后，会显示对应的AURMOVA资料。</div></div></div>';
+}
+
+function yearPanel(c,target){
+  const year=Number(target)||new Date().getFullYear();
+  const set=calculateYearCycleSet(c.birthday,year);
+  const personal=set.current;
+  const environment=calculateEnvironmentYear(year);
+  const climate=compareYearClimate(personal.number,environment.number);
+  const a=calculateBlueprint(c.birthday);
+
+  const cards=[["去年",set.previous],["今年",set.current],["明年",set.next]].map(([label,y])=>
+    '<article class="year-card '+(label==="今年"?"current-year":"")+'"><small>'+label+'</small><h3>'+y.year+' · 流年 '+y.number+'</h3><b>'+esc(y.title)+'</b><p>'+esc(y.summary)+'</p><div class="year-mini-tags"><span>'+esc(y.cycle)+'</span><span>'+esc(y.rhythm)+'</span></div></article>'
+  ).join("");
+
+  return '<div class="module-render year-v12">'
+    +'<div class="card-heading"><div><small>GOLDEN YEAR</small><h2>黄金流年 · 时间定位器</h2></div><span>9年循环 · 先看节奏，再看落位</span></div>'
+    +'<p class="panel-note">流年的重点不是“今年好不好”，而是你现在站在9年循环的哪个位置：这一年更适合开始、积累、扎根、突破、收获、反思，还是收尾。</p>'
+    +'<div class="year-control"><label>分析年份 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
+    +'<div class="formula-note">个人流年 = 出生月 + 出生日 + 目标年份的数字和 → 化简至1–9。大环境流年 = 目标年份数字和 → 化简至1–9。</div>'
+    +'<div class="year-headline-grid"><div class="year-headline"><small>个人流年 · 第一优先</small><strong>'+personal.number+'</strong><b>'+esc(personal.title)+'</b><p>'+esc(personal.role)+'</p></div><div class="year-headline"><small>大环境流年</small><strong>'+environment.number+'</strong><b>'+esc(environment.title)+'</b><p>'+esc(environment.role)+'</p></div><div class="year-headline climate"><small>两者叠加</small><strong>'+esc(climate.type)+'</strong><p>'+esc(climate.description)+'</p></div></div>'
+    +yearNineCycle(personal.number)
+    +'<div class="year-focus-card"><div><small>今年节奏</small><b>'+esc(personal.rhythm)+'</b><p>'+esc(personal.advice)+'</p></div><div><small>今年最容易踩的坑</small><b>'+esc(personal.pit)+'</b><p>流年不是命运预言，而是提醒你今年最容易在哪种模式里失衡。</p></div></div>'
+    +'<div class="year-cycle-grid">'+cards+'</div>'
+    +yearPriorityTable()
+    +yearLocationPanel(a,personal)
+    +yearJointPanel()
+    +'</div>';
+}
+
 function partnerRow(p,i){
   let result='<div class="partner-result empty-mini">填写生日后自动计算这位伙伴。</div>';
   if(p.birthday){
@@ -325,6 +421,33 @@ document.addEventListener("click",event=>{
   const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.push({name:"",birthday:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return{name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""}});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const regionBtn=event.target.closest("[data-v12-year-region]"); if(regionBtn){
+    const c=currentCustomer(); if(!c)return;
+    const target=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();
+    const personal=calculateYearCycleSet(c.birthday,target).current;
+    const a=calculateBlueprint(c.birthday);
+    const region=yearRegions(a).find(x=>x.key===regionBtn.dataset.v12YearRegion);
+    document.querySelectorAll("[data-v12-year-region]").forEach(x=>x.classList.toggle("selected",x===regionBtn));
+    const box=document.querySelector("#v12-year-region-detail");
+    if(box&&region){
+      box.innerHTML='<div class="source-tag">系统整合解读</div><h4>'+esc(region.title)+' · 流年'+personal.number+'</h4><p>'+esc(regionYearCopy(personal.number,region))+'</p><div class="question-box"><b>Josephine 可追问：</b><br>今年在“'+esc(region.focus)+'”这件事上，有没有一件事情让你特别想重新决定、重新整理或改变做法？</div>';
+    }
+    return
+  }
+  const jointLookup=event.target.closest("#v12-year-joint-lookup"); if(jointLookup){
+    const input=(document.querySelector("#v12-year-joint-input")?.value||"").replace(/\D/g,"").slice(0,3);
+    const box=document.querySelector("#v12-year-joint-output"); if(!box)return;
+    if(input.length!==3){box.innerHTML='<div class="empty-mini">请输入完整3位流年联合码。</div>';return}
+    const structured=getFlootKnowledge(input),legacy=findJointCode(input);
+    if(structured){
+      box.innerHTML='<div class="source-tag">AURMOVA 资料库</div><h4>'+esc(input)+' · '+esc(structured.title||"联合码")+'</h4><p><b>起因：</b>'+esc(structured.logic||"")+'</p><p><b>优势：</b>'+esc(structured.strengths||"")+'</p><p><b>卡点：</b>'+esc(structured.challenges||"")+'</p><p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>';
+    }else if(legacy?.text){
+      box.innerHTML='<div class="source-tag">AURMOVA 旧版资料库</div><h4>'+esc(input)+'</h4><p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>';
+    }else{
+      box.innerHTML='<div class="empty-mini">这组流年联合码暂时没有命中现有81组资料。</div>';
+    }
+    return
+  }
   const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
 });
 document.addEventListener("input",event=>{
