@@ -237,8 +237,14 @@ function enhanceWorkspace(){
   const structure=document.querySelector(".structure-grid");
   if(structure&&!document.querySelector(".secondary-code-row")){
     const row=document.createElement("div");row.className="secondary-code-row";
-    row.innerHTML='<div><span>潜意识码</span><b>'+a.subconsciousCode+'</b></div><div><span>家庭码</span><b>'+a.familyCode+'</b></div><div><span>对内性格</span><b>'+a.insidePersonalityCode+'</b></div><div><span>对外性格</span><b>'+a.outsidePersonalityCode+'</b></div><div><span>外心码</span><b>'+a.outerHeartCode+'</b></div>';
+    row.innerHTML='<div><span>起心动念</span><b>'+a.startingThoughtCode+'</b></div><div><span>内心数字</span><b>'+a.innerCode+'</b></div><div><span>外心数字</span><b>'+a.outerHeartCode+'</b><small>'+esc(a.outerHeartMeaning||"")+'</small></div><div><span>潜意识码</span><b>'+a.subconsciousCode+'</b></div><div><span>家庭码</span><b>'+a.familyCode+'</b></div><div><span>对内性格</span><b>'+a.insidePersonalityCode+'</b></div><div><span>对外性格</span><b>'+a.outsidePersonalityCode+'</b></div>';
     structure.after(row);
+
+    const six=document.createElement("section");six.className="card six-joint-codes";
+    six.innerHTML='<div class="card-heading"><div><small>6 CORE JOINT CODES</small><h2>6组基础联合数字</h2></div><span>内部3组 · 外圈3组</span></div><div class="six-code-grid">'
+      +Object.entries(a.jointCodes6).map(([label,arr])=>'<div><small>'+label+'</small><strong>'+arr.join("")+'</strong></div>').join("")
+      +'</div><div class="formula-note">内部：IJM · KLN · MNO｜外圈：SWX · RQP · TVU。联合数字不是重新算生日，而是按三角形固定位置读取。</div>';
+    row.after(six);
   }
 
   const phases=document.querySelector(".phases");
