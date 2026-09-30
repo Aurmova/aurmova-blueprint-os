@@ -1,4 +1,4 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20260930-v12";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20261001-v14";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
@@ -265,11 +265,18 @@ function yearLocationPanel(a,personal){
     +'<div id="v12-year-region-detail" class="year-region-detail"><div class="empty-mini">点击一个区域，查看这个流年数字落在该生活领域时怎么解读。</div></div></div>';
 }
 
+function yearJointExample(){
+  const left=calculateYearJointCode(8,7,6);
+  const right=calculateYearJointCode(4,7,8);
+  const bottom=calculateYearJointCode(6,7,4);
+  return '<div class="year-joint-example"><div><small>左边</small><b>'+left.code+'</b><span>8 → 7 → 6</span></div><div><small>右边</small><b>'+right.code+'</b><span>4 → 7 → 8</span></div><div><small>底边</small><b>'+bottom.code+'</b><span>6 → 7 → 4</span></div></div>';
+}
+
 function yearJointPanel(){
   return '<div class="year-joint-wrap"><div class="card-heading"><div><small>YEAR JOINT CODE</small><h3>第三优先 · 流年联合码</h3></div><span>权重15% · 起因 → 过程 → 结果</span></div>'
-    +'<p class="panel-note">已确认组成原则：流年数 + 命盘某条边的两个端点数字 → 一个三位联合码；百位看起因／触发点，十位看过程／经历方式，个位看结果／功课。命中流年数的那条边优先解读。</p>'
-    +'<div class="formula-note">目前还差最后一个技术细节：三位数里“流年数”和“两端点”的固定排列顺序尚未明确。为了不把你的系统算错，自动生成功能先不乱定顺序；你可以先输入已算好的3位码。</div>'
-    +'<div class="year-joint-control"><input id="v12-year-joint-input" inputmode="numeric" maxlength="3" placeholder="例如 573"><button type="button" class="btn btn-light" id="v12-year-joint-lookup">读取联合码</button></div>'
+    +'<p class="panel-note">已确认完整公式：每条外三角形边都有两个固定端点，把流年数放在中间，按“端点A → 流年数 → 端点B”组成三位码。百位=起因／触发点，十位=过程／经历方式，个位=结果／功课。</p>'
+    +'<div class="formula-note">示例：左边端点8与6，流年7 → 8·7·6 = 876；右边端点4与8 → 478；底边端点6与4 → 674。每9年再次遇到同一个流年数时，这三组联合码会重复出现。</div>'
+    +yearJointExample()+'<div class="year-joint-control"><input id="v12-year-joint-input" inputmode="numeric" maxlength="3" placeholder="例如 573"><button type="button" class="btn btn-light" id="v12-year-joint-lookup">读取联合码</button></div>'
     +'<div id="v12-year-joint-output" class="year-region-detail"><div class="empty-mini">输入3位流年联合码后，会显示对应的AURMOVA资料，并检查缺失数是否在起因／过程／结果被激活。</div></div></div>';
 }
 
@@ -285,7 +292,7 @@ function yearFinalSummary(a,personal,environment,climate){
     +'<ol class="year-summary-steps">'
     +'<li><b>流年数：</b>'+personal.number+' · '+esc(personal.title)+'，属于'+esc(personal.cycle)+'，今年节奏偏“'+esc(personal.rhythm)+'”。</li>'
     +'<li><b>流年主场：</b>'+esc(primary)+'。</li>'
-    +'<li><b>流年联合码：</b>按“起因 → 过程 → 结果”读取；自动排列顺序待你最后确认。</li>'
+    +'<li><b>流年联合码：</b>外三角每条边用“端点A → 流年数 → 端点B”生成三位码，再按“起因 → 过程 → 结果”读取。</li>'
     +'<li><b>缺失数叠加：</b>'+lesson+'。'+(missing?'流年数正好命中缺失数，属于最强激活。':'流年数没有直接命中缺失数，整体更容易用已有能力推进。')+'</li>'
     +'<li><b>大环境：</b>'+environment.number+' · '+esc(environment.title)+'；与个人流年的关系是“'+esc(climate.type)+'”。</li>'
     +'<li><b>一句话：</b>今年是“'+esc(personal.title)+'”年，最重要的是'+esc(action)+'</li>'
