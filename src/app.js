@@ -106,6 +106,29 @@ document.addEventListener("click", event => {
     history.replaceState(null, "", "#new");
     return;
   }
+
+  const generate = event.target.closest("#generate-script");
+  if (generate) {
+    const selected = [...document.querySelectorAll(".focus-chip input:checked")]
+      .map(input => input.closest(".focus-chip")?.innerText?.trim())
+      .filter(Boolean);
+    const panel = document.querySelector("#script-panel");
+    const body = panel?.querySelector(".script-body");
+    if (body) {
+      let summary = body.querySelector(".generated-focus-summary");
+      if (!summary) {
+        summary = document.createElement("div");
+        summary.className = "question-box generated-focus-summary";
+        body.prepend(summary);
+      }
+      summary.innerHTML = "<b>本次已选择的咨询重点：</b><br>" +
+        (selected.length ? selected.join(" · ") : "尚未选择咨询重点");
+    }
+    generate.textContent = "已生成本次咨询提词稿 ✓";
+    showToast("咨询提词稿已生成");
+    panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
 });
 
 document.addEventListener("submit", event => {
