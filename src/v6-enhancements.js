@@ -1,0 +1,174 @@
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, PHASE_META } from "./engine/blueprint.js?v=20260930-v6";
+import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
+import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
+import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
+
+const DIGITS=[1,2,3,4,5,6,7,8,9];
+const customerKey="aurmova.customers";
+const partnerKey=id=>"aurmova.partners."+id;
+const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const code=arr=>Array.isArray(arr)?arr.join(""):"";
+const loadCustomers=()=>{try{return JSON.parse(localStorage.getItem(customerKey)||"[]")}catch{return[]}};
+const saveCustomers=v=>localStorage.setItem(customerKey,JSON.stringify(v));
+const loadPartners=id=>{try{return JSON.parse(localStorage.getItem(partnerKey(id))||"[]")}catch{return[]}};
+const savePartners=(id,v)=>localStorage.setItem(partnerKey(id),JSON.stringify(v));
+const currentId=()=>new URLSearchParams((location.hash.split("?")[1]||"")).get("id");
+const currentCustomer=()=>loadCustomers().find(x=>String(x.id)===String(currentId()));
+
+function groupList(v){return [code(v.cause),code(v.process1),code(v.process2),code(v.result)]}
+function pill(n,type){return '<span class="energy-pill '+type+'">'+n+'</span>'}
+function energyBlock(scan,scope){
+  const info=describeEnergySet(scan,scope);
+  const present=info.present.map(x=>pill(x.number,"present")).join("")||'<span class="energy-empty">无</span>';
+  const missing=info.missing.map(x=>pill(x.number,"missing")).join("")||'<span class="energy-empty">无</span>';
+  const repeated=info.repeated.map(x=>pill(x.number,"repeated")).join("")||'<span class="energy-empty">无</span>';
+  const notes=(info.missing.length?info.missing:[{number:"✓",name:"没有明显缺失",low:"这一层1–9都有出现，继续结合位置与重复次数判断。"}]).map(x=>'<div><strong>'+esc(x.number)+' · '+esc(x.name)+'</strong><span>'+esc(x.low)+'</span></div>').join("");
+  return '<article class="card energy-card"><div class="energy-head"><div><small>SYSTEM DERIVATION</small><h3>'+esc(info.title)+'</h3></div><span>'+esc((scan.values||[]).join(" · "))+'</span></div><p>'+esc(info.note)+'</p><div class="energy-line"><b>拥有的能量</b><div>'+present+'</div></div><div class="energy-line"><b>缺少的能量</b><div>'+missing+'</div></div><div class="energy-line"><b>重复放大的能量</b><div>'+repeated+'</div></div><div class="energy-meaning-grid">'+notes+'</div></article>';
+}
+function jointBlock(c,label){
+  const e=findJointCode(c);
+  const body=e&&e.text?esc(e.text).replace(/\n/g,"<br>"):"这组号码已经由公式计算出来，详细原始课程资料仍按来源逐条复核。";
+  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(e?"已有资料":"待复核")+'</span></summary><div class="joint-body"><div class="source-tag">'+(e?"AURMOVA 已整理资料":"系统计算结果")+'</div><p>'+body+'</p></div></details>';
+}
+function phaseDetails(a,name){
+  const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
+  return '<div class="phase-detail-title"><div><small>'+esc(m.label)+' · '+esc(m.theme)+'</small><h3>'+esc(m.description)+'</h3></div><span>因果 → 过程 → 结果</span></div><div class="phase-code-grid">'+groups.map((g,i)=>'<div><small>'+esc(labels[i])+'</small><strong>'+g+'</strong></div>').join("")+'</div><div class="joint-stack">'+groups.map((g,i)=>jointBlock(g,labels[i])).join("")+'</div>';
+}
+function phaseButtons(a,current){
+  return Object.entries(a.phases).map(([name,v])=>{
+    const m=PHASE_META[name];
+    return '<button type="button" class="phase-card '+(name===current?"current selected":"")+'" data-v6-phase="'+name+'"><small>'+name+(name===current?" · 当前":"")+'</small><b>'+esc(m.theme)+'</b><span>因果 '+code(v.cause)+'</span><span>过程 '+code(v.process1)+' · '+code(v.process2)+'</span><span>结果 '+code(v.result)+'</span><em>点击查看完整解析 →</em></button>';
+  }).join("");
+}
+function yearPanel(c,target){
+  const set=calculateYearCycleSet(c.birthday,target||new Date().getFullYear());
+  const cards=[["去年",set.previous],["今年",set.current],["明年",set.next]].map(([label,y])=>'<article class="year-card '+(label==="今年"?"current-year":"")+'"><small>'+label+'</small><h3>'+y.year+' · 流年 '+y.number+'</h3><b>'+esc(y.title)+'</b><p>'+esc(y.summary)+'</p></article>').join("");
+  return '<div class="module-render"><div class="card-heading"><div><small>GOLDEN YEAR</small><h2>黄金流年 · 自动运算</h2></div><span>已确认公式</span></div><div class="year-control"><label>分析年份 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+(target||new Date().getFullYear())+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div><div class="formula-note">个人流年 = 出生日数字和 + 出生月份数字和 + 分析年份数字和 → 化简至 1–9。此公式来自你旧版 AURMOVA 已保存算法；未确认来源的流年公式不会自行杜撰。</div><div class="year-cycle-grid">'+cards+'</div></div>';
+}
+function partnerRow(p,i){
+  let result='<div class="partner-result empty-mini">填写生日后自动计算这位伙伴。</div>';
+  if(p.birthday){
+    const a=calculateBlueprint(p.birthday);
+    if(a) result='<div class="partner-result"><span>伙伴 '+(i+1)+'</span><b>主性格 '+a.mainPersonality+'</b><span>坐镇码 '+a.seatCode+'</span><span>父亲基因 '+code(Object.values(a.fatherGenes))+'</span><span>母亲基因 '+code(Object.values(a.motherGenes))+'</span></div>';
+  }
+  return '<article class="partner-card" data-v6-partner="'+i+'"><div class="partner-title"><b>合作伙伴 '+(i+1)+'</b><button type="button" class="danger-lite" data-v6-remove-partner="'+i+'">移除</button></div><div class="partner-fields"><label>姓名<input data-v6-partner-name="'+i+'" value="'+esc(p.name||"")+'" placeholder="伙伴姓名"></label><label>生日（日/月/年）<input inputmode="numeric" data-v6-partner-birthday="'+i+'" value="'+esc(p.birthday||"")+'" placeholder="21/11/1995"></label></div>'+result+'</article>';
+}
+function cooperationPanel(c){
+  const ps=loadPartners(c.id);
+  return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div><p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。</p><div id="v6-partners">'+(ps.length?ps.map(partnerRow).join(""):'<div class="empty-mini">还没有合作伙伴。</div>')+'</div><div class="actions"><button type="button" class="btn btn-primary" id="v6-add-partner">＋ 增加合作伙伴</button><button type="button" class="btn btn-light" id="v6-save-partners">保存合作伙伴</button></div></div>';
+}
+function renderModule(key,c){
+  const panel=document.querySelector("#v6-module-panel");
+  if(!panel||!c) return;
+  if(key==="黄金流年") panel.innerHTML=yearPanel(c);
+  else if(key==="合作蓝图") panel.innerHTML=cooperationPanel(c);
+  else if(key==="关系蓝图") panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT</small><h2>关系蓝图</h2></div><span>双方独立计算后交叉解读</span></div><p>关系模块会结合双方主性格、内心需要、原生家庭、位置与真实互动，不用单一合数替关系下定论。</p></div>';
+  else if(key==="亲子蓝图") panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>PARENT CHILD BLUEPRINT</small><h2>亲子蓝图</h2></div><span>儿童资料持续接入</span></div><p>这里会接入你已经整理的儿童1–9天赋、生活场景、父母模式、家庭系统、规则与边界资料。</p></div>';
+  else panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图</h2></div><span>Josephine Only</span></div><p>完整位置、三阶段、81组、缺失／挑战、内外能量与咨询提词全部保留在私人后台。</p></div>';
+}
+function scriptMarkup(c,a,phase){
+  const profile=PERSONALITY_LIBRARY[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]),missing=a.combinedEnergy.missing;
+  const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
+  const items=[
+    ["01 核心主题",'<h2>先从顾客现在真正想解决的事情开始</h2><p>主性格 '+a.mainPersonality+' · '+esc(profile.title)+'。当前处于 '+phase+'：'+esc(meta.theme)+'。</p><div class="question-box">今天我不会一开始就告诉你“你是什么样的人”。我想先听你现在最想看懂的一件事，再把数字与真实经历一层层对上。</div>'],
+    ["02 数字解析",'<h2>数字结构不是单看一个号码</h2><p>父亲基因 '+code(Object.values(a.fatherGenes))+' · 母亲基因 '+code(Object.values(a.motherGenes))+' · 坐镇码 '+a.seatCode+' · 内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'。</p><p>当前阶段四组：'+groups.join(" → ")+'。</p>'],
+    ["03 生活场景",'<h2>'+phase+' · '+esc(meta.theme)+'</h2><p>'+esc(meta.description)+'</p><div class="question-box">最近在这个领域有没有一件事情反复发生？你当时通常先顾自己、顾关系、顾结果，还是先观察再决定？</div>'],
+    ["04 开解方向",'<h2>从缺少与过强的能量找平衡</h2><p>内外综合缺少：'+(missing.length?missing.join("、"):"无明显缺失")+'。缺失不等于“没有能力”，而是比较不自动，需要通过选择、练习与环境来建立。</p><div class="question-box">'+(missing.slice(0,3).map(n=>n+'号：'+esc(ENERGY_LIBRARY[n].low)).join("<br>")||"这一盘内外1–9都有出现，重点转向重复次数与位置。")+'</div>'],
+    ["05 提问顾客",'<h2>用真实经历验证，而不是替顾客下结论</h2><div class="question-box">1）你最近最卡的是关系、事业、金钱、家庭，还是自己的方向？<br>2）压力最大的时候，你最常重复哪一种反应？<br>3）'+(phase==="21–40"?"你在工作和朋友关系里最容易承担什么角色？":phase==="41–60"?"你带孩子或下属时最容易要求他们做到什么？":"现在的家庭关系与晚年生活里，你最想保留和调整的是什么？")+'</div>'],
+    ["06 总结建议",'<h2>把数字翻译成现实行动</h2><p>今年个人流年 '+y.number+' · '+esc(y.title)+'：'+esc(y.summary)+'</p><div class="question-box">数字不是替你决定，而是帮你看见自己最容易重复的模式。今天先选一个最需要调整的地方，把它变成下一步行动。</div>']
+  ];
+  return {nav:items.map((x,i)=>'<button type="button" data-v6-script-step="'+i+'" class="'+(i===0?"active":"")+'">'+x[0]+'</button>').join(""),body:items.map((x,i)=>'<section data-v6-script-content="'+i+'" '+(i===0?"":"hidden")+'><p class="eyebrow">Josephine Consultation Notes</p>'+x[1]+'</section>').join("")};
+}
+function deleteCustomer(id){
+  const c=loadCustomers().find(x=>String(x.id)===String(id));
+  if(!c) return;
+  if(!confirm("确定删除 "+c.name+" 的顾客档案吗？\n删除后此装置上的这份资料会移除。")) return;
+  saveCustomers(loadCustomers().filter(x=>String(x.id)!==String(id)));
+  localStorage.removeItem(partnerKey(id));
+  if(location.hash.startsWith("#workspace")) location.hash="history"; else location.dispatchEvent(new HashChangeEvent("hashchange"));
+}
+function enhanceHistory(){
+  if(!location.hash.startsWith("#history")) return;
+  document.querySelectorAll(".customer-table tbody tr").forEach(row=>{
+    if(row.querySelector("[data-v6-delete]")) return;
+    const link=row.querySelector('a[href*="#workspace?id="]');
+    if(!link) return;
+    const id=new URLSearchParams(link.getAttribute("href").split("?")[1]).get("id");
+    const btn=document.createElement("button");
+    btn.type="button"; btn.className="danger-lite"; btn.dataset.v6Delete=id; btn.textContent="删除";
+    link.parentElement.appendChild(btn);
+  });
+}
+function enhanceWorkspace(){
+  if(!location.hash.startsWith("#workspace")) return;
+  const c=currentCustomer();
+  if(!c) return;
+  const a=calculateBlueprint(c.birthday),age=ageFromBirthday(c.birthday),phase=phaseForAge(age);
+  if(!a) return;
+
+  const quick=document.querySelector(".quick-actions");
+  if(quick&&!quick.querySelector("[data-v6-delete]")){
+    const btn=document.createElement("button");btn.type="button";btn.className="btn btn-light danger-text";btn.dataset.v6Delete=c.id;btn.textContent="删除顾客";quick.appendChild(btn);
+  }
+
+  const tabs=document.querySelector(".module-tabs");
+  if(tabs&&!tabs.dataset.v6){
+    tabs.dataset.v6="1";
+    const names=["人生蓝图","黄金流年","关系蓝图","亲子蓝图","合作蓝图"];
+    [...tabs.querySelectorAll(".module-tab")].forEach((b,i)=>{b.dataset.v6Module=names[i]||"人生蓝图";b.textContent=names[i]||b.textContent});
+    const panel=document.createElement("section");panel.id="v6-module-panel";panel.className="card module-info-panel";tabs.after(panel);renderModule("人生蓝图",c);
+  }
+
+  const structure=document.querySelector(".structure-grid");
+  if(structure&&!document.querySelector(".secondary-code-row")){
+    const row=document.createElement("div");row.className="secondary-code-row";
+    row.innerHTML='<div><span>潜意识码</span><b>'+a.subconsciousCode+'</b></div><div><span>家庭码</span><b>'+a.familyCode+'</b></div><div><span>对内性格</span><b>'+a.insidePersonalityCode+'</b></div><div><span>对外性格</span><b>'+a.outsidePersonalityCode+'</b></div><div><span>外心码</span><b>'+a.outerHeartCode+'</b></div>';
+    structure.after(row);
+  }
+
+  const phases=document.querySelector(".phases");
+  if(phases&&!phases.dataset.v6){
+    phases.dataset.v6="1";
+    const grid=phases.querySelector(".phase-grid");
+    if(grid){grid.innerHTML=phaseButtons(a,phase);const detail=document.createElement("div");detail.className="phase-details";detail.id="v6-phase-detail";detail.innerHTML=phaseDetails(a,phase);grid.after(detail)}
+    const badge=phases.querySelector(".card-heading>span");if(badge)badge.textContent="三个阶段都可以点击";
+  }
+
+  if(phases&&!document.querySelector("#v6-energy")){
+    const wrap=document.createElement("section");wrap.id="v6-energy";wrap.innerHTML='<div class="section-head"><div><p class="eyebrow">Energy Map</p><h2>内三角 × 外三角 × 内外综合</h2></div><span class="source-tag">系统推导｜依据你的公式与位置结构</span></div><div class="energy-grid">'+energyBlock(a.innerEnergy,"inner")+energyBlock(a.outerEnergy,"outer")+energyBlock(a.combinedEnergy,"combined")+'</div>';
+    phases.after(wrap);
+  }
+
+  const script=document.querySelector("#script-panel");
+  if(script&&!script.dataset.v6){
+    script.dataset.v6="1";
+    const s=scriptMarkup(c,a,phase),nav=script.querySelector(".script-nav"),body=script.querySelector(".script-body");
+    if(nav)nav.innerHTML='<b>咨询提词稿</b>'+s.nav;
+    if(body)body.innerHTML=s.body;
+  }
+}
+let queued=false;
+function enhance(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhanceHistory();enhanceWorkspace()})}
+window.addEventListener("hashchange",()=>setTimeout(enhance,0));
+new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+setTimeout(enhance,0);
+
+document.addEventListener("click",event=>{
+  const del=event.target.closest("[data-v6-delete]"); if(del){deleteCustomer(del.dataset.v6Delete);return}
+  const mod=event.target.closest("[data-v6-module]"); if(mod){document.querySelectorAll("[data-v6-module]").forEach(x=>x.classList.toggle("active",x===mod));renderModule(mod.dataset.v6Module,currentCustomer());document.querySelector("#v6-module-panel")?.scrollIntoView({behavior:"smooth",block:"start"});return}
+  const ph=event.target.closest("[data-v6-phase]"); if(ph){document.querySelectorAll("[data-v6-phase]").forEach(x=>x.classList.toggle("selected",x===ph));const c=currentCustomer(),a=c&&calculateBlueprint(c.birthday);if(a){const box=document.querySelector("#v6-phase-detail");if(box)box.innerHTML=phaseDetails(a,ph.dataset.v6Phase)}return}
+  const st=event.target.closest("[data-v6-script-step]"); if(st){const i=st.dataset.v6ScriptStep;document.querySelectorAll("[data-v6-script-step]").forEach(x=>x.classList.toggle("active",x===st));document.querySelectorAll("[data-v6-script-content]").forEach(x=>x.hidden=x.dataset.v6ScriptContent!==i);return}
+  const gen=event.target.closest("#generate-script"); if(gen){setTimeout(()=>{document.querySelector("#script-panel")?.scrollIntoView({behavior:"smooth",block:"start"})},0);return}
+  const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.push({name:"",birthday:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return{name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""}});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
+});
+document.addEventListener("input",event=>{
+  const el=event.target.closest("[data-v6-partner-name],[data-v6-partner-birthday]"); if(!el)return;
+  const c=currentCustomer();if(!c)return;const i=Number(el.dataset.v6PartnerName??el.dataset.v6PartnerBirthday),ps=loadPartners(c.id);if(!ps[i])ps[i]={name:"",birthday:""};
+  if(el.matches("[data-v6-partner-name]"))ps[i].name=el.value;else ps[i].birthday=el.value;savePartners(c.id,ps);
+});
+document.addEventListener("change",event=>{
+  const el=event.target.closest("[data-v6-partner-birthday]");if(!el)return;const c=currentCustomer();if(c)renderModule("合作蓝图",c);
+});
