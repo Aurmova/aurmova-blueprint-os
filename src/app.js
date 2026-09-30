@@ -41,3 +41,55 @@ return `${header("Consultation Workspace","Josephine 私人諮詢區",c?`${c.nam
 <section class="workspace-grid"><article class="card zone private"><div class="zone-label">▣ JOSEPHINE ONLY</div><h2>內部分析資料</h2>${a?`<div class="metric-grid internal-metrics"><div class="metric"><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div class="metric"><span>內心碼</span><strong>${a.innerCode}</strong></div><div class="metric"><span>坐鎮碼 MNO</span><strong>${a.seatCode}</strong></div></div><p class="subtitle">目前年齡 ${age} · 所屬 ${phase} 階段</p><div class="code-grid"><div><b>父親基因</b><span>I ${p.I} · J ${p.J} · M ${p.M}</span></div><div><b>母親基因</b><span>K ${p.K} · L ${p.L} · N ${p.N}</span></div></div>`:'<p class="subtitle">尚未選擇顧客。</p>'}<div class="tag-list">${INTERNAL_TERMS.map(x=>`<span class="tag">${x}</span>`).join("")}</div></article>
 <article class="card zone public"><div class="zone-label">◇ CLIENT REPORT</div><h2>顧客簡版報告區</h2><p class="subtitle">只允許 Josephine 人工確認後輸出；內部位置碼、公式、父母基因、坐鎮碼及提詞稿不會自動帶入。</p><div class="tag-list"><span class="tag">姓名</span><span class="tag">性別</span><span class="tag">生日</span><span class="tag">生肖</span><span class="tag">星座</span><span class="tag">主性格簡介</span></div></article></section>
 ${a?`<div class="section-head"><div><p class="eyebrow">Golden 20-Year Phases</p><h2>三階段能量</h2></div></div><section class="card phase-grid">${Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>過程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>結果 ${v.result.join("")}</span></div>`).join("")}</section>`:''}`}
+
+
+function showToast(message) {
+  const toast = document.querySelector("#toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+function render() {
+  const raw = location.hash.slice(1) || "home";
+  const route = raw.split("?")[0];
+  document.querySelectorAll(".nav-link").forEach(link => {
+    link.classList.toggle("active", link.dataset.route === route);
+  });
+  if (route === "new") app.innerHTML = newCustomer();
+  else if (route === "history") app.innerHTML = history();
+  else if (route === "workspace") app.innerHTML = workspace();
+  else app.innerHTML = home();
+  app.focus({ preventScroll: true });
+}
+
+window.addEventListener("hashchange", render);
+
+document.addEventListener("click", event => {
+  const project = event.target.closest("[data-project]");
+  if (project) {
+    app.innerHTML = newCustomer(project.dataset.project || "");
+    history.replaceState(null, "", "#new");
+    return;
+  }
+});
+
+document.addEventListener("submit", event => {
+  if (event.target.id !== "customer-form") return;
+  event.preventDefault();
+  const formData = Object.fromEntries(new FormData(event.target).entries());
+  const error = validateCustomer(formData);
+  if (error) {
+    showToast(error);
+    return;
+  }
+  const customer = createCustomer(formData);
+  const customers = loadCustomers();
+  customers.unshift(customer);
+  saveCustomers(customers);
+  showToast("私人檔案已建立");
+  location.hash = "workspace?id=" + encodeURIComponent(customer.id);
+});
+
+render();
