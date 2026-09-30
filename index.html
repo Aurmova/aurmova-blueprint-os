@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f0e8" />
+    <meta name="description" content="AURMOVA Blueprint OS — Josephine 的私人數字心理學諮詢工作台" />
+    <title>AURMOVA Blueprint OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主要導覽">
+        <a class="brand" href="#home" aria-label="AURMOVA Blueprint OS 首頁">
+          <span class="brand-mark">A</span>
+          <span><strong>AURMOVA</strong><small>BLUEPRINT OS</small></span>
+        </a>
+        <nav class="desktop-nav"></nav>
+        <div class="operator-card">
+          <span class="avatar">J</span><span><small>工作台持有人</small><strong>Josephine</strong></span>
+          <span class="status-dot" title="私人模式已啟用"></span>
+        </div>
+      </aside>
+
+      <main id="app" tabindex="-1"></main>
+
+      <nav class="mobile-nav" aria-label="手機版主要導覽"></nav>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
