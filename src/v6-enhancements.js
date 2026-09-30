@@ -224,11 +224,12 @@ function regionYearCopy(number,region){
 }
 
 function yearPriorityTable(){
-  return '<div class="year-priority card"><div class="card-heading"><div><small>READING PRIORITY</small><h3>黄金流年解读优先级</h3></div><span>先主旋律，再看细节</span></div>'
-    +'<div class="priority-row"><b>流年数</b><span>★★★★★</span><em>全年总基调／9年循环位置</em></div>'
-    +'<div class="priority-row"><b>流年落位</b><span>★★★★</span><em>影响哪个生活领域</em></div>'
-    +'<div class="priority-row"><b>流年联合码</b><span>★★★</span><em>今年的起因 → 过程 → 结果</em></div>'
-    +'<div class="priority-row"><b>大环境叠加</b><span>★★</span><em>同向加速还是节奏拉扯</em></div>'
+  return '<div class="year-priority card"><div class="card-heading"><div><small>READING WEIGHT</small><h3>黄金流年解读权重</h3></div><span>100% 主体判断</span></div>'
+    +'<div class="priority-row"><b>流年数本身</b><span>50%</span><em>全年主旋律／9年循环位置</em></div>'
+    +'<div class="priority-row"><b>流年落位</b><span>25%</span><em>今年的主场与生活领域</em></div>'
+    +'<div class="priority-row"><b>流年联合码</b><span>15%</span><em>起因 → 过程 → 结果</em></div>'
+    +'<div class="priority-row"><b>缺失数叠加</b><span>10%</span><em>顺手年还是补课年</em></div>'
+    +'<div class="priority-row auxiliary"><b>大环境流年</b><span>辅助</span><em>看同向加速、节奏拉扯或过渡气候，不计入上面100%</em></div>'
     +'</div>';
 }
 
@@ -265,10 +266,30 @@ function yearLocationPanel(a,personal){
 }
 
 function yearJointPanel(){
-  return '<div class="year-joint-wrap"><div class="card-heading"><div><small>YEAR JOINT CODE</small><h3>第三优先 · 流年联合码</h3></div><span>起因 → 过程 → 结果</span></div>'
-    +'<p class="panel-note">你目前已经明确“流年联合码是完整三位组合”，但这次资料没有给出三位数如何从流年与命盘自动生成的最终公式。系统暂时不自行发明公式。你可以先手动输入已算好的三位码，系统直接调用81组资料库；等你给我原始公式后再改为全自动。</p>'
+  return '<div class="year-joint-wrap"><div class="card-heading"><div><small>YEAR JOINT CODE</small><h3>第三优先 · 流年联合码</h3></div><span>权重15% · 起因 → 过程 → 结果</span></div>'
+    +'<p class="panel-note">已确认组成原则：流年数 + 命盘某条边的两个端点数字 → 一个三位联合码；百位看起因／触发点，十位看过程／经历方式，个位看结果／功课。命中流年数的那条边优先解读。</p>'
+    +'<div class="formula-note">目前还差最后一个技术细节：三位数里“流年数”和“两端点”的固定排列顺序尚未明确。为了不把你的系统算错，自动生成功能先不乱定顺序；你可以先输入已算好的3位码。</div>'
     +'<div class="year-joint-control"><input id="v12-year-joint-input" inputmode="numeric" maxlength="3" placeholder="例如 573"><button type="button" class="btn btn-light" id="v12-year-joint-lookup">读取联合码</button></div>'
-    +'<div id="v12-year-joint-output" class="year-region-detail"><div class="empty-mini">输入3位流年联合码后，会显示对应的AURMOVA资料。</div></div></div>';
+    +'<div id="v12-year-joint-output" class="year-region-detail"><div class="empty-mini">输入3位流年联合码后，会显示对应的AURMOVA资料，并检查缺失数是否在起因／过程／结果被激活。</div></div></div>';
+}
+
+function yearFinalSummary(a,personal,environment,climate){
+  const location=analyzeYearLocationPriority(a,personal.number);
+  const primary=location.primary.length?location.primary.map(x=>x.title).join("、"):"未出现直接主场";
+  const missing=(a.innerEnergy?.missing||[]).includes(personal.number);
+  const lesson=missing?"补课年":"顺手年";
+  const action=missing
+    ? "今年最重要的是不要逃开不熟悉的能力，而是把这股能量练成新的工具。"
+    : "今年可以优先调用自己已经比较熟悉的能力推进，再用流年提醒自己避免过度。";
+  return '<div class="year-final-summary card"><div class="card-heading"><div><small>FINAL READING FLOW</small><h3>完整解读总结</h3></div><span>6步整合</span></div>'
+    +'<ol class="year-summary-steps">'
+    +'<li><b>流年数：</b>'+personal.number+' · '+esc(personal.title)+'，属于'+esc(personal.cycle)+'，今年节奏偏“'+esc(personal.rhythm)+'”。</li>'
+    +'<li><b>流年主场：</b>'+esc(primary)+'。</li>'
+    +'<li><b>流年联合码：</b>按“起因 → 过程 → 结果”读取；自动排列顺序待你最后确认。</li>'
+    +'<li><b>缺失数叠加：</b>'+lesson+'。'+(missing?'流年数正好命中缺失数，属于最强激活。':'流年数没有直接命中缺失数，整体更容易用已有能力推进。')+'</li>'
+    +'<li><b>大环境：</b>'+environment.number+' · '+esc(environment.title)+'；与个人流年的关系是“'+esc(climate.type)+'”。</li>'
+    +'<li><b>一句话：</b>今年是“'+esc(personal.title)+'”年，最重要的是'+esc(action)+'</li>'
+    +'</ol></div>';
 }
 
 function yearPanel(c,target){
@@ -287,7 +308,7 @@ function yearPanel(c,target){
     +'<div class="card-heading"><div><small>GOLDEN YEAR</small><h2>黄金流年 · 时间定位器</h2></div><span>9年循环 · 先看节奏，再看落位</span></div>'
     +'<p class="panel-note">流年的重点不是“今年好不好”，而是你现在站在9年循环的哪个位置：这一年更适合开始、积累、扎根、突破、收获、反思，还是收尾。</p>'
     +'<div class="year-control"><label>分析年份 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
-    +'<div class="formula-note">个人流年 = 出生月 + 出生日 + 目标年份的数字和 → 化简至1–9。大环境流年 = 目标年份数字和 → 化简至1–9。</div>'
+    +'<div class="formula-note">个人流年 = 出生月份 + 出生日期 + 目标年份 → 逐位相加 → 化简至1–9。大环境流年 = 1 + 2 + 目标年份各位数字 → 化简至1–9。</div>'
     +'<div class="year-headline-grid"><div class="year-headline"><small>个人流年 · 第一优先</small><strong>'+personal.number+'</strong><b>'+esc(personal.title)+'</b><p>'+esc(personal.role)+'</p></div><div class="year-headline"><small>大环境流年</small><strong>'+environment.number+'</strong><b>'+esc(environment.title)+'</b><p>'+esc(environment.role)+'</p></div><div class="year-headline climate"><small>两者叠加</small><strong>'+esc(climate.type)+'</strong><p>'+esc(climate.description)+'</p></div></div>'
     +yearNineCycle(personal.number)
     +'<div class="year-focus-card"><div><small>今年节奏</small><b>'+esc(personal.rhythm)+'</b><p>'+esc(personal.advice)+'</p></div><div><small>今年最容易踩的坑</small><b>'+esc(personal.pit)+'</b><p>流年不是命运预言，而是提醒你今年最容易在哪种模式里失衡。</p></div></div>'
@@ -296,6 +317,7 @@ function yearPanel(c,target){
     +yearLocationPanel(a,personal)
     +missingActivationPanel(a,personal)
     +yearJointPanel()
+    +yearFinalSummary(a,personal,environment,climate)
     +'</div>';
 }
 
