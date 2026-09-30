@@ -6,10 +6,15 @@ const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
   add:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
   history:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5h16v15H4zM8 3v4m8-4v4M4 10h16"/></svg>',
-  work:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16v13H4zM9 7V4h6v3M4 12h16"/></svg>'
+  work:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16v13H4zM9 7V4h6v3M4 12h16"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5m4-5v5"/></svg>'
 };
 const routes = [
-  ["home","私人工作台","home"],["new","建立檔案","add"],["history","歷史檔案","history"],["workspace","諮詢區","work"]
+  ["home","私人工作台","home"],
+  ["new","建立顾客","add"],
+  ["history","顾客档案","history"],
+  ["workspace","咨询工作台","work"],
+  ["delete","删除档案","trash"]
 ];
 const app = document.querySelector("#app");
 const loadCustomers = () => JSON.parse(localStorage.getItem("aurmova.customers") || "[]");
@@ -91,7 +96,7 @@ function render() {
     link.classList.toggle("active", link.dataset.route === route);
   });
   if (route === "new") app.innerHTML = newCustomer();
-  else if (route === "history") app.innerHTML = history();
+  else if (route === "history" || route === "delete") app.innerHTML = history();
   else if (route === "workspace") app.innerHTML = workspace();
   else app.innerHTML = home();
   app.focus({ preventScroll: true });
