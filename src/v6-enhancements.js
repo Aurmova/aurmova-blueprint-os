@@ -114,6 +114,109 @@ function yearRegions(a){
   ].map(x=>({...x,...YEAR_REGION_META[x.key]}));
 }
 
+const YEAR_CODE_POSITION = ["起因","过程","结果"];
+const MISSING_YEAR_ACTIVATION = {
+  1:{feel:"不敢做决定、不敢当领导",pattern:"什么都让别人定",growth:"练习自己决定、承担结果与主动表达"},
+  2:{feel:"害怕合作、自来熟或过度防备",pattern:"要么拒人千里，要么讨好过度",growth:"练习合作边界、表达需要与保持自我"},
+  3:{feel:"想表达的冲动很强，但一开口就卡住",pattern:"要么憋着不说，要么说太多",growth:"练习清楚表达、稳定输出与先想后说"},
+  4:{feel:"被逼坐下来坚持做一件无聊但重要的事",pattern:"要么拖延到底，要么半途而废",growth:"练习耐心、流程、纪律与长期完成"},
+  5:{feel:"生活突然变，被迫应对变化",pattern:"要么死守不变，要么冲动乱变",growth:"练习弹性、判断变化与有边界地尝试"},
+  6:{feel:"家庭／关系责任突然加重",pattern:"要么逃避责任，要么扛太多",growth:"练习责任边界、照顾自己与可持续付出"},
+  7:{feel:"信息过载但看不懂，需要深度思考",pattern:"要么拒绝思考，要么钻牛角尖",growth:"练习筛选资讯、独立思考与把研究落地"},
+  8:{feel:"和钱／权力相关的事躲不掉",pattern:"要么不敢谈钱，要么急功近利",growth:"练习谈条件、资源管理、风险意识与承担权责"},
+  9:{feel:"被推到利他、帮助或更大格局的位置上",pattern:"要么只为自己，要么过度牺牲",growth:"练习理想与现实并行，帮助别人也保留边界"}
+};
+
+function countDigitInCode(code,number){
+  return String(code||"").split("").filter(x=>Number(x)===Number(number)).length;
+}
+
+function digitPositionsInCode(code,number){
+  return String(code||"").split("").map((x,i)=>Number(x)===Number(number)?i:null).filter(i=>i!==null);
+}
+
+function analyzeYearLocationPriority(a,number){
+  const regions=yearRegions(a).map(r=>{
+    const positions=digitPositionsInCode(r.code,number);
+    const inner=["father","mother","core"].includes(r.key);
+    return {...r,inner,positions,count:positions.length,direct:positions.length>0};
+  });
+  const hits=regions.filter(r=>r.direct);
+  if(!hits.length) return {regions,hits,primary:[],secondary:[],background:[],note:"六个主要区域没有直接命中这个流年数。"};
+
+  let pool=hits;
+  let secondary=[];
+  const innerHits=hits.filter(r=>r.inner);
+  const outerHits=hits.filter(r=>!r.inner);
+
+  if(innerHits.length){
+    pool=innerHits;
+    secondary=outerHits;
+  }
+
+  let primary=[];
+  const core=pool.find(r=>r.key==="core");
+  if(core){
+    primary=[core];
+    secondary=[...pool.filter(r=>r.key!=="core"),...secondary];
+  }else{
+    const maxCount=Math.max(...pool.map(r=>r.count));
+    primary=pool.filter(r=>r.count===maxCount);
+    secondary=[...pool.filter(r=>r.count<maxCount),...secondary];
+  }
+
+  const background=[];
+  if(primary.some(r=>r.key==="core")){
+    for(const key of ["father","mother"]){
+      const r=regions.find(x=>x.key===key);
+      if(r&&!hits.some(h=>h.key===key)) background.push(r);
+    }
+  }
+
+  const note=primary.length===1
+    ? "主场："+primary[0].title+"。判断依据：先看直接命中，再看内三角优先；主性格区命中时优先级更高。"
+    : "目前有多个并列主场："+primary.map(x=>x.title).join("、")+"。它们的直接命中强度相近；系统保留并列，不擅自编造未确认的额外权重。";
+
+  return {regions,hits,primary,secondary,background,note};
+}
+
+function missingActivationSummary(a,personalNumber,jointCode=""){
+  const missing=a.innerEnergy?.missing||[];
+  const joint=String(jointCode||"").replace(/\D/g,"").slice(0,3);
+  const direct=missing.includes(Number(personalNumber));
+  const jointHits=missing.filter(n=>joint.includes(String(n)));
+
+  const rows=missing.map(n=>{
+    const cfg=MISSING_YEAR_ACTIVATION[n];
+    const positions=digitPositionsInCode(joint,n);
+    const directHit=n===Number(personalNumber);
+    let level="休眠";
+    let detail="个人流年没有直接命中；"+(joint?"流年联合码里也没有出现。":"等待输入流年联合码后再判断中等激活。");
+    if(directHit){
+      level="最强激活";
+      detail="流年数本身 = 缺失数。属于“补课年”式的强触发：今年更容易遇到这股能量相关的现实课题。";
+    }else if(positions.length){
+      level="中等激活";
+      detail="缺失数出现在流年联合码的"+positions.map(i=>"第"+(i+1)+"位（"+YEAR_CODE_POSITION[i]+"）").join("、")+"。";
+    }
+    return {n,cfg,level,detail,directHit,positions};
+  });
+
+  return {missing,direct,jointHits,rows};
+}
+
+function missingActivationPanel(a,personal){
+  const result=missingActivationSummary(a,personal.number);
+  if(!result.missing.length){
+    return '<div class="year-missing-wrap"><div class="card-heading"><div><small>MISSING NUMBER ACTIVATION</small><h3>流年 × 缺失数激活</h3></div><span>补课机制</span></div><div class="empty-mini">三角形内目前没有缺失数，因此没有“流年直接命中缺失数”的判断。</div></div>';
+  }
+  return '<div class="year-missing-wrap"><div class="card-heading"><div><small>MISSING NUMBER ACTIVATION</small><h3>流年 × 缺失数激活</h3></div><span>直接命中 ＞ 联合码激活 ＞ 未激活</span></div>'
+    +'<p class="panel-note">当流年数正好等于缺失数，是最强激活；流年联合码里出现缺失数，是次一级激活。这里的“激活”不是坏事，而是今年更容易被现实推着练习原本不熟悉的能力。</p>'
+    +'<div class="missing-activation-grid">'+result.rows.map(x=>'<div class="missing-activation-card '+(x.directHit?'strong':'')+'"><div><strong>缺失 '+x.n+'</strong><span>'+esc(x.level)+'</span></div><p>'+esc(x.cfg.feel)+'</p><small>反模式：'+esc(x.cfg.pattern)+'</small><em>'+esc(x.detail)+'</em></div>').join("")+'</div>'
+    +'<div class="formula-note">输入“流年联合码”后，系统会继续判断缺失数落在第1位起因、第2位过程还是第3位结果，并把卡点位置一起显示。</div>'
+    +'</div>';
+}
+
 function regionYearCopy(number,region){
   if(number===7 && YEAR7_REGION_EXAMPLES[region.key]) return YEAR7_REGION_EXAMPLES[region.key];
   const y=YEAR_THEMES[number];
@@ -137,19 +240,28 @@ function yearNineCycle(currentNumber){
 }
 
 function yearLocationPanel(a,personal){
-  const regions=yearRegions(a);
-  const hits=regions.filter(r=>String(r.code).includes(String(personal.number)));
-  const cards=regions.map(r=>{
-    const hit=String(r.code).includes(String(personal.number));
-    return '<button type="button" class="year-region-card '+(hit?'hit':'')+'" data-v12-year-region="'+r.key+'">'
+  const analysis=analyzeYearLocationPriority(a,personal.number);
+  const primaryKeys=new Set(analysis.primary.map(x=>x.key));
+  const secondaryKeys=new Set(analysis.secondary.map(x=>x.key));
+  const backgroundKeys=new Set(analysis.background.map(x=>x.key));
+
+  const cards=analysis.regions.map(r=>{
+    const roles=r.positions.map(i=>YEAR_CODE_POSITION[i]).join("／");
+    const cls=primaryKeys.has(r.key)?"primary-hit":secondaryKeys.has(r.key)?"secondary-hit":backgroundKeys.has(r.key)?"background-hit":r.direct?"hit":"";
+    return '<button type="button" class="year-region-card '+cls+'" data-v12-year-region="'+r.key+'">'
       +'<small>'+esc(r.label)+'</small><b>'+esc(r.title)+'</b><span>'+esc(r.code)+'</span>'
-      +(hit?'<em>命盘中有流年数 '+personal.number+'</em>':'')
+      +(r.direct?'<em>直接命中 '+personal.number+(roles?' · '+esc(roles):'')+(r.count>1?' · 出现'+r.count+'次':'')+'</em>':'')
+      +(backgroundKeys.has(r.key)?'<em>相邻连带／背景音</em>':'')
       +'</button>';
   }).join("");
-  const note=hits.length
-    ? '当前命盘里，流年数 '+personal.number+' 出现在 '+hits.map(x=>x.title).join('、')+'。如果同一个数字同时出现在多个区域，系统不会擅自指定唯一“主场”；先显示全部命中位置，再由Josephine结合流年落位公式与真实事件确认。'
-    : '当前六个主要区域代码里没有直接出现流年数 '+personal.number+'。这不代表没有流年影响；流年本身仍是全年主旋律。落位的最终自动算法仍以你的原始流年落位公式为准。';
-  return '<div class="year-location-wrap"><div class="card-heading"><div><small>YEAR POSITION</small><h3>第二优先 · 流年数落在命盘哪里</h3></div><span>流年数 = 什么能量｜位置 = 哪个领域</span></div><div class="year-region-grid">'+cards+'</div><div class="formula-note">'+esc(note)+'</div><div id="v12-year-region-detail" class="year-region-detail"><div class="empty-mini">点击一个区域，查看这个流年数字落在该生活领域时怎么解读。</div></div></div>';
+
+  const hierarchy='<div class="year-hit-hierarchy"><span>① 直接命中 ＞ ② 流年联合码共振 ＞ ③ 相邻连带</span><span>内外同时触动：内三角优先</span><span>主性格区直接命中：主场优先</span></div>';
+
+  return '<div class="year-location-wrap"><div class="card-heading"><div><small>YEAR POSITION</small><h3>第二优先 · 流年数落在命盘哪里</h3></div><span>流年数 = 什么能量｜位置 = 哪个领域</span></div>'
+    +hierarchy
+    +'<div class="year-region-grid">'+cards+'</div>'
+    +'<div class="formula-note">'+esc(analysis.note)+'</div>'
+    +'<div id="v12-year-region-detail" class="year-region-detail"><div class="empty-mini">点击一个区域，查看这个流年数字落在该生活领域时怎么解读。</div></div></div>';
 }
 
 function yearJointPanel(){
@@ -182,6 +294,7 @@ function yearPanel(c,target){
     +'<div class="year-cycle-grid">'+cards+'</div>'
     +yearPriorityTable()
     +yearLocationPanel(a,personal)
+    +missingActivationPanel(a,personal)
     +yearJointPanel()
     +'</div>';
 }
@@ -439,12 +552,17 @@ document.addEventListener("click",event=>{
     const box=document.querySelector("#v12-year-joint-output"); if(!box)return;
     if(input.length!==3){box.innerHTML='<div class="empty-mini">请输入完整3位流年联合码。</div>';return}
     const structured=getFlootKnowledge(input),legacy=findJointCode(input);
+    const target=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();
+    const personal=calculateYearCycleSet(c.birthday,target).current;
+    const a=calculateBlueprint(c.birthday);
+    const activation=missingActivationSummary(a,personal.number,input);
+    const activationHtml=activation.rows.filter(x=>x.directHit||x.positions.length).map(x=>'<div class="joint-activation"><b>缺失 '+x.n+' · '+esc(x.level)+'</b><span>'+esc(x.detail)+'</span><small>体感：'+esc(x.cfg.feel)+'｜反模式：'+esc(x.cfg.pattern)+'</small></div>').join("");
     if(structured){
-      box.innerHTML='<div class="source-tag">AURMOVA 资料库</div><h4>'+esc(input)+' · '+esc(structured.title||"联合码")+'</h4><p><b>起因：</b>'+esc(structured.logic||"")+'</p><p><b>优势：</b>'+esc(structured.strengths||"")+'</p><p><b>卡点：</b>'+esc(structured.challenges||"")+'</p><p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>';
+      box.innerHTML='<div class="source-tag">AURMOVA 资料库</div><h4>'+esc(input)+' · '+esc(structured.title||"联合码")+'</h4><p><b>起因：</b>'+esc(structured.logic||"")+'</p><p><b>优势：</b>'+esc(structured.strengths||"")+'</p><p><b>卡点：</b>'+esc(structured.challenges||"")+'</p><p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>'+(activationHtml?'<div class="joint-activation-wrap"><h5>缺失数被流年激活</h5>'+activationHtml+'</div>':'');
     }else if(legacy?.text){
-      box.innerHTML='<div class="source-tag">AURMOVA 旧版资料库</div><h4>'+esc(input)+'</h4><p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>';
+      box.innerHTML='<div class="source-tag">AURMOVA 旧版资料库</div><h4>'+esc(input)+'</h4><p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>'+(activationHtml?'<div class="joint-activation-wrap"><h5>缺失数被流年激活</h5>'+activationHtml+'</div>':'');
     }else{
-      box.innerHTML='<div class="empty-mini">这组流年联合码暂时没有命中现有81组资料。</div>';
+      box.innerHTML='<div class="empty-mini">这组流年联合码暂时没有命中现有81组资料。</div>'+(activationHtml?'<div class="joint-activation-wrap"><h5>但已检测到缺失数激活</h5>'+activationHtml+'</div>':'');
     }
     return
   }
