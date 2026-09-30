@@ -94,65 +94,100 @@ export function calculateBlueprint(birthday) {
   const ys = String(yyyy).padStart(4,"0").split("").map(Number);
   const [A,B] = ds, [C,D] = ms, [E,F,G,H] = ys;
 
+  // 主三角形：先日、再月、再年。
   const I = add(A,B);
   const J = add(C,D);
   const K = add(E,F);
-  // Josephine fixed rule: when the birth year is 2000, the final 00 pair is treated as 5 for L.
+  // Josephine 固定规则：2000 年出生时，年份后两位 00 的 L 位按 5 处理。
   const L = (yyyy === 2000 && G === 0 && H === 0) ? 5 : add(G,H);
   const M = add(I,J);
   const N = add(K,L);
   const O = add(M,N);
 
-  const S = add(I,M), T = add(J,M), U = add(S,T);
-  const P = add(N,O), Q = add(M,O), R = add(P,Q);
-  const V = add(K,N), W = add(L,N), X = add(V,W);
+  // 三角形外圈延伸：严格按 Josephine 最新图示位置命名。
+  // 左侧延伸：I/J/M → X/W/S
+  const X = add(I,M);
+  const W = add(J,M);
+  const S = add(X,W);
+  // 上方延伸：M/N/O → P/Q/R（图示公式：Q=N+O，P=M+O，R=Q+P）
+  const Q = add(N,O);
+  const P = add(M,O);
+  const R = add(Q,P);
+  // 右侧延伸：K/L/N → V/U/T
+  const V = add(K,N);
+  const U = add(L,N);
+  const T = add(V,U);
 
-  const positions = {A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,S,T,U,P,Q,R,V,W,X};
+  const positions = {A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,X,W,S,Q,P,R,V,U,T};
 
+  // 六组基础联合数字：三组内部 + 三组外圈。
+  const jointCodes6 = {
+    IJM:[I,J,M],
+    KLN:[K,L,N],
+    MNO:[M,N,O],
+    SWX:[S,W,X],
+    RQP:[R,Q,P],
+    TVU:[T,V,U]
+  };
+
+  // 十二组阶段联合码：按图示固定位置顺序读取。
   const phases = {
     "21–40":{
-      cause:[I,J,M],
-      process1:[I,M,S],
-      process2:[J,M,T],
-      result:[S,T,U]
+      cause:[I,J,M],          // IJM
+      process1:[I,M,X],       // IMX
+      process2:[J,M,W],       // JMW
+      result:[W,X,S]          // WXS
     },
     "41–60":{
-      cause:[M,N,O],
-      process1:[M,O,Q],
-      process2:[N,O,P],
-      result:[P,Q,R]
+      cause:[M,N,O],          // MNO
+      process1:[M,O,P],       // MOP
+      process2:[N,O,Q],       // NOQ
+      result:[P,Q,R]          // PQR
     },
     "61+":{
-      cause:[K,L,N],
-      process1:[K,N,V],
-      process2:[L,N,W],
-      result:[V,W,X]
+      cause:[K,L,N],          // KLN
+      process1:[K,N,V],       // KNV
+      process2:[L,N,U],       // LNU
+      result:[V,U,T]          // VUT
     }
   };
 
-  // Core triangle and the three age-stage result triangles are kept separate so Josephine
-  // can see 内缺、外缺 and 内外合并缺失 independently.
-  const innerTriangle = [I,J,M,K,L,N,O];
-  const outerTriangle = [S,T,U,P,Q,R,V,W,X];
+  // 三角形内部 7 个数字与外圈 9 个数字分别统计能量。
+  const innerTriangle = [I,J,K,L,M,N,O];
+  const outerTriangle = [X,W,S,Q,P,R,V,U,T];
   const combinedTriangle = [...innerTriangle, ...outerTriangle];
 
   const innerEnergy = scanEnergy(innerTriangle);
   const outerEnergy = scanEnergy(outerTriangle);
   const combinedEnergy = scanEnergy(combinedTriangle);
 
+  // 外心数字只会落在 3 / 6 / 9。
+  const outerHeartCode = add(S,R,T);
+  const outerHeartMeaning = ({
+    3:"理想主义",
+    6:"现实主义",
+    9:"远见主义"
+  })[outerHeartCode] || "";
+
   return {
     positions,
     birthDigits:[A,B,C,D,E,F,G,H],
     mainPersonality:O,
     seatCode:[M,N,O].join(""),
+    fatherCode:[I,J,M].join(""),
+    motherCode:[K,L,N].join(""),
+    startingThoughtCode:I,
     innerCode:innerCode(O),
+    // 旧资料中潜意识码仍独立保留，待 Josephine 的最终原始公式复核。
     subconsciousCode:add(I,O,L),
-    outerHeartCode:add(U,R,X),
+    outerHeartCode,
+    outerHeartMeaning,
     familyCode:[J,K].join(""),
     insidePersonalityCode:[M,O,Q].join(""),
     outsidePersonalityCode:[N,O,P].join(""),
     fatherGenes:{I,J,M},
     motherGenes:{K,L,N},
+    jointCodes6,
     phases,
     innerTriangle,
     outerTriangle,
