@@ -2,6 +2,7 @@ import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
+import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -26,9 +27,28 @@ function energyBlock(scan,scope){
   return '<article class="card energy-card"><div class="energy-head"><div><small>SYSTEM DERIVATION</small><h3>'+esc(info.title)+'</h3></div><span>'+esc((scan.values||[]).join(" · "))+'</span></div><p>'+esc(info.note)+'</p><div class="energy-line"><b>拥有的能量</b><div>'+present+'</div></div><div class="energy-line"><b>缺少的能量</b><div>'+missing+'</div></div><div class="energy-line"><b>重复放大的能量</b><div>'+repeated+'</div></div><div class="energy-meaning-grid">'+notes+'</div></article>';
 }
 function jointBlock(c,label){
-  const e=findJointCode(c);
-  const body=e&&e.text?esc(e.text).replace(/\n/g,"<br>"):"这组号码已经由公式计算出来，详细原始课程资料仍按来源逐条复核。";
-  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(e?"已有资料":"待复核")+'</span></summary><div class="joint-body"><div class="source-tag">'+(e?"AURMOVA 已整理资料":"系统计算结果")+'</div><p>'+body+'</p></div></details>';
+  const structured=getFlootKnowledge(c);
+  const legacy=findJointCode(c);
+  let body="";
+  let source="系统计算结果";
+  if(structured){
+    source="Floot × AURMOVA 结构化资料";
+    body='<h4>'+esc(structured.title||c)+'</h4>'
+      +'<p><b>核心逻辑：</b>'+esc(structured.logic||"")+'</p>'
+      +'<p><b>正向优势：</b>'+esc(structured.strengths||"")+'</p>'
+      +'<p><b>常见卡点：</b>'+esc(structured.challenges||"")+'</p>'
+      +(structured.order?'<p><b>顺序差异：</b>'+esc(structured.order)+'</p>':"")
+      +'<p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>'
+      +(structured.positions?'<p><b>位置资料：</b>'+esc(structured.positions)+'</p>':"")
+      +(structured.script?'<div class="question-box"><b>Josephine 可直接照读：</b><br>'+esc(structured.script)+'</div>':"")
+      +((TALK_QUESTIONS[c]||[]).map((q,i)=>'<p><b>追问 '+(i+1)+'：</b>'+esc(q)+'</p>').join(""));
+  }else if(legacy&&legacy.text){
+    source="AURMOVA 旧版资料库";
+    body='<p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>';
+  }else{
+    body='<p>这组号码已经由公式计算出来，详细原始课程资料仍按来源逐条复核，不会用AI臆测冒充原始课程内容。</p>';
+  }
+  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(structured||legacy?"已有资料":"待复核")+'</span></summary><div class="joint-body"><div class="source-tag">'+source+'</div>'+body+'</div></details>';
 }
 function phaseDetails(a,name){
   const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
@@ -67,11 +87,11 @@ function renderModule(key,c){
   else panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图</h2></div><span>Josephine Only</span></div><p>完整位置、三阶段、81组、缺失／挑战、内外能量与咨询提词全部保留在私人后台。</p></div>';
 }
 function scriptMarkup(c,a,phase){
-  const profile=PERSONALITY_LIBRARY[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]),missing=a.combinedEnergy.missing;
+  const profile=PERSONALITY_LIBRARY[a.mainPersonality],mainDetail=MAIN_DETAIL[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]),missing=a.combinedEnergy.missing;
   const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
   const items=[
     ["01 核心主题",'<h2>先从顾客现在真正想解决的事情开始</h2><p>主性格 '+a.mainPersonality+' · '+esc(profile.title)+'。当前处于 '+phase+'：'+esc(meta.theme)+'。</p><div class="question-box">今天我不会一开始就告诉你“你是什么样的人”。我想先听你现在最想看懂的一件事，再把数字与真实经历一层层对上。</div>'],
-    ["02 数字解析",'<h2>数字结构不是单看一个号码</h2><p>父亲基因 '+code(Object.values(a.fatherGenes))+' · 母亲基因 '+code(Object.values(a.motherGenes))+' · 坐镇码 '+a.seatCode+' · 内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'。</p><p>当前阶段四组：'+groups.join(" → ")+'。</p>'],
+    ["02 数字解析",'<h2>数字结构不是单看一个号码</h2><p>父亲基因 '+code(Object.values(a.fatherGenes))+' · 母亲基因 '+code(Object.values(a.motherGenes))+' · 坐镇码 '+a.seatCode+' · 内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'。</p><p>当前阶段四组：'+groups.join(" → ")+'。</p>'+(mainDetail?'<div class="question-box"><b>主性格 '+a.mainPersonality+'：</b> '+esc(mainDetail.thinking)+' '+esc(mainDetail.behavior)+'<br><b>压力时：</b>'+esc(mainDetail.stress)+'<br><b>天赋：</b>'+esc(mainDetail.talents)+'</div>':"")],
     ["03 生活场景",'<h2>'+phase+' · '+esc(meta.theme)+'</h2><p>'+esc(meta.description)+'</p><div class="question-box">最近在这个领域有没有一件事情反复发生？你当时通常先顾自己、顾关系、顾结果，还是先观察再决定？</div>'],
     ["04 开解方向",'<h2>从缺少与过强的能量找平衡</h2><p>内外综合缺少：'+(missing.length?missing.join("、"):"无明显缺失")+'。缺失不等于“没有能力”，而是比较不自动，需要通过选择、练习与环境来建立。</p><div class="question-box">'+(missing.slice(0,3).map(n=>n+'号：'+esc(ENERGY_LIBRARY[n].low)).join("<br>")||"这一盘内外1–9都有出现，重点转向重复次数与位置。")+'</div>'],
     ["05 提问顾客",'<h2>用真实经历验证，而不是替顾客下结论</h2><div class="question-box">1）你最近最卡的是关系、事业、金钱、家庭，还是自己的方向？<br>2）压力最大的时候，你最常重复哪一种反应？<br>3）'+(phase==="21–40"?"你在工作和朋友关系里最容易承担什么角色？":phase==="41–60"?"你带孩子或下属时最容易要求他们做到什么？":"现在的家庭关系与晚年生活里，你最想保留和调整的是什么？")+'</div>'],
