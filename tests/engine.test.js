@@ -1,0 +1,4 @@
+import test from "node:test";import assert from "node:assert/strict";import{calculateBlueprint,innerCode,phaseForAge}from"../src/engine/blueprint.js";
+test("內心碼按主性格×2化簡",()=>{assert.equal(innerCode(5),1);assert.equal(innerCode(8),7);assert.equal(innerCode(9),9)});
+test("三階段固定結構與坐鎮碼",()=>{const r=calculateBlueprint("21/11/1995");assert.equal(r.mainPersonality,r.positions.O);assert.equal(r.seatCode,`${r.positions.M}${r.positions.N}${r.positions.O}`);assert.deepEqual(r.phases["21–40"].cause,[r.positions.I,r.positions.J,r.positions.M]);assert.deepEqual(r.phases["41–60"].result,[r.positions.P,r.positions.Q,r.positions.R]);assert.deepEqual(r.phases["61+"].result,[r.positions.V,r.positions.W,r.positions.X])});
+test("年齡階段",()=>{assert.equal(phaseForAge(21),"21–40");assert.equal(phaseForAge(41),"41–60");assert.equal(phaseForAge(61),"61+")});
