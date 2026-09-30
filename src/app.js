@@ -1,5 +1,5 @@
 import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=20260930-v6";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=20260930-v12";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=20261001-v14";
 import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=20260930-v6";
 
 const icons = {
