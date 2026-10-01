@@ -601,22 +601,96 @@ function refreshConsultationConsole(step){
   const a=calculateBlueprint(c.birthday),phase=phaseForAge(ageFromBirthday(c.birthday)); if(!a)return;
   const old=document.querySelector("#v7-answer-console"); if(old) old.outerHTML=consultationConsole(c,a,phase,Number(step)||0);
 }
-function scriptMarkup(c,a,phase){
-  const profile=PERSONALITY_LIBRARY[a.mainPersonality],mainDetail=MAIN_DETAIL[a.mainPersonality],meta=PHASE_META[phase],groups=groupList(a.phases[phase]);
-  const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
-  const triangleHighlights=[1,2,3,4,5,6,7,8,9].map(n=>{
-    const innerCount=Number(a.innerEnergy?.counts?.[n]||0),outerCount=Number(a.outerEnergy?.counts?.[n]||0);
-    return {n,innerCount,outerCount,result:getTrianglePattern(n,innerCount,outerCount)};
-  }).filter(x=>x.result&&(x.innerCount===0||x.outerCount===0||x.innerCount>=2));
+function serviceChecklist(c){
+  const state=loadService(c.id);
   const items=[
-    ["01 核心主题",'<h2>先从顾客现在真正想解决的事情开始</h2><p>主性格 '+a.mainPersonality+' · '+esc(profile.title)+'。当前处于 '+phase+'：'+esc(meta.theme)+'。</p><div class="question-box">今天我不会一开始就告诉你“你是什么样的人”。我想先听你现在最想看懂的一件事，再把数字与真实经历一层层对上。</div>'],
-    ["02 数字解析",'<h2>数字结构不是单看一个号码</h2><p>父亲基因 '+code(Object.values(a.fatherGenes))+' · 母亲基因 '+code(Object.values(a.motherGenes))+' · 坐镇码 '+a.seatCode+' · 内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'。</p><p>当前阶段四组：'+groups.join(" → ")+'。</p>'+(mainDetail?'<div class="question-box"><b>主性格 '+a.mainPersonality+'：</b> '+esc(mainDetail.thinking)+' '+esc(mainDetail.behavior)+'<br><b>压力时：</b>'+esc(mainDetail.stress)+'<br><b>天赋：</b>'+esc(mainDetail.talents)+'</div>':"")],
-    ["03 生活场景",'<h2>'+phase+' · '+esc(meta.theme)+'</h2><p>'+esc(meta.description)+'</p><div class="question-box">最近在这个领域有没有一件事情反复发生？你当时通常先顾自己、顾关系、顾结果，还是先观察再决定？</div>'],
-    ["04 开解方向",'<h2>从三角形内外数字表现找调整方向</h2><p>这里不再用“内三角能量／外三角能量／内外综合能量”的读法，而是按照三角形内外有没有这个数字，以及三角形内出现次数来判断。</p><div class="question-box">'+(triangleHighlights.length?triangleHighlights.slice(0,6).map(x=>x.n+'号｜'+esc(x.result.state)+'：'+esc(x.result.description)).join("<br>"):"这张盘内外结构没有明显缺失或高重复，继续结合位置与联合码看。")+'</div>'],
-    ["05 提问顾客",'<h2>用真实经历验证，而不是替顾客下结论</h2><div class="question-box">1）你最近最卡的是关系、事业、金钱、家庭，还是自己的方向？<br>2）压力最大的时候，你最常重复哪一种反应？<br>3）'+(phase==="21–40"?"你在工作和朋友关系里最容易承担什么角色？":phase==="41–60"?"你带孩子或下属时最容易要求他们做到什么？":"现在的家庭关系与晚年生活里，你最想保留和调整的是什么？")+'</div>'],
-    ["06 总结建议",'<h2>把数字翻译成现实行动</h2><p>今年个人流年 '+y.number+' · '+esc(y.title)+'：'+esc(y.summary)+'</p><div class="question-box">数字不是替你决定，而是帮你看见自己最容易重复的模式。今天先选一个最需要调整的地方，把它变成下一步行动。</div>']
+    ["intake","资料已确认"],
+    ["chart","完整排盘完成"],
+    ["contrast","最大反差已标记"],
+    ["opening","开场句已准备"],
+    ["session","咨询已完成"],
+    ["summary","会后总结已发送"],
+    ["followup","1–2天跟进已完成"]
   ];
-  return {nav:items.map((x,i)=>'<button type="button" data-v6-script-step="'+i+'" class="'+(i===0?"active":"")+'">'+x[0]+'</button>').join(""),body:items.map((x,i)=>'<section data-v6-script-content="'+i+'" '+(i===0?"":"hidden")+'><p class="eyebrow">Josephine Consultation Notes</p>'+x[1]+'</section>').join("")+consultationConsole(c,a,phase,0)};
+  return '<div class="service-checklist"><div class="card-heading"><div><small>CONSULTATION SERVICE FLOW</small><h3>从预约到跟进 · 服务进度</h3></div><span>Josephine 私人使用</span></div>'
+    +'<div class="service-check-grid">'+items.map(([key,label])=>'<label><input type="checkbox" data-v18-service-check="'+key+'" '+(state[key]?'checked':'')+'><span>'+label+'</span></label>').join("")+'</div>'
+    +'</div>';
+}
+
+function scriptMarkup(c,a,phase){
+  const profile=PERSONALITY_LIBRARY[a.mainPersonality],meta=PHASE_META[phase];
+  const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
+  const rows=contrastRows(a).sort((x,y)=>y.diff-x.diff);
+  const pick=rows[0];
+  const alignment=pick&&pick.diff>0?getInnerOuterAlignment(pick.n,pick.inner,pick.outer):null;
+  const opener=alignment?.hook||"这张盘目前没有特别大的内外反差，我们先从你现在最想聊的事情开始。";
+  const focusText=c.consultationTheme||"未指定";
+  const birthExtra=[c.calendarType||"阳历",c.birthTime||"出生时间未填",c.birthCity||"出生城市未填"].join(" · ");
+
+  const items=[
+    ["00 会前准备",
+      '<h2>预约前先把资料与重点准备好</h2>'
+      +'<p><b>顾客资料：</b>'+esc(c.name)+' · '+esc(c.birthday)+' · '+esc(birthExtra)+'</p>'
+      +'<p><b>本次最想聊：</b>'+esc(focusText)+' · '+esc(c.consultationType)+'</p>'
+      +'<div class="question-box"><b>5分钟会前准备：</b><br>①确认资料 → ②完整排盘 → ③快速数内外三角 → ④找最大反差 → ⑤标记2–3个重点区域 → ⑥准备一句开场白。</div>'
+      +'<p class="panel-note">出生时间与城市目前先作为预约资料保存；没有你确认的对应算法时，系统不会擅自加入数字计算。</p>'],
+
+    ["01 开场破冰",
+      '<h2>先让顾客知道：这里不是考试，也不是命运宣判</h2>'
+      +'<div class="question-box">你好，我是 Josephine，做心理数字学咨询。今天大概40–60分钟，我会先看你的盘，再帮你看见一些你可能已经感受到、但还没有整理清楚的模式。你不需要懂这套理论，也不用记任何数字；如果我说的和你的真实感受不一样，你随时告诉我——你的经历比这张盘更重要。</div>'
+      +'<p><b>如果顾客紧张：</b>“第一次做这种咨询有一点紧张很正常。今天就是聊天，我会带着你走。”</p>'
+      +'<p><b>如果顾客观望：</b>不要讲一堆理论，直接给一个小洞察，再问“你听听看像不像你”。</p>'
+      +'<p><b>如果判断不出来：</b>“你想直接开始，还是先聊几句热热身？你说了算。”</p>'],
+
+    ["02 最大反差",
+      '<h2>先讲一个最值得验证的内外反差</h2>'
+      +(pick?'<p>当前最大差距：<b>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</b></p>':'')
+      +'<div class="question-box"><b>开场可以这样说：</b><br>'+esc(opener)+'</div>'
+      +'<p>说完后不要马上解释。停一下，让顾客自己回应。重点不是“说中”，而是看顾客的真实经验是否和这个线索对得上。</p>'
+      +'<div class="question-box"><b>验证问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick?.direction||"balanced"))+'</div>'],
+
+    ["03 故事挂盘",
+      '<h2>顾客讲故事后，把故事放回对应区域</h2>'
+      +'<p>家庭／父母故事 → 父亲基因或母亲基因；事业故事 → 事业／朋友区；关系／家庭故事 → 家庭区；“我一直都这样” → 主性格与内三角。</p>'
+      +'<div class="question-box">“你刚刚讲的这件事，其实可以放回你盘里的这个位置看。这里比较像你骨子里的反应，而这里是你在现实环境里形成的做法。你刚才那个故事，就是这两边差距的一个例子。”</div>'
+      +'<p><b>追问：</b>“这个模式最早出现在哪里——家庭、学校，还是工作？”／“你从什么时候开始发现自己会这样？”</p>'],
+
+    ["04 重复模式",
+      '<h2>不要急着换主题，先看同一个模式有没有出现在别的领域</h2>'
+      +'<div class="question-box">“你发现没有，刚刚讲的这个模式，好像不只发生在一个地方。它有没有也出现在工作、感情、家庭，或你跟朋友相处的时候？”</div>'
+      +'<p>如果顾客讲出第二个场景，再把两个位置放在一起看。重点是让顾客自己发现“我一直用同一套模式在面对不同关系”，而不是你替她下结论。</p>'
+      +'<p><b>推进顺序：</b>原生家庭 → 当前影响 → 接下来可以怎么调整。</p>'],
+
+    ["05 流年搭配",
+      '<h2>再把“长期模式”放进“今年的时间节奏”里</h2>'
+      +'<p>今年个人流年：<b>'+y.number+' · '+esc(y.title)+'</b>。'+esc(y.summary)+'</p>'
+      +'<div class="question-box">“你今年刚好走到一个 '+esc(y.title)+' 的年份，所以最近这些感受会更明显。我们再看看这个流年数在你的命盘里触动了哪里，以及大环境和你是不是同一个节奏。”</div>'
+      +'<p>如果顾客这次主要问事业／感情／家庭，就优先讲那个领域，不需要把整张流年一次全部讲完。</p>'],
+
+    ["06 给出路",
+      '<h2>给“选择”，不要给“命令”</h2>'
+      +'<div class="question-box">“所以你接下来可以试着换一个做法，不是要你彻底变成另一个人，而是给自己多一个选择。”</div>'
+      +'<p><b>内在压抑型：</b>可以试着多表达一点，不是每个场合都要藏住自己。</p>'
+      +'<p><b>外在补偿型：</b>可以允许自己不那么“能干”一会儿，不是所有事情都必须由你扛。</p>'
+      +'<p><b>内外一致型：</b>优势很顺，但越强的数字越要留意过满时的反模式，给自己一点缓冲。</p>'],
+
+    ["07 收尾总结",
+      '<h2>最后只收一个核心，不把整张盘塞给顾客</h2>'
+      +'<div class="question-box">“今天聊下来，我觉得你身上最值得继续观察的模式是___。它可能从___开始，现在影响到你的___。接下来你不需要一下子改很多，只要先留意___。”</div>'
+      +'<p><b>确认状态：</b>“你今天听完之后感觉怎么样？有没有哪一部分还没想通？”</p>'
+      +'<p>如果顾客情绪上来，停一下，不急着解释。可以问：“你想继续聊这个，还是先跳过？你来决定。”</p>'],
+
+    ["08 会后跟进",
+      '<h2>咨询结束后，让理解继续发酵，但不要追着顾客跑</h2>'
+      +'<div class="question-box"><b>1–2天后：</b><br>“上次聊完之后，有没有什么新的感受或想法？”</div>'
+      +'<p>如果顾客有反馈，可以轻量交流；如果没有回复，不需要追问。合适的时候再分享与她当前主题真正有关的笔记或内容。</p>'
+      +'<p><b>会后资料：</b>可以整理一份简单总结，让顾客回顾“核心模式、今年重点、下一步练习”，而不是把全部内部计算交出去。</p>']
+  ];
+
+  return {
+    nav:items.map((x,i)=>'<button type="button" data-v6-script-step="'+i+'" class="'+(i===0?"active":"")+'">'+x[0]+'</button>').join(""),
+    body:serviceChecklist(c)+items.map((x,i)=>'<section data-v6-script-content="'+i+'" '+(i===0?"":"hidden")+'><p class="eyebrow">Josephine Consultation Flow</p>'+x[1]+'</section>').join("")+consultationConsole(c,a,phase,0)
+  };
 }
 function deleteCustomer(id){
   const c=loadCustomers().find(x=>String(x.id)===String(id));
