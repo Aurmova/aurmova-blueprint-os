@@ -259,6 +259,26 @@ function missingActivationSummary(a,personalNumber,jointCode=""){
   return {missing,direct,jointHits,rows};
 }
 
+function yearDensityResonance(a,personal){
+  const n=personal.number;
+  const innerCount=Number(a.innerEnergy?.counts?.[n]||0);
+  const outerCount=Number(a.outerEnergy?.counts?.[n]||0);
+  const inner=getDensityReading(n,innerCount,"inner");
+  const outer=getDensityReading(n,outerCount,"outer");
+  const total=innerCount+outerCount;
+  let level="普通共振";
+  if(innerCount>=3||outerCount>=3||total>=5) level="强共振";
+  else if(innerCount>=2||outerCount>=2||total>=3) level="明显共振";
+  else if(total===0) level="无直接密度共振";
+  const lines=[];
+  if(inner) lines.push("三角形内 "+innerCount+" 个"+n+"（"+inner.level+"）："+inner.description);
+  if(outer) lines.push("三角形外 "+outerCount+" 个"+n+"（"+outer.level+"）："+outer.description);
+  if(!lines.length) lines.push("这个流年数字在内外三角形都没有出现，体感更像“今年外部来了一股平时不熟悉的能量”。");
+  return '<div class="year-density-resonance"><div class="card-heading"><div><small>YEAR × DENSITY</small><h3>流年 × 数字密度共振</h3></div><span>'+esc(level)+'</span></div>'
+    +'<div class="formula-note">流年命中高密度数字时，反应通常会更明显：正面天赋更容易被调用，反模式也更容易被放大。密度高不等于一定发生某件事，而是这个主题今年更容易“有感觉”。</div>'
+    +'<div class="year-density-lines">'+lines.map(x=>'<p>'+esc(x)+'</p>').join("")+'</div></div>';
+}
+
 function missingActivationPanel(a,personal){
   const result=missingActivationSummary(a,personal.number);
   if(!result.missing.length){
@@ -387,6 +407,7 @@ function yearPanel(c,target){
     +'<div class="year-cycle-grid">'+cards+'</div>'
     +yearPriorityTable()
     +yearLocationPanel(a,personal)
+    +yearDensityResonance(a,personal)
     +missingActivationPanel(a,personal)
     +yearJointPanel()
     +yearFinalSummary(a,personal,environment,climate)
