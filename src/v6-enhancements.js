@@ -1,10 +1,10 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=22";
-import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
-import { PERSONALITY_LIBRARY } from "./personality-library.js?v=21";
-import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
-import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
-import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=20261001-v17";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=22";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=26";
+import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=26";
+import { PERSONALITY_LIBRARY } from "./personality-library.js?v=26";
+import { findJointCode } from "./aurmova-knowledge.js?v=26";
+import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=26";
+import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=26";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=26";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -243,9 +243,9 @@ function yearRegions(a){
     {key:"father",code:a.fatherCode},
     {key:"mother",code:a.motherCode},
     {key:"core",code:a.seatCode},
-    {key:"career",code:(a.jointCodes6?.SWX||[]).join("")},
-    {key:"team",code:(a.jointCodes6?.RQP||[]).join("")},
-    {key:"family",code:(a.jointCodes6?.TVU||[]).join("")}
+    {key:"career",code:(a.jointCodes6?.STU||[]).join("")},
+    {key:"team",code:(a.jointCodes6?.PQR||[]).join("")},
+    {key:"family",code:(a.jointCodes6?.VWX||[]).join("")}
   ].map(x=>({...x,...YEAR_REGION_META[x.key]}));
 }
 
@@ -482,52 +482,10 @@ function axisGroupsHtml(groups,labels,activeNumber=null,allEnvironment=false){
 
 function goldenYearVisual(snap){
   const p=snap.yearPositions||{};
+  const faux={positions:p,birthDigits:[p.A,p.B,p.C,p.D,p.E,p.F,p.G,p.H],mainPersonality:snap.mainPersonality};
   const personalCodes=Object.entries(snap.personalAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
   const envCodes=snap.environmentCodes.map(x=>x.key+" "+x.code).join(" · ");
-  return '<div class="golden-chart-visual">'
-    +'<div class="golden-chart-label top"><small>自身流年</small><b>'+esc(personalCodes)+'</b></div>'
-    +'<div class="golden-chart-label side"><small>大环境四码</small><b>'+esc(envCodes)+'</b></div>'
-    +'<svg viewBox="0 0 600 410" role="img" aria-label="黄金流年三角形">'
-      +'<polygon points="300,40 105,345 495,345" fill="none" stroke="currentColor" stroke-width="3"/>'
-      +'<line x1="202" y1="195" x2="398" y2="195" stroke="currentColor" stroke-width="2"/>'
-      +'<line x1="150" y1="275" x2="450" y2="275" stroke="currentColor" stroke-width="2"/>'
-      +'<line x1="300" y1="195" x2="300" y2="345" stroke="currentColor" stroke-width="2"/>'
-      +'<text x="300" y="108" text-anchor="middle" class="gy-main">'+(p.O??"")+'</text>'
-      +'<text x="250" y="185" text-anchor="middle" class="gy-num">'+(p.M??"")+'</text><text x="350" y="185" text-anchor="middle" class="gy-num">'+(p.N??"")+'</text>'
-      +'<text x="205" y="267" text-anchor="middle" class="gy-num">'+(p.I??"")+'</text><text x="270" y="267" text-anchor="middle" class="gy-num">'+(p.J??"")+'</text><text x="335" y="267" text-anchor="middle" class="gy-num">'+(p.K??"")+'</text><text x="400" y="267" text-anchor="middle" class="gy-num">'+(p.L??"")+'</text>'
-      +'<text x="300" y="382" text-anchor="middle" class="gy-base">'+[p.A,p.B,p.C,p.D,p.E,p.F,p.G,p.H].filter(v=>v!==undefined).join("   ")+'</text>'
-    +'</svg>'
-    +'</div>';
-}
-
-function goldenInnerDensityPanel(snap){
-  const repeated=snap.innerEnergy.repeated||[];
-  const missing=snap.innerEnergy.missing||[];
-  const present=snap.innerEnergy.present||[];
-  return '<div class="year-density-resonance"><div class="card-heading"><div><small>YEAR INNER TRIANGLE</small><h3>流年盘内三角 · 密度／缺失／过强</h3></div><span>'+snap.yearTriangle.join(" · ")+'</span></div>'
-    +'<div class="year-density-lines">'
-      +present.map(n=>{const count=snap.innerEnergy.counts[n]||0,d=INNER_DIGIT_POLARITY[n];return '<p><b>'+n+' · '+count+'次</b>｜正面：'+esc(d?.positive||"")+'｜负面：'+esc(d?.negative||"")+'</p>'}).join("")
-    +'</div>'
-    +'<div class="formula-note">缺失：'+(missing.length?missing.join(" · "):"无")+'｜过强／挑战：'+(repeated.length?repeated.join(" · "):"无")+'。数量越多不是越好，而是这股能量在该年的体感更强，正面与反面都会一起放大。</div></div>';
-}
-
-function environmentSynthesis(snap){
-  const example=ENVIRONMENT_YEAR_EXAMPLES[snap.year];
-  const entries=snap.environmentCodes.map(x=>({code:x.code,data:getFlootKnowledge(x.code)||findJointCode(x.code)}));
-  if(example){
-    return '<div class="environment-synthesis"><div class="card-heading"><div><small>ENVIRONMENT SYNTHESIS</small><h3>'+snap.year+'大环境 · 四码共同主题</h3></div><span>'+esc(example.headline)+'</span></div>'
-      +'<p>'+esc(example.summary)+'</p>'
-      +'<div class="origin-grid"><div><span>事业／赚钱</span><p>'+esc(example.business)+'</p></div><div><span>人际关系</span><p>'+esc(example.relationship)+'</p></div><div><span>个人状态</span><p>'+esc(example.personal)+'</p></div><div><span>四组码</span><p>'+esc(example.codes.join(" · "))+'</p></div></div>'
-      +'</div>';
-  }
-  const titles=entries.map(x=>x.code+" "+(x.data?.title||"")).filter(Boolean).join("；");
-  const strengths=entries.map(x=>x.data?.strengths).filter(Boolean).join("；");
-  const challenges=entries.map(x=>x.data?.challenges).filter(Boolean).join("；");
-  return '<div class="environment-synthesis"><div class="card-heading"><div><small>ENVIRONMENT SYNTHESIS</small><h3>'+snap.year+'大环境 · 四码共同读取</h3></div><span>'+snap.environmentCodes.map(x=>x.code).join(" · ")+'</span></div>'
-    +'<p><b>共同主题：</b>'+esc(titles||"按四组联合码逐组读取。")+'</p>'
-    +'<p><b>正面汇总：</b>'+esc(strengths||"以各组正面资料为准。")+'</p>'
-    +'<p><b>负面汇总：</b>'+esc(challenges||"以各组负面／卡点资料为准。")+'</p>'
-    +'<div class="formula-note">大环境不另外简化成一个数字下结论；KLN、KNV、LNW、VWX四组共同构成这一年的“天气”。</div></div>';
+  return '<div class="golden-chart-visual"><div class="formula-note"><b>同一张固定基础数字盘</b><br>自身流年：'+esc(personalCodes)+'<br>大环境：'+esc(envCodes)+'</div>'+blueprintMap(faux)+'</div>';
 }
 
 function yearTeachingPanel(){
@@ -600,11 +558,40 @@ function cooperationPanel(c){
   const ps=loadPartners(c.id);
   return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div><p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。</p><div id="v6-partners">'+(ps.length?ps.map(partnerRow).join(""):'<div class="empty-mini">还没有合作伙伴。</div>')+'</div><div class="actions"><button type="button" class="btn btn-primary" id="v6-add-partner">＋ 增加合作伙伴</button><button type="button" class="btn btn-light" id="v6-save-partners">保存合作伙伴</button></div></div>';
 }
+function mapBox(x,y,value,w=42,h=50,extra=""){
+  const v=value===undefined||value===null?"":value;
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1" fill="#fffdf8" stroke="#d6c39b" stroke-width="1.5" '+extra+'/><text x="'+(x+w/2)+'" y="'+(y+h/2+9)+'" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="#292621">'+esc(v)+'</text>';
+}
+function blueprintMap(a,compact=false){
+  const p=a.positions||{};
+  const b=(a.birthDigits&&a.birthDigits.length?a.birthDigits:[p.A,p.B,p.C,p.D,p.E,p.F,p.G,p.H]).map(v=>v??"");
+  const base=b.map((n,i)=>mapBox(238+i*45,420,n,38,48)).join("");
+  return '<div class="aurmova-fixed-map'+(compact?' compact':'')+'" style="overflow-x:auto">'
+    +'<svg viewBox="0 0 840 490" role="img" aria-label="AURMOVA 固定基础数字盘" style="width:100%;min-width:'+(compact?'560':'700')+'px;height:auto;display:block;margin:auto">'
+      +'<g fill="none" stroke="#c99a45" stroke-width="3">'
+        +'<polygon points="390,135 210,390 570,390"/>'
+        +'<line x1="312" y1="245" x2="468" y2="245"/>'
+        +'<line x1="260" y1="320" x2="520" y2="320"/>'
+        +'<line x1="390" y1="245" x2="390" y2="390"/>'
+      +'</g>'
+      +'<g fill="none" stroke="#d7b878" stroke-width="1.5" stroke-dasharray="5 5">'
+        +'<line x1="390" y1="88" x2="390" y2="135"/>'
+        +'<line x1="207" y1="338" x2="210" y2="390"/>'
+        +'<line x1="602" y1="338" x2="570" y2="390"/>'
+      +'</g>'
+      +'<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#a67d3e">'
+        +'<text x="390" y="22" text-anchor="middle">【41岁–60岁】</text>'
+        +'<text x="100" y="270" text-anchor="middle">【21岁–40岁】</text>'
+        +'<text x="690" y="270" text-anchor="middle">【61岁以后】</text>'
+      +'</g>'
+      +'<g>'+mapBox(369,36,p.R)+mapBox(301,82,p.P)+mapBox(437,82,p.Q)+'</g>'
+      +'<g>'+mapBox(31,286,p.U)+mapBox(112,286,p.S)+mapBox(166,286,p.T)+'<text x="92" y="318" text-anchor="middle" font-size="20" fill="#8c795d">=</text></g>'
+      +'<g>'+mapBox(602,286,p.V)+mapBox(656,286,p.W)+mapBox(727,286,p.X)+'<text x="714" y="318" text-anchor="middle" font-size="20" fill="#8c795d">=</text></g>'
+      +'<g>'+mapBox(369,166,p.O,42,52)+mapBox(325,258,p.M)+mapBox(413,258,p.N)+mapBox(270,333,p.I)+mapBox(326,333,p.J)+mapBox(412,333,p.K)+mapBox(468,333,p.L)+'</g>'
+      +'<g>'+base+'</g>'
+    +'</svg></div>';
+}
 function blueprintSheet(c,a,title="完整人生蓝图"){
-  const p=a.positions;
-  const phase21=Object.values(a.phases["21–40"]).map(x=>x.join("")).join(" · ");
-  const phase41=Object.values(a.phases["41–60"]).map(x=>x.join("")).join(" · ");
-  const phase61=Object.values(a.phases["61+"]).map(x=>x.join("")).join(" · ");
   return '<section class="filled-blueprint">'
     +'<div class="filled-blueprint-head"><div><small>AURMOVA BLUEPRINT</small><h3>'+esc(title)+'</h3><p>'+esc(c.name||"")+' · '+esc(c.birthday||"")+'</p></div><div class="bp-main-number"><span>主性格</span><b>'+a.mainPersonality+'</b></div></div>'
     +'<div class="bp-core-grid">'
@@ -612,22 +599,8 @@ function blueprintSheet(c,a,title="完整人生蓝图"){
       +'<div><span>起始数</span><b>'+a.startingThoughtCode+'</b></div><div><span>制约数</span><b>'+a.constraintCode+'</b></div><div><span>内心码</span><b>'+a.innerCode+'</b></div>'
       +'<div><span>潜意识</span><b>'+a.subconsciousCode+'</b></div><div><span>外心数</span><b>'+a.outerHeartCode+'</b><small>'+esc(a.outerHeartMeaning||"")+'</small></div><div><span>缺失数</span><b>'+(a.innerEnergy.missing.length?a.innerEnergy.missing.join(" · "):"无")+'</b></div>'
     +'</div>'
-    +'<div class="bp-map-wrap">'
-      +'<div class="bp-phase-label top"><small>41–60岁 · 孩子／下属</small><b>'+esc(phase41)+'</b></div>'
-      +'<div class="bp-phase-label left"><small>21–40岁 · 事业／朋友</small><b>'+esc(phase21)+'</b></div>'
-      +'<div class="bp-phase-label right"><small>61岁以后 · 家庭／晚年</small><b>'+esc(phase61)+'</b></div>'
-      +'<svg class="bp-svg" viewBox="0 0 600 430" role="img" aria-label="AURMOVA 三角形蓝图">'
-        +'<polygon points="300,38 105,360 495,360" fill="none" stroke="currentColor" stroke-width="3"/>'
-        +'<line x1="202" y1="200" x2="398" y2="200" stroke="currentColor" stroke-width="2"/>'
-        +'<line x1="150" y1="285" x2="450" y2="285" stroke="currentColor" stroke-width="2"/>'
-        +'<line x1="300" y1="200" x2="300" y2="360" stroke="currentColor" stroke-width="2"/>'
-        +'<text x="300" y="105" text-anchor="middle" class="bp-num main">'+p.O+'</text>'
-        +'<text x="250" y="190" text-anchor="middle" class="bp-num">'+p.M+'</text><text x="350" y="190" text-anchor="middle" class="bp-num">'+p.N+'</text>'
-        +'<text x="205" y="277" text-anchor="middle" class="bp-num">'+p.I+'</text><text x="270" y="277" text-anchor="middle" class="bp-num">'+p.J+'</text><text x="335" y="277" text-anchor="middle" class="bp-num">'+p.K+'</text><text x="400" y="277" text-anchor="middle" class="bp-num">'+p.L+'</text>'
-        +'<text x="120" y="390" class="bp-base">'+a.birthDigits.join("   ")+'</text>'
-      +'</svg>'
-    +'</div>'
-    +'<div class="bp-footer-line"><span>三角形内：'+a.innerTriangle.join(" · ")+'</span><span>三角形外：'+a.outerTriangle.join(" · ")+'</span></div>'
+    +'<div class="formula-note">固定图版：所有蓝图统一使用 Josephine 指定的方框结构。21–40：U = S + T；41–60：R = P + Q；61岁以后：V + W = X。</div>'
+    +blueprintMap(a)
     +'</section>';
 }
 
@@ -646,13 +619,10 @@ function originalFamilyPanel(a){
 }
 
 function energy679Panel(a){
-  const items=[6,7,9].map(n=>{
-    const count=Number(a.innerEnergy.counts[n]||0);
-    const label=n===6?"资源／财富感":n===7?"人际／贵人感":"机会／认同感";
-    const text=count===0?"需要后天主动建立":count===1?"有基础，但不是主轴":"重复"+count+"次，优势明显，也要留意过强";
-    return '<div><strong>'+n+'</strong><span>'+label+'</span><p>'+text+'</p></div>';
-  }).join("");
-  return '<div class="foundation-block"><div class="card-heading"><div><small>679</small><h3>679综合</h3></div><span>资源 · 人际 · 机会</span></div><div class="energy679-mini">'+items+'</div></div>';
+  return '<div class="foundation-block"><div class="card-heading"><div><small>679 · SOURCE RETAINED</small><h3>679综合</h3></div><span>原资料保留 · 不再用错误计数法</span></div>'
+    +'<div class="formula-note"><b>已找回的课程索引：</b>现有资料曾记录“679是人生的福禄寿”，并保留6／7／9分别与财富敏锐度、人缘贵人、机会认同有关的基础关键词；但同一段原文又出现“两个7一个9”的矛盾句，因此不能把它简化成“数一数6、7、9出现几次就下结论”。</div>'
+    +'<div class="question-box"><b>Josephine 目前可这样说：</b><br>“679这一组我会看资源、人际和机会怎样互相承接，但不会只凭某个数字出现几次就断定好坏。这里要配合它落在哪个位置、跟哪些组合一起出现，再回到你的真实经历验证。”</div>'
+    +'<p class="panel-note">原拍照页的完整判断条件仍标记为“待找回原页逐条复核”，不会再用旧版简化规则顶替。</p></div>';
 }
 
 function mandatoryJointCodes(a){
@@ -666,6 +636,31 @@ function mandatoryJointCodes(a){
     +'<div class="joint-stack">'+unique.map((x,i)=>jointBlock(x,"联合码 "+(i+1))).join("")+'</div></div>';
 }
 
+function detailedEnergyPanel(a){
+  const missing=a.innerEnergy?.missing||[], challenges=a.innerEnergy?.repeated||[];
+  const card=(n,type)=>{const d=ENERGY_LIBRARY[n]||{};return '<article><b>'+(type==="missing"?"缺失 ":"挑战 ")+n+' · '+esc(d.name||"")+'</b>'
+    +(type==="missing"?'<p><strong>常见表现：</strong>'+esc(d.low||"")+'</p><p><strong>成长／补足方向：</strong>'+esc(d.gift||"")+'</p>':'<p><strong>正向潜力：</strong>'+esc(d.gift||"")+'</p><p><strong>过强时：</strong>'+esc(d.high||"")+'</p>')
+    +'<small>咨询时先用生活场景验证，不把数字当成定论。</small></article>';};
+  return '<div class="foundation-block"><div class="card-heading"><div><small>MISSING & CHALLENGE</small><h3>缺失数 · 挑战数 · 完整白话</h3></div><span>可直接咨询</span></div>'
+    +'<h4>缺失数</h4><div class="v23-detail-grid">'+(missing.length?missing.map(n=>card(n,"missing")).join(""):'<div class="empty-mini">没有明显缺失数。</div>')+'</div>'
+    +'<h4>挑战数／重复能量</h4><div class="v23-detail-grid">'+(challenges.length?challenges.map(n=>card(n,"challenge")).join(""):'<div class="empty-mini">目前没有重复2次以上的挑战数。</div>')+'</div></div>';
+}
+function plainLanguagePanel(a){
+  const d=MAIN_DETAIL[a.mainPersonality]||{}, start=DIGIT_CORE[a.startingThoughtCode]||{}, inner=DIGIT_CORE[a.innerCode]||{}, sub=DIGIT_CORE[a.subconsciousCode]||{};
+  return '<div class="foundation-block aurmova-plain"><div class="card-heading"><div><small>JOSEPHINE PLAIN LANGUAGE</small><h3>白话咨询版 · 从数字直接讲到生活</h3></div><span>可照读</span></div>'
+    +'<div class="question-box"><b>主性格 '+a.mainPersonality+' × 起始数 '+a.startingThoughtCode+'：</b><br>“你的核心比较像'+esc(d.title||"")+'，平时会有'+esc(d.behavior||"")+'。但你一进入新环境或碰到新事情，第一步更容易先启动‘'+esc(start.core||"")+'’这一套。它的优势是'+esc(start.gift||"")+'；压力大时要留意'+esc(start.shadow||"")+'。”</div>'
+    +'<div class="origin-grid">'
+      +'<div><span>内驱力</span><p>'+esc(d.drive||"")+'</p></div>'
+      +'<div><span>情感需求</span><p>'+esc(d.emotion||"")+'</p></div>'
+      +'<div><span>童年模式</span><p>'+esc(d.childhood||"")+'</p></div>'
+      +'<div><span>核心天赋</span><p>'+esc(d.talents||"")+'</p></div>'
+      +'<div><span>内心码 '+a.innerCode+'</span><p>'+esc(inner.core||"")+'｜优势：'+esc(inner.gift||"")+'｜卡点：'+esc(inner.shadow||"")+'</p></div>'
+      +'<div><span>潜意识码 '+a.subconsciousCode+'</span><p>'+esc(sub.core||"")+'｜优势：'+esc(sub.gift||"")+'｜卡点：'+esc(sub.shadow||"")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 可以直接收尾：</b><br>'+esc(d.script||"")+'</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“这些里面，哪一段最像你最近真实发生的事情？你给我一个最近的例子，我再顺着你的实际情况往下解。”</div>'
+    +'</div>';
+}
 function lifeBlueprintPanel(c){
   const a=calculateBlueprint(c.birthday);
   const profile=PERSONALITY_LIBRARY[a.mainPersonality];
@@ -675,6 +670,7 @@ function lifeBlueprintPanel(c){
   return '<div class="module-render">'
     +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · 完整自动解析</h2></div><span>不是勾选项 · 每次必读</span></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
+    +plainLanguagePanel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN PERSONALITY</small><h3>主性格 '+a.mainPersonality+' · '+esc(profile?.title||"")+'</h3></div><span>正面 + 负面</span></div>'
       +'<div class="year-positive-negative"><div><small>正面优势</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>负面／压力模式</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
       +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
@@ -683,19 +679,19 @@ function lifeBlueprintPanel(c){
     +'<div class="foundation-block"><div class="card-heading"><div><small>GENE & SEAT</small><h3>父母基因影响 · 坐镇码</h3></div><span>基础必讲</span></div><div class="joint-stack">'+jointBlock(a.fatherCode,"父亲基因")+jointBlock(a.motherCode,"母亲基因")+jointBlock(a.seatCode,"坐镇码／主性格结构")+'</div></div>'
     +originalFamilyPanel(a)
     +innerPolarityPanel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>MISSING & CHALLENGE</small><h3>缺失数 · 挑战数</h3></div><span>正负两面</span></div><div class="formula-note">缺失数：'+(a.innerEnergy.missing.length?a.innerEnergy.missing.join(" · "):"无")+'｜挑战数／过强：'+(challenges.length?challenges.join(" · "):"无")+'。挑战数不是坏数字，而是某股能量重复出现后，天赋与失衡都会被放大。</div></div>'
+    +detailedEnergyPanel(a)
     +energy679Panel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
       +phaseDetails(a,"21–40")+phaseDetails(a,"41–60")+phaseDetails(a,"61+")
     +'</div>'
-    +mandatoryJointCodes(a)
     +'</div>';
 }
 
 function miniBlueprint(person){
   if(!person?.birthday) return '<div class="empty-mini">填写生日后生成蓝图。</div>';
   const a=calculateBlueprint(person.birthday); if(!a)return '<div class="empty-mini">生日格式请用 日/月/年。</div>';
-  return '<div class="mini-blueprint"><div><span>主性格</span><b>'+a.mainPersonality+'</b></div><div><span>坐镇码</span><b>'+a.seatCode+'</b></div><div><span>父亲基因</span><b>'+a.fatherCode+'</b></div><div><span>母亲基因</span><b>'+a.motherCode+'</b></div><div><span>内心码</span><b>'+a.innerCode+'</b></div><div><span>制约数</span><b>'+a.constraintCode+'</b></div></div>';
+  return '<div class="mini-blueprint fixed-map-mini">'+blueprintMap(a,true)
+    +'<div class="mini-blueprint-meta"><span>主性格 <b>'+a.mainPersonality+'</b></span><span>坐镇码 <b>'+a.seatCode+'</b></span><span>父亲 <b>'+a.fatherCode+'</b></span><span>母亲 <b>'+a.motherCode+'</b></span></div></div>';
 }
 
 function relationshipCross(a,b){
