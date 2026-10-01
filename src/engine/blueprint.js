@@ -255,6 +255,26 @@ export function calculateBlueprint(birthday) {
   };
 }
 
+export function yearSourceAxes(blueprint) {
+  if (!blueprint) return null;
+  const p = blueprint.positions || {};
+  return {
+    personal: {
+      base: [p.M,p.N,p.O],
+      baseCode: [p.M,p.N,p.O].join(""),
+      derived: {
+        MOP: [p.M,p.O,p.P],
+        NOQ: [p.N,p.O,p.Q],
+        PQR: [p.P,p.Q,p.R]
+      }
+    },
+    environment: {
+      base: [p.K,p.L,p.M],
+      baseCode: [p.K,p.L,p.M].join("")
+    }
+  };
+}
+
 export function phaseForAge(age) {
   return age >= 61 ? "61+" : age >= 41 ? "41–60" : "21–40";
 }
