@@ -874,6 +874,8 @@ function deleteCustomer(id){
   localStorage.removeItem(partnerKey(id));
   localStorage.removeItem(consultationKey(id));
   localStorage.removeItem(serviceKey(id));
+  localStorage.removeItem(relationshipKey(id));
+  localStorage.removeItem(familyKey(id));
   if(location.hash.startsWith("#workspace")) location.hash="history"; else location.dispatchEvent(new HashChangeEvent("hashchange"));
 }
 function enhanceHistory(){
@@ -970,6 +972,40 @@ document.addEventListener("click",event=>{
     document.querySelector("#v7-reply-output").innerHTML=reply.html; return
   }
   const gen=event.target.closest("#generate-script"); if(gen){setTimeout(()=>{document.querySelector("#script-panel")?.scrollIntoView({behavior:"smooth",block:"start"})},0);return}
+  const saveRelation=event.target.closest("#v20-save-relation"); if(saveRelation){
+    const c=currentCustomer(); if(!c)return;
+    const data={
+      type:document.querySelector("#v20-relation-type")?.value||"伴侣／感情",
+      name:document.querySelector("#v20-relation-name")?.value.trim()||"",
+      birthday:document.querySelector("#v20-relation-birthday")?.value.trim()||""
+    };
+    saveRelationship(c.id,data); renderModule("关系蓝图",c); return
+  }
+  const addChild=event.target.closest("#v20-add-child"); if(addChild){
+    const c=currentCustomer(); if(!c)return;
+    const f=loadFamily(c.id); f.children=f.children||[]; f.children.push({name:"",birthday:""}); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
+  }
+  const removeChild=event.target.closest("[data-v20-remove-child]"); if(removeChild){
+    const c=currentCustomer(); if(!c)return;
+    const f=loadFamily(c.id); f.children=f.children||[]; f.children.splice(Number(removeChild.dataset.v20RemoveChild),1); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
+  }
+  const saveFamilyBtn=event.target.closest("#v20-save-family"); if(saveFamilyBtn){
+    const c=currentCustomer(); if(!c)return;
+    const current=loadFamily(c.id);
+    const father={
+      name:document.querySelector('[data-family-field="father.name"]')?.value.trim()||"",
+      birthday:document.querySelector('[data-family-field="father.birthday"]')?.value.trim()||""
+    };
+    const mother={
+      name:document.querySelector('[data-family-field="mother.name"]')?.value.trim()||"",
+      birthday:document.querySelector('[data-family-field="mother.birthday"]')?.value.trim()||""
+    };
+    const children=[...document.querySelectorAll("[data-family-child-name]")].map(el=>{
+      const i=Number(el.dataset.familyChildName);
+      return {name:el.value.trim(),birthday:document.querySelector('[data-family-child-birthday="'+i+'"]')?.value.trim()||""};
+    });
+    saveFamily(c.id,{...current,father,mother,children}); renderModule("亲子蓝图",c); return
+  }
   const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.push({name:"",birthday:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return{name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""}});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
