@@ -175,3 +175,16 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 
 .year-density-resonance{border-top:1px solid var(--line);padding-top:18px}
 .year-density-lines{display:grid;gap:7px}.year-density-lines p{margin:0;padding:10px 12px;background:#fffaf0;border-left:2px solid #c9a15a;font-size:10px;line-height:1.7;color:#5d554a}
+
+/* AURMOVA inner/outer alignment v17 */
+.alignment-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.alignment-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.alignment-card{border:1px solid var(--line);background:#fffdf9;padding:13px}
+.alignment-card.consistent{border-top:2px solid #b8904b}.alignment-card.suppressed{border-top:2px solid #b78c7b}.alignment-card.compensating{border-top:2px solid #8f9e86}
+.alignment-card-top{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center}
+.alignment-card-top>span{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#f3ead9;color:#8b6d40;font:500 17px var(--serif)}
+.alignment-card-top b{display:block;font-size:11px}.alignment-card-top small{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.alignment-card-top em{font-style:normal;font-size:8px;color:#846b48;border:1px solid #e0d2bc;padding:4px 6px;background:#fff9ee}
+.alignment-card h4{font-size:12px;margin:10px 0 6px;color:#4d463d}.alignment-card p{font-size:10px;line-height:1.65;color:#5e574e;margin:0}
+.alignment-focus{font-size:9px;line-height:1.6;color:#7b6448;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+@media(max-width:1050px){.alignment-grid{grid-template-columns:1fr 1fr}}@media(max-width:800px){.alignment-grid{grid-template-columns:1fr}}
