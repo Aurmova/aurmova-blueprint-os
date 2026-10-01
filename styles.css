@@ -239,3 +239,17 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .golden-chart-label{position:absolute;z-index:2;background:#fffdf7;border:1px solid #dfcfb4;padding:7px 9px;max-width:260px}.golden-chart-label small{display:block;font-size:8px;color:#9b7136}.golden-chart-label b{display:block;font-size:8px;line-height:1.5;margin-top:2px}.golden-chart-label.top{top:8px;left:8px}.golden-chart-label.side{right:8px;bottom:8px}
 .blueprint-expander{margin-top:12px;border:1px solid var(--line);background:#fff}.blueprint-expander>summary{cursor:pointer;padding:11px 13px;font-size:10px;color:#7d623d}.blueprint-expander[open]>summary{border-bottom:1px solid var(--line)}
 @media(max-width:800px){.golden-chart-label{position:static;max-width:none;margin-bottom:5px}.golden-chart-visual{padding:8px}}
+
+/* v22 golden-year environment teaching */
+.environment-synthesis{margin-top:12px;border:1px solid #d9c7a8;background:#fffaf0;padding:13px}
+.environment-synthesis>p{font-size:10px;line-height:1.7;color:#5e574c;margin:7px 0}
+.year-teaching-note{border:1px solid #dccbae;background:#fffdf7;margin:14px 0}
+.year-teaching-note>summary{cursor:pointer;padding:12px 14px;font-size:10px;color:#755a34}
+.year-teaching-note[open]>summary{border-bottom:1px solid var(--line)}
+.teaching-analogy{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:12px}
+.teaching-analogy>div{border:1px solid var(--line);background:#fff;padding:12px}
+.teaching-analogy small{display:block;font-size:8px;color:var(--gold);letter-spacing:.08em}
+.teaching-analogy b{display:block;font-size:11px;margin:4px 0;color:#6f5735}
+.teaching-analogy p{font-size:9px;line-height:1.7;color:#5e584f;margin:0}
+.golden-axis-code.environment-code{background:#fffdf8}
+@media(max-width:800px){.teaching-analogy{grid-template-columns:1fr}}
