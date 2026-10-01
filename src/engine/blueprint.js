@@ -340,19 +340,31 @@ export function yearSourceAxes(goldenBlueprint) {
 export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFullYear()) {
   const golden=calculateGoldenYearBlueprint(birthday,targetYear);
   if(!golden) return null;
-  const personal=calculatePersonalYear(birthday,targetYear);
-  const environment=calculateEnvironmentYear(targetYear);
   const axes=yearSourceAxes(golden);
-  const hitGroups=(groups,n)=>Object.entries(groups).filter(([,arr])=>arr.includes(n)).map(([key,arr])=>({key,code:arr.join(""),count:arr.filter(v=>v===n).length}));
+
+  // AURMOVA黄金流年：个人流年数直接读取年盘 O 位（MNO 的结果位），
+  // 不再另外跑一套“个人流年公式”；大环境也不再另算单一数字，
+  // 而是直接读取 KLN → KNV / LNW → VWX 四组组合。
+  const personalNumber=golden.mainYearCode;
+  const personal={year:Number(targetYear),number:personalNumber,...YEAR_THEMES[personalNumber]};
+  const environmentCodes=Object.entries(axes.environment.groups).map(([key,arr],i)=>({
+    key,
+    role:axes.environment.labels[i],
+    digits:arr,
+    code:arr.join("")
+  }));
+  const hitGroups=(groups,n)=>Object.entries(groups)
+    .filter(([,arr])=>arr.includes(n))
+    .map(([key,arr])=>({key,code:arr.join(""),count:arr.filter(v=>v===n).length}));
+
   return {
     year:Number(targetYear),
     personal,
-    environment,
-    climate:compareYearClimate(personal.number,environment.number),
     personalAxis:axes.personal,
     environmentAxis:axes.environment,
+    environmentCodes,
+    environmentMainCode:axes.environment.groups.KLN.join(""),
     personalHits:hitGroups(axes.personal.groups,personal.number),
-    environmentHits:hitGroups(axes.environment.groups,environment.number),
     fixedFatherCode:golden.fixedFatherCode,
     startingThoughtCode:golden.startingThoughtCode,
     constraintCode:golden.constraintCode,
@@ -361,8 +373,7 @@ export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFu
     innerEnergy:golden.innerEnergy,
     yearTriangle:golden.innerTriangle,
     yearPositions:golden.positions,
-    mainPersonality:golden.mainYearCode,
-    consistency:{personalYearMatchesO:personal.number===golden.mainYearCode}
+    mainPersonality:golden.mainYearCode
   };
 }
 
