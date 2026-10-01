@@ -793,16 +793,20 @@ function scriptMarkup(c,a,phase){
   const pick=rows[0];
   const alignment=pick&&pick.diff>0?getInnerOuterAlignment(pick.n,pick.inner,pick.outer):null;
   const opener=alignment?.hook||"这张盘目前没有特别大的内外反差，我们先从你现在最想聊的事情开始。";
-  const focusText=c.consultationTheme||"未指定";
-  const birthExtra=[c.calendarType||"阳历",c.birthTime||"出生时间未填",c.birthCity||"出生城市未填"].join(" · ");
+  const focusList=(c.consultationFocus||[]).filter(Boolean);
+  const focusText=focusList.length?focusList.join(" · "):(c.consultationTheme||"未指定");
+  const projectText=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ");
+  const birthExtra=c.birthCity?("出生城市 "+c.birthCity):"";
+  const personalityQs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
 
   const items=[
     ["00 会前准备",
       '<h2>预约前先把资料与重点准备好</h2>'
-      +'<p><b>顾客资料：</b>'+esc(c.name)+' · '+esc(c.birthday)+' · '+esc(birthExtra)+'</p>'
-      +'<p><b>本次最想聊：</b>'+esc(focusText)+' · '+esc(c.consultationType)+'</p>'
+      +'<p><b>顾客资料：</b>'+esc(c.name)+' · '+esc(c.birthday)+(birthExtra?' · '+esc(birthExtra):'')+'</p>'
+      +'<p><b>咨询项目：</b>'+esc(projectText||"未选择")+'</p>'
+      +'<p><b>本次咨询重点：</b>'+esc(focusText)+'</p>'
       +'<div class="question-box"><b>5分钟会前准备：</b><br>①确认资料 → ②完整排盘 → ③快速数内外三角 → ④找最大反差 → ⑤标记2–3个重点区域 → ⑥准备一句开场白。</div>'
-      +'<p class="panel-note">出生时间与城市目前先作为预约资料保存；没有你确认的对应算法时，系统不会擅自加入数字计算。</p>'],
+      +'<p class="panel-note">系统统一按阳历生日计算；不需要出生时间。</p>'],
 
     ["01 开场破冰",
       '<h2>先让顾客知道：这里不是考试，也不是命运宣判</h2>'
@@ -816,7 +820,8 @@ function scriptMarkup(c,a,phase){
       +(pick?'<p>当前最大差距：<b>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</b></p>':'')
       +'<div class="question-box"><b>开场可以这样说：</b><br>'+esc(opener)+'</div>'
       +'<p>说完后不要马上解释。停一下，让顾客自己回应。重点不是“说中”，而是看顾客的真实经验是否和这个线索对得上。</p>'
-      +'<div class="question-box"><b>验证问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick?.direction||"balanced"))+'</div>'],
+      +'<div class="question-box"><b>验证问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick?.direction||"balanced"))+'</div>'
+      +'<div class="question-box"><b>'+a.mainPersonality+'号人专属追问：</b><br>'+personalityQs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'],
 
     ["03 故事挂盘",
       '<h2>顾客讲故事后，把故事放回对应区域</h2>'
