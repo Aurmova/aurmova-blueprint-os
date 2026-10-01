@@ -109,19 +109,19 @@ function initLibrarySearch(){
 }
 function libraryPage(){
   const total=(JOINT_DB||[]).length;
-  return \`${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料、结构化资料与白话咨询版集中查询。")}
+  return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料、结构化资料与白话咨询版集中查询。")}
   <section class="card form-card">
     <div class="form-section-title"><span class="step">01</span><h2>快速查询全部资料</h2></div>
     <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、缺失4、挑战7、主性格2、内驱8、679"></div>
     <div class="library-stats">
-      <div><strong>\${total}</strong><span>联合码资料条目</span></div>
+      <div><strong>${total}</strong><span>联合码资料条目</span></div>
       <div><strong>1–9</strong><span>主性格／内驱／天赋</span></div>
       <div><strong>1–9</strong><span>缺失／挑战／制约</span></div>
       <div><strong>679</strong><span>原资料索引保留</span></div>
     </div>
     <div class="notice">这次不是只有输入框：下面会直接显示已经找回并接回系统的资料。没有核对到原始拍照教材的内容会明确标记，不会自己编写。</div>
   </section>
-  <div id="library-results"></div>\`;
+  <div id="library-results"></div>`;
 }
 function whiteboardPage(){return `${header("CONSULTATION WHITEBOARD","咨询白板","像真正上课白板一样：可擦、可缩放、可拖动、可换颜色。")}
 <section class="card wb-card">
