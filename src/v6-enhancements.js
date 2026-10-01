@@ -223,6 +223,16 @@ function regionYearCopy(number,region){
   return "流年"+number+"「"+y.title+"」落在这里时，会把“"+region.focus+"”放到今年更明显的位置。重点是："+region.lesson+"。";
 }
 
+function yearSourcePanel(a,personal,environment){
+  const axes=yearSourceAxes(a);
+  const count=Number(a.combinedEnergy?.counts?.[environment.number]||0);
+  const personalDerived=Object.entries(axes.personal.derived).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  return '<div class="year-source-panel"><div class="card-heading"><div><small>YEAR SOURCE</small><h3>自身流年 × 大环境流年</h3></div><span>两套来源</span></div>'
+    +'<div class="year-source-grid"><div><small>自身流年</small><b>MNO '+esc(axes.personal.baseCode)+'</b><p>从 MNO 主轴开始，再看这条主轴衍生出去的位置。</p><span>'+esc(personalDerived)+'</span></div>'
+    +'<div><small>大环境流年</small><b>KLM '+esc(axes.environment.baseCode)+'</b><p>从 KLM 主轴开始，再看 KLM 衍生出去的位置。</p><span>'+(count>0?'命盘中有今年的大环境数字 '+environment.number:'命盘中没有今年的大环境数字 '+environment.number)+'</span></div></div>'
+    +'<div class="formula-note">大环境像共同天气，个人流年像个人体感。两层要一起看。</div></div>';
+}
+
 function yearPriorityTable(){
   return '<div class="year-priority card"><div class="card-heading"><div><small>READING WEIGHT</small><h3>黄金流年解读权重</h3></div><span>100% 主体判断</span></div>'
     +'<div class="priority-row"><b>流年数本身</b><span>50%</span><em>全年主旋律／9年循环位置</em></div>'
