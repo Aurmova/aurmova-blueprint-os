@@ -3,7 +3,7 @@ import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=2026093
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
-import { getTrianglePattern } from "./triangle-pattern-library.js?v=20260930-v11";
+import { getTrianglePattern, getDensityReading } from "./triangle-pattern-library.js?v=20261001-v16";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -42,12 +42,66 @@ function trianglePatternCard(a,number){
     +'<div class="triangle-pattern-counts"><span>三角形内：'+innerCount+'个</span><span>三角形外：'+outerCount+'个</span><span>'+esc(result.source)+'</span></div></div>'
     +'</article>';
 }
+function outerDensityAreas(a,number){
+  const areas=[];
+  const entries=[
+    ["事业／朋友",a.jointCodes6?.SWX||[]],
+    ["孩子／下属",a.jointCodes6?.RQP||[]],
+    ["家庭／晚年",a.jointCodes6?.TVU||[]]
+  ];
+  for(const [label,values] of entries){
+    const count=values.filter(v=>Number(v)===Number(number)).length;
+    if(count) areas.push(label+(count>1?" ×"+count:""));
+  }
+  return areas;
+}
+
+function densityCard(a,number,scope){
+  const count=Number((scope==="inner"?a.innerEnergy:a.outerEnergy)?.counts?.[number]||0);
+  if(!count) return "";
+  const r=getDensityReading(number,count,scope);
+  if(!r) return "";
+  const extra=scope==="outer"?outerDensityAreas(a,number):[];
+  return '<article class="density-card">'
+    +'<div class="density-card-top"><span>'+number+'</span><div><b>'+esc(r.level)+'</b><small>'+esc(r.core)+'</small></div><em>'+count+'个</em></div>'
+    +'<p>'+esc(r.description)+'</p>'
+    +(scope==="outer"&&extra.length?'<div class="density-areas">主要出现：'+esc(extra.join(" · "))+'</div>':'')
+    +(r.exact?'':'<div class="density-warning">实际出现 '+count+' 次，超过目前1–4级资料；系统先按4级高密度参考，并保留真实次数。</div>')
+    +'</article>';
+}
+
+function densityComparison(a){
+  const innerCounts=a.innerEnergy?.counts||{},outerCounts=a.outerEnergy?.counts||{};
+  const innerMax=Math.max(...DIGITS.map(n=>Number(innerCounts[n]||0)));
+  const outerMax=Math.max(...DIGITS.map(n=>Number(outerCounts[n]||0)));
+  const innerTop=DIGITS.filter(n=>Number(innerCounts[n]||0)===innerMax&&innerMax>0);
+  const outerTop=DIGITS.filter(n=>Number(outerCounts[n]||0)===outerMax&&outerMax>0);
+  const overlap=innerTop.filter(n=>outerTop.includes(n));
+  const title=overlap.length?"内外一致线索":"内外张力线索";
+  const text=overlap.length
+    ?"三角形内外的高密度数字有重合（"+overlap.join("、")+"），代表真实自我与外在表现有较明显的一致面。"
+    :"三角形内高密度偏向 "+innerTop.join("、")+"，外三角高密度偏向 "+outerTop.join("、")+"。这不代表矛盾不好，而是提示“骨子里的你”和“现实中活出来的你”可能存在值得咨询的张力。";
+  return '<div class="density-comparison card"><b>'+title+'</b><p>'+esc(text)+'</p><span>内三角高密度 = 骨子里更像这样｜外三角高密度 = 在现实世界更常活成这样</span></div>';
+}
+
+function digitDensitySection(a){
+  return '<section id="v16-density">'
+    +'<div class="section-head"><div><p class="eyebrow">DIGIT DENSITY</p><h2>数字能量密度 · 出现次数</h2></div><span class="source-tag">1–4级｜内外分开看</span></div>'
+    +'<div class="formula-note">数量不是越多越好。1次=轻触型，2次=常驻型，3次=主导型，4次=核心驱动型。密度越高，天赋更明显，反模式也更容易被放大。</div>'
+    +'<div class="density-columns"><div><h3>三角形内｜骨子里的你</h3><div class="density-grid">'+DIGITS.map(n=>densityCard(a,n,"inner")).join("")+'</div></div>'
+    +'<div><h3>三角形外｜现实中活出来的你</h3><div class="density-grid">'+DIGITS.map(n=>densityCard(a,n,"outer")).join("")+'</div></div></div>'
+    +densityComparison(a)
+    +'<div class="formula-note">流年命中高密度数字时，体感通常会更明显；以后黄金流年会把“流年数 × 内外密度”一起提示。密度是AURMOVA咨询框架中的读取维度，不等同于确定事件。</div>'
+    +'</section>';
+}
+
 function trianglePatternSection(a){
   return '<section id="v11-triangle-patterns">'
     +'<div class="section-head"><div><p class="eyebrow">TRIANGLE INNER × OUTER</p><h2>三角形内外数字表现</h2></div><span class="source-tag">按你提供的“6种精准表现”资料读取</span></div>'
     +'<div class="triangle-definition card"><div><b>三角形内</b><span>I · J · K · L · M · N · O</span><p>代表内在性格、真实自我。</p></div><div><b>三角形外</b><span>X · W · S · Q · P · R · V · U · T</span><p>代表外在表现、社交面具。</p></div></div>'
     +'<div class="formula-note">系统不是把“内、外、内外”当成三种能量，而是先看每一个数字在三角形内／外有没有出现：内缺外有、内有外缺、内外都缺；如果内外都有，再按三角形内出现1次、2次、3次读取对应表现。超过3次时先保留实际次数，不自行杜撰解释。</div>'
     +'<div class="triangle-pattern-grid">'+[1,2,3,4,5,6,7,8,9].map(n=>trianglePatternCard(a,n)).join("")+'</div>'
+    +digitDensitySection(a)
     +'</section>';
 }
 
