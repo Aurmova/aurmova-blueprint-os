@@ -84,16 +84,16 @@ function libraryEntries(){
       "留意："+(d.watch||""), "Josephine白话："+(d.script||"")
     ].filter(Boolean).join("\n")});
     entries.push({category:"内驱力",title:"内驱力 "+n,keywords:"内驱 内驱力 "+n+"号",text:["核心内驱："+(d.drive||""),"内在偏好："+(INNER_PREF?.[n]||""),"咨询白话："+(d.script||"")].filter(Boolean).join("\n")});
-    entries.push({category:"起始数",title:"起始数 "+n,keywords:"起始 起始数 "+n,text:["核心："+(core.core||""),"优势："+(core.gift||""),"卡点："+(core.shadow||""),"适合发挥："+(core.work||"")].filter(Boolean).join("\n")});
-    entries.push({category:"缺失数",title:"缺失 "+n,keywords:"缺失"+n+" 缺失数"+n,text:["常见表现："+(e.low||""),"成长／补足方向："+(e.gift||""),"提醒：缺失不等于没有能力，而是这股能量更需要后天练习。"].join("\n")});
-    entries.push({category:"挑战数",title:"挑战 "+n,keywords:"挑战"+n+" 挑战数"+n+" 重复"+n,text:["正向潜力："+(e.gift||""),"过强／失衡时："+(e.high||""),"提醒：重复出现要把天赋与过强风险一起看。"].join("\n")});
+    entries.push({category:"起始数",title:"起始数 "+n,keywords:"起始 起始数 "+n,text:["Josephine白话：你碰到新环境或新事情时，第一反应比较容易先走「"+(core.core||"")+"」这条路。状态好的时候会表现成"+(core.gift||"")+"；压力大时要留意"+(core.shadow||"")+"。","核心："+(core.core||""),"优势："+(core.gift||""),"卡点："+(core.shadow||""),"适合发挥："+(core.work||"")].filter(Boolean).join("\n")});
+    entries.push({category:"缺失数",title:"缺失 "+n,keywords:"缺失"+n+" 缺失数"+n,text:["Josephine白话：这个数字没有明显出现在你的基础盘，不代表你没有这项能力，而是平时比较不会自动用出来，通常要遇到事情后才会刻意练习。","常见表现："+(e.low||""),"成长／补足方向："+(e.gift||""),"提醒：缺失不等于没有能力，而是这股能量更需要后天练习。"].join("\n")});
+    entries.push({category:"挑战数",title:"挑战 "+n,keywords:"挑战"+n+" 挑战数"+n+" 重复"+n,text:["Josephine白话：这股能量在你的盘里重复出现，所以你通常会比别人更容易用它；用得好是天赋，用过头就会变成压力或卡点。","正向潜力："+(e.gift||""),"过强／失衡时："+(e.high||""),"提醒：重复出现要把天赋与过强风险一起看。"].join("\n")});
     entries.push({category:"制约数／原生家庭",title:"制约数 "+n,keywords:"制约"+n+" 制约数"+n+" 原生家庭 "+n,text:[
-      CONSTRAINT_NOTES[n]||"", mode.pattern?("小时候发生的模式："+mode.pattern):"", mode.need?("小时候真正需要："+mode.need):"",
+      "Josephine白话："+(mode.adult?("这个数字更像是在看：小时候的一些经历，后来怎样变成你现在很自动的反应。你长大后比较容易重复的是："+mode.adult):"这个数字要结合原生家庭经历去验证，不单靠数字下结论。"), CONSTRAINT_NOTES[n]||"", mode.pattern?("小时候发生的模式："+mode.pattern):"", mode.need?("小时候真正需要："+mode.need):"",
       mode.adult?("长大后容易重复："+mode.adult):"", mode.guide?("开解方向："+mode.guide):""
     ].filter(Boolean).join("\n")});
-    entries.push({category:"三角形内数字",title:"数字 "+n+" · 正面／负面",keywords:"数字"+n+" 正面 负面 三角形内",text:["正面："+(polarity.positive||""),"负面："+(polarity.negative||"")].filter(Boolean).join("\n")});
+    entries.push({category:"三角形内数字",title:"数字 "+n+" · 正面／负面",keywords:"数字"+n+" 正面 负面 三角形内",text:["Josephine白话：这个数字状态好的时候，会比较容易表现出「"+(polarity.positive||"")+"」；压力大或用过头时，则可能走到「"+(polarity.negative||"")+"」。","正面："+(polarity.positive||""),"负面："+(polarity.negative||"")].filter(Boolean).join("\n")});
     entries.push({category:"儿童天赋",title:n+"号儿童 · "+(child.name||""),keywords:"儿童"+n+" 亲子"+n+" 天赋"+n,text:[
-      child.keywords?.length?("关键词："+child.keywords.join("、")):"", child.strength?("天赋／优势："+child.strength):"",
+      "Josephine白话："+(child.strength?("这个孩子不是只看成「"+n+"号」，更重要的是在生活里你可能会看到："+child.strength+"。教育时要顺着优势去带，同时留意下面的失衡表现。"):"儿童解读要结合真实生活场景验证。"), child.keywords?.length?("关键词："+child.keywords.join("、")):"", child.strength?("天赋／优势："+child.strength):"",
       child.watch?("需要留意："+child.watch):"", child.guide?("教育方向："+child.guide):""
     ].filter(Boolean).join("\n")});
   }
