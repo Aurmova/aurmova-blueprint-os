@@ -1,5 +1,5 @@
 import { calculateBlueprint, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange } from "./engine/blueprint.js?v=32";
-import { getKnowledge } from "./floot-knowledge.js?v=32";
+import { getKnowledge } from "./floot-knowledge.js?v=34";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
