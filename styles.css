@@ -257,3 +257,28 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 
 /* v26 Consultation Whiteboard */
 .wb-card{padding:12px;overflow:hidden}.wb-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 8px 12px;border-bottom:1px solid var(--line)}.wb-tool-group{display:flex;align-items:center;gap:6px}.wb-tool{border:1px solid var(--line);background:#fffdf8;color:var(--ink);border-radius:10px;padding:8px 11px;font:inherit;cursor:pointer}.wb-tool.active{background:var(--ink);color:#fff;border-color:var(--ink)}.wb-colors{display:flex;align-items:center;gap:7px}.wb-color{width:27px;height:27px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #cfc3b4;background:var(--swatch);cursor:pointer;padding:0}.wb-color.active{box-shadow:0 0 0 3px #d6b16a}.wb-width{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.wb-width select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px}.wb-zoom-label{min-width:48px;text-align:center;font-size:12px;color:var(--muted)}.wb-tip{font-size:11px;color:var(--muted);padding:10px 8px}.wb-viewport{height:min(72vh,820px);min-height:520px;overflow:auto;background-color:#f2eee7;background-image:linear-gradient(#e9e2d8 1px,transparent 1px),linear-gradient(90deg,#e9e2d8 1px,transparent 1px);background-size:32px 32px;border:1px solid #dfd4c4;border-radius:12px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;position:relative}.wb-viewport canvas{display:block;background:#fff;touch-action:none;cursor:crosshair;box-shadow:0 8px 25px rgba(45,35,25,.08)}.wb-viewport canvas.eraser-mode{cursor:cell}@media(max-width:700px){.wb-card{padding:7px}.wb-toolbar{gap:7px;padding:6px}.wb-tool{padding:7px 9px;font-size:12px}.wb-history-tools{order:4;width:100%}.wb-viewport{height:68vh;min-height:430px}.wb-tip{font-size:10px}}
+
+
+/* v26 Restored Knowledge Library + fixed blueprint support */
+.library-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.library-stats>div{border:1px solid var(--line);background:#fffdf9;padding:13px;display:flex;flex-direction:column;gap:4px}
+.library-stats strong{font-family:Georgia,serif;font-size:22px;color:var(--gold)}
+.library-stats span{font-size:10px;color:var(--muted)}
+.library-result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 10px;padding:0 3px}
+.library-result-head b{font-size:13px}.library-result-head span{font-size:10px;color:var(--muted)}
+.library-group{margin:14px 0 22px}.library-group>h3{font-family:Georgia,"Songti SC",serif;font-size:18px;margin:0 0 9px}
+.library-group>h3 small{font-family:inherit;font-size:10px;color:var(--gold);margin-left:6px}
+.library-entry{border:1px solid var(--line);background:#fffdf9;margin-bottom:8px}
+.library-entry summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;font-size:12px;font-weight:650}
+.library-entry summary em{font-style:normal;font-size:9px;color:var(--gold);white-space:nowrap}
+.library-entry[open] summary{border-bottom:1px solid var(--line);background:#fffaf2}
+.library-entry-body{padding:14px 16px;font-size:11px;line-height:1.85;color:#575047;white-space:normal}
+.aurmova-fixed-map{margin:12px auto;background:linear-gradient(180deg,#fffefb,#fffaf2);border:1px solid #ecdfc9;padding:8px}
+.fixed-map-mini .aurmova-fixed-map{border:0;padding:0;margin:5px 0}
+.mini-blueprint-meta{display:flex;gap:7px;flex-wrap:wrap;padding:7px 3px}
+.mini-blueprint-meta span{font-size:9px;border:1px solid var(--line);background:#fffdf9;padding:5px 7px}
+.aurmova-plain .question-box{margin-top:10px}
+.v23-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:8px 0 14px}
+.v23-detail-grid article{border:1px solid var(--line);background:#fffdf9;padding:12px}
+.v23-detail-grid article b{font-size:11px}.v23-detail-grid article p{font-size:10px;line-height:1.7;margin:6px 0}.v23-detail-grid article small{font-size:9px;color:var(--muted);line-height:1.6}
+@media(max-width:800px){.library-stats{grid-template-columns:1fr 1fr}.library-result-head{align-items:flex-start;flex-direction:column}.v23-detail-grid{grid-template-columns:1fr}.aurmova-fixed-map{padding:4px}}
