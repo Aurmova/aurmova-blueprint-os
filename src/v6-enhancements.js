@@ -923,8 +923,11 @@ function enhanceWorkspace(){
   if(tabs&&!tabs.dataset.v6){
     tabs.dataset.v6="1";
     const names=["人生蓝图","黄金流年","关系蓝图","亲子蓝图","合作蓝图"];
-    [...tabs.querySelectorAll(".module-tab")].forEach((b,i)=>{b.dataset.v6Module=names[i]||"人生蓝图";b.textContent=names[i]||b.textContent});
-    const panel=document.createElement("section");panel.id="v6-module-panel";panel.className="card module-info-panel";tabs.after(panel);renderModule("人生蓝图",c);
+    const selectedProjects=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean);
+    const first=selectedProjects[0]||"人生蓝图";
+    const initialModule=/黄金/.test(first)?"黄金流年":/关系/.test(first)?"关系蓝图":/亲子/.test(first)?"亲子蓝图":/合作/.test(first)?"合作蓝图":"人生蓝图";
+    [...tabs.querySelectorAll(".module-tab")].forEach((b,i)=>{b.dataset.v6Module=names[i]||"人生蓝图";b.textContent=names[i]||b.textContent;b.classList.toggle("active",(names[i]||"人生蓝图")===initialModule)});
+    const panel=document.createElement("section");panel.id="v6-module-panel";panel.className="card module-info-panel";tabs.after(panel);renderModule(initialModule,c);
   }
 
   const structure=document.querySelector(".structure-grid");
