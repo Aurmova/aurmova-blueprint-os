@@ -260,7 +260,19 @@ export function calculateBlueprint(birthday) {
   };
 }
 
-export function calculateGoldenYearBlueprint(birthday,targetYear=new Date().getFullYear()) {
+export function activeFlowYear(date=new Date()) {
+  const d = date instanceof Date ? date : new Date(date);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  return m >= 10 ? y : y - 1;
+}
+
+export function flowYearRange(year) {
+  const y = Number(year);
+  return { start: String(y) + "-10-01", end: String(y + 1) + "-09-30" };
+}
+
+export function calculateGoldenYearBlueprint(birthday,targetYear=activeFlowYear()) {
   const parsed=parseBirthday(birthday);
   if(!parsed) return null;
   const {dd,mm}=parsed;
@@ -346,7 +358,7 @@ export function yearSourceAxes(goldenBlueprint) {
   };
 }
 
-export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFullYear()) {
+export function calculateGoldenYearSnapshot(birthday,targetYear=activeFlowYear()) {
   const golden=calculateGoldenYearBlueprint(birthday,targetYear);
   if(!golden) return null;
   const axes=yearSourceAxes(golden);
