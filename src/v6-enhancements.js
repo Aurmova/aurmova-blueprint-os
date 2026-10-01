@@ -328,6 +328,7 @@ function yearPanel(c,target){
     +'<div class="formula-note">个人流年 = 出生月份 + 出生日期 + 目标年份 → 逐位相加 → 化简至1–9。大环境流年 = 1 + 2 + 目标年份各位数字 → 化简至1–9。</div>'
     +'<div class="year-headline-grid"><div class="year-headline"><small>个人流年 · 第一优先</small><strong>'+personal.number+'</strong><b>'+esc(personal.title)+'</b><p>'+esc(personal.role)+'</p></div><div class="year-headline"><small>大环境流年</small><strong>'+environment.number+'</strong><b>'+esc(environment.title)+'</b><p>'+esc(environment.role)+'</p></div><div class="year-headline climate"><small>两者叠加</small><strong>'+esc(climate.type)+'</strong><p>'+esc(climate.description)+'</p></div></div>'
     +yearNineCycle(personal.number)
+    +yearSourcePanel(a,personal,environment)
     +'<div class="year-focus-card"><div><small>今年节奏</small><b>'+esc(personal.rhythm)+'</b><p>'+esc(personal.advice)+'</p></div><div><small>今年最容易踩的坑</small><b>'+esc(personal.pit)+'</b><p>流年不是命运预言，而是提醒你今年最容易在哪种模式里失衡。</p></div></div>'
     +'<div class="year-cycle-grid">'+cards+'</div>'
     +yearPriorityTable()
