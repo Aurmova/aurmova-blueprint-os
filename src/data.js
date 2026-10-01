@@ -10,6 +10,8 @@ export function createCustomer(form){
     gender:form.gender,
     birthday:`${day}/${month}/${form.year}`,
     birthCity:(form.birthCity||"").trim(),
+    occupation:(form.occupation||"").trim(),
+    whatsapp:(form.whatsapp||"").trim(),
     consultationTheme:(form.consultationTheme||"").trim(),
     consultationTypes,
     consultationType:consultationTypes[0]||"",
