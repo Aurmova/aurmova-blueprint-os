@@ -5,6 +5,7 @@ import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?
 import { MAIN_DETAIL, DIGIT_CORE, MODULES } from "./floot-knowledge.js?v=26";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=26";
 import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=26";
+import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=26";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -64,6 +65,7 @@ function simpleZodiac(birthday){
 }
 function libraryEntries(){
   const entries=[];
+  (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"原书拍照资料",title:x.title||"",keywords:(x.keywords||"")+" "+(x.source||""),text:(x.source?("来源："+x.source+"\n"):"")+(x.text||"")}));
   (JOINT_DB||[]).forEach(x=>entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:x.text||""}));
   for(let n=1;n<=9;n++){
     const d=MAIN_DETAIL[n]||{}, core=DIGIT_CORE[n]||{}, e=ENERGY_LIBRARY[n]||{}, child=CHILD?.[n]||CHILD?.[String(n)]||{}, mode=CHILDHOOD_MODES[n]||{}, polarity=INNER_DIGIT_POLARITY[n]||{};
