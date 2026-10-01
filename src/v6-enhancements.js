@@ -698,6 +698,8 @@ function deleteCustomer(id){
   if(!confirm("确定删除 "+c.name+" 的顾客档案吗？\n删除后此装置上的这份资料会移除。")) return;
   saveCustomers(loadCustomers().filter(x=>String(x.id)!==String(id)));
   localStorage.removeItem(partnerKey(id));
+  localStorage.removeItem(consultationKey(id));
+  localStorage.removeItem(serviceKey(id));
   if(location.hash.startsWith("#workspace")) location.hash="history"; else location.dispatchEvent(new HashChangeEvent("hashchange"));
 }
 function enhanceHistory(){
@@ -837,5 +839,10 @@ document.addEventListener("input",event=>{
   if(el.matches("[data-v6-partner-name]"))ps[i].name=el.value;else ps[i].birthday=el.value;savePartners(c.id,ps);
 });
 document.addEventListener("change",event=>{
+  const service=event.target.closest("[data-v18-service-check]");
+  if(service){
+    const c=currentCustomer(); if(!c)return;
+    const state=loadService(c.id); state[service.dataset.v18ServiceCheck]=service.checked; state.updatedAt=new Date().toISOString(); saveService(c.id,state); return;
+  }
   const el=event.target.closest("[data-v6-partner-birthday]");if(!el)return;const c=currentCustomer();if(c)renderModule("合作蓝图",c);
 });
