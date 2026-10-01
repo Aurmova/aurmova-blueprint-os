@@ -75,7 +75,7 @@ function libraryEntries(){
     k.growth&&("成长方向："+k.growth),
     k.positions&&("位置资料："+k.positions),
     x.text&&("原始整理：\n"+x.text)
-  ].filter(Boolean).join("\n\n")}));});
+  ].filter(Boolean).join("\n\n")});});
   for(let n=1;n<=9;n++){
     const d=MAIN_DETAIL[n]||{}, core=DIGIT_CORE[n]||{}, e=ENERGY_LIBRARY[n]||{}, child=CHILD?.[n]||CHILD?.[String(n)]||{}, mode=CHILDHOOD_MODES[n]||{}, polarity=INNER_DIGIT_POLARITY[n]||{};
     entries.push({category:"1–9主性格",title:"主性格 "+n+" · "+(d.title||""),keywords:"主性格"+n+" "+n+"号人 性格",text:[
