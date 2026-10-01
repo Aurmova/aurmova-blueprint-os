@@ -1,10 +1,10 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=26";
-import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=26";
-import { PERSONALITY_LIBRARY } from "./personality-library.js?v=26";
-import { findJointCode } from "./aurmova-knowledge.js?v=26";
-import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=26";
-import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=26";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=26";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=27";
+import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=27";
+import { PERSONALITY_LIBRARY } from "./personality-library.js?v=27";
+import { findJointCode } from "./aurmova-knowledge.js?v=27";
+import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=27";
+import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=27";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=27";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
