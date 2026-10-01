@@ -1,11 +1,11 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=26";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=26";
-import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=26";
-import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=26";
-import { MAIN_DETAIL, DIGIT_CORE, MODULES } from "./floot-knowledge.js?v=26";
-import { ENERGY_LIBRARY } from "./energy-library.js?v=26";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=26";
-import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=26";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=27";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=27";
+import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=27";
+import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=27";
+import { MAIN_DETAIL, DIGIT_CORE, MODULES } from "./floot-knowledge.js?v=27";
+import { ENERGY_LIBRARY } from "./energy-library.js?v=27";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=27";
+import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=27";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -88,7 +88,7 @@ function libraryEntries(){
       child.watch?("需要留意："+child.watch):"", child.guide?("教育方向："+child.guide):""
     ].filter(Boolean).join("\n")});
   }
-  entries.push({category:"679综合",title:"679综合 · 原资料保留",keywords:"679 福禄寿 财富 人缘 贵人 机会 认同",text:"现有资料库确认曾经收录679综合相关课程内容。旧版曾把它过度简化成只看6／7／9出现次数，这个做法已经停用。当前保留课程索引与基础关键词，但完整判断必须回到原拍照教材的条件、位置和组合一起核对；找不到原页的部分不会自行补写。咨询时可先说：『679我会看资源、人际和机会怎样互相承接，但不会只凭某个数字出现几次就断定好坏；还要看它落在哪里、跟什么组合一起出现，再用你的真实经历验证。』"});
+
   (MODULES||[]).forEach(x=>entries.push({category:"资料库索引",title:x[0],keywords:x[0],text:x[1]||""}));
   return entries;
 }
@@ -110,13 +110,13 @@ function initLibrarySearch(){
   input.addEventListener("input",()=>renderLibraryResults(input.value));
 }
 function libraryPage(){
-  const total=(JOINT_DB||[]).length;
+  const total=(JOINT_DB||[]).reduce((sum,x)=>sum+String(x.code||"").split("/").filter(Boolean).length,0);
   return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料、结构化资料与白话咨询版集中查询。")}
   <section class="card form-card">
     <div class="form-section-title"><span class="step">01</span><h2>快速查询全部资料</h2></div>
     <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、缺失4、挑战7、主性格2、内驱8、679"></div>
     <div class="library-stats">
-      <div><strong>${total}</strong><span>联合码资料条目</span></div>
+      <div><strong>${total} / 81</strong><span>联合码实际号码</span></div>
       <div><strong>1–9</strong><span>主性格／内驱／天赋</span></div>
       <div><strong>1–9</strong><span>缺失／挑战／制约</span></div>
       <div><strong>679</strong><span>原资料索引保留</span></div>
