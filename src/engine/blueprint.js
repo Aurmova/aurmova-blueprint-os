@@ -161,57 +161,61 @@ export function calculateBlueprint(birthday) {
   const N = add(K,L);
   const O = add(M,N);
 
-  // 三角形外圈延伸：严格按 Josephine 最新图示位置命名。
-  // 左侧延伸：I/J/M → X/W/S
-  const X = add(I,M);
-  const W = add(J,M);
-  const S = add(X,W);
-  // 上方延伸：M/N/O → P/Q/R（图示公式：Q=N+O，P=M+O，R=Q+P）
-  const Q = add(N,O);
-  const P = add(M,O);
-  const R = add(Q,P);
-  // 右侧延伸：K/L/N → V/U/T
+  // 三阶段外圈：严格按 Josephine 最终固定公式。
+  // 21–40：S = I + M；T = J + M；U = S + T。
+  const S = add(I,M);
+  const T = add(J,M);
+  const U = add(S,T);
+  // 41–60：P = N + O；Q = M + O；R = P + Q。
+  const P = add(N,O);
+  const Q = add(M,O);
+  const R = add(P,Q);
+  // 61+：V = K + N；W = L + N；X = V + W。
   const V = add(K,N);
-  const U = add(L,N);
-  const T = add(V,U);
+  const W = add(L,N);
+  const X = add(V,W);
 
-  const positions = {A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,X,W,S,Q,P,R,V,U,T};
+  const positions = {A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,S,T,U,P,Q,R,V,W,X};
 
-  // 六组基础联合数字：三组内部 + 三组外圈。
+  // 六组基础联合数字：三组内部 + 三组阶段结果。
   const jointCodes6 = {
     IJM:[I,J,M],
     KLN:[K,L,N],
     MNO:[M,N,O],
-    SWX:[S,W,X],
-    RQP:[R,Q,P],
-    TVU:[T,V,U]
+    STU:[S,T,U],
+    PQR:[P,Q,R],
+    VWX:[V,W,X],
+    // 兼容旧模块读取键名；值统一指向最终公式，避免旧画面再次算错。
+    SWX:[S,T,U],
+    RQP:[P,Q,R],
+    TVU:[V,W,X]
   };
 
-  // 十二组阶段联合码：按图示固定位置顺序读取。
+  // 十二组阶段联合码：最终固定顺序。
   const phases = {
     "21–40":{
       cause:[I,J,M],          // IJM
-      process1:[I,M,X],       // IMX
-      process2:[J,M,W],       // JMW
-      result:[W,X,S]          // WXS
+      process1:[I,M,S],       // IMS
+      process2:[J,M,T],       // JMT
+      result:[S,T,U]          // STU
     },
     "41–60":{
       cause:[M,N,O],          // MNO
-      process1:[M,O,P],       // MOP
-      process2:[N,O,Q],       // NOQ
+      process1:[M,O,Q],       // MOQ
+      process2:[N,O,P],       // NOP
       result:[P,Q,R]          // PQR
     },
     "61+":{
       cause:[K,L,N],          // KLN
       process1:[K,N,V],       // KNV
-      process2:[L,N,U],       // LNU
-      result:[V,U,T]          // VUT
+      process2:[L,N,W],       // LNW
+      result:[V,W,X]          // VWX
     }
   };
 
   // 三角形内部 7 个数字与外圈 9 个数字分别统计能量。
   const innerTriangle = [I,J,K,L,M,N,O];
-  const outerTriangle = [X,W,S,Q,P,R,V,U,T];
+  const outerTriangle = [S,T,U,P,Q,R,V,W,X];
   const combinedTriangle = [...innerTriangle, ...outerTriangle];
 
   const innerEnergy = scanEnergy(innerTriangle);
@@ -276,7 +280,10 @@ export function calculateGoldenYearBlueprint(birthday,targetYear=new Date().getF
   const N=add(K,L);
   const O=add(M,N);
 
-  // 黄金流年专用衍生位（沿用 Josephine 的流年结构命名）。
+  // 黄金流年仍使用同一张基础数字盘结构，只把年份替换为目标年份。
+  const S=add(I,M);
+  const T=add(J,M);
+  const U=add(S,T);
   const P=add(N,O);
   const Q=add(M,O);
   const R=add(P,Q);
@@ -284,12 +291,14 @@ export function calculateGoldenYearBlueprint(birthday,targetYear=new Date().getF
   const W=add(L,N);
   const X=add(V,W);
 
-  const positions={A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,V,W,X};
+  const positions={A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,S,T,U,P,Q,R,V,W,X};
+  const birthDigits=[A,B,C,D,E,F,G,H];
   const innerTriangle=[I,J,K,L,M,N,O];
 
   return {
     year:yyyy,
     positions,
+    birthDigits,
     fixedFatherCode:[I,J,M].join(""),
     personalAxis:{
       groups:{
