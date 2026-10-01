@@ -5,7 +5,7 @@ import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
 import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=32";
-import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=37";
+import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=38";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
