@@ -195,8 +195,8 @@ function jointBlock(c,label){
     source="Floot × AURMOVA 结构化资料";
     body='<h4>'+esc(structured.title||c)+'</h4>'
       +'<p><b>核心逻辑：</b>'+esc(structured.logic||"")+'</p>'
-      +'<p><b>正向优势：</b>'+esc(structured.strengths||"")+'</p>'
-      +'<p><b>常见卡点：</b>'+esc(structured.challenges||"")+'</p>'
+      +'<p><b>正面／优势：</b>'+esc(structured.strengths||"")+'</p>'
+      +'<p><b>负面／卡点：</b>'+esc(structured.challenges||"")+'</p>'
       +(structured.order?'<p><b>顺序差异：</b>'+esc(structured.order)+'</p>':"")
       +'<p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>'
       +(structured.positions?'<p><b>位置资料：</b>'+esc(structured.positions)+'</p>':"")
@@ -674,9 +674,9 @@ function renderModule(key,c){
   if(!panel||!c) return;
   if(key==="黄金流年") panel.innerHTML=yearPanel(c);
   else if(key==="合作蓝图") panel.innerHTML=cooperationPanel(c);
-  else if(key==="关系蓝图") panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT</small><h2>关系蓝图</h2></div><span>双方独立计算后交叉解读</span></div><p>关系模块会结合双方主性格、内心需要、原生家庭、位置与真实互动，不用单一合数替关系下定论。</p></div>';
-  else if(key==="亲子蓝图") panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>PARENT CHILD BLUEPRINT</small><h2>亲子蓝图</h2></div><span>儿童资料持续接入</span></div><p>这里会接入你已经整理的儿童1–9天赋、生活场景、父母模式、家庭系统、规则与边界资料。</p></div>';
-  else panel.innerHTML='<div class="module-render"><div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图</h2></div><span>Josephine Only</span></div><p>完整位置、三阶段、81组、缺失／挑战、内外能量与咨询提词全部保留在私人后台。</p></div>';
+  else if(key==="关系蓝图") panel.innerHTML=relationshipPanel(c);
+  else if(key==="亲子蓝图") panel.innerHTML=familyPanel(c);
+  else panel.innerHTML=lifeBlueprintPanel(c);
 }
 function activeModuleName(){
   return document.querySelector("[data-v6-module].active")?.dataset.v6Module || "人生蓝图";
