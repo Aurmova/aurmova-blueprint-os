@@ -1,4 +1,4 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20261001-v14";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20261001-v15";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
