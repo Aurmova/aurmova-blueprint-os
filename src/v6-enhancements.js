@@ -92,6 +92,53 @@ function innerOuterAlignmentSection(a){
     +'</div>';
 }
 
+function contrastRows(a){
+  const inner=a.innerEnergy?.counts||{},outer=a.outerEnergy?.counts||{};
+  return DIGITS.map(n=>{
+    const i=Number(inner[n]||0),o=Number(outer[n]||0),diff=Math.abs(i-o);
+    const direction=i>o?"suppressed":o>i?"compensating":"balanced";
+    const priority=diff>=3?"core":diff===2?"assist":"low";
+    return {n,inner:i,outer:o,diff,direction,priority};
+  });
+}
+
+function contrastProbe(mode){
+  if(mode==="suppressed") return "你有没有觉得，在某些场合你其实有自己的想法或感受，但最后没有说出来，或没有照自己的方式做？";
+  if(mode==="compensating") return "别人看到的你，和你自己觉得的那个你，是不是其实有一点不一样？";
+  return "你身边真正熟悉你的人，是不是通常觉得你里外都差不多？";
+}
+
+function quickConsultationSection(a){
+  const rows=contrastRows(a);
+  const core=rows.filter(x=>x.priority==="core").sort((x,y)=>y.diff-x.diff);
+  const assist=rows.filter(x=>x.priority==="assist").sort((x,y)=>y.diff-x.diff);
+  const pick=(core[0]||assist[0]||rows.slice().sort((x,y)=>y.diff-x.diff)[0]);
+  let opener="";
+  let alignment=null;
+  if(pick&&pick.diff>0){
+    alignment=getInnerOuterAlignment(pick.n,pick.inner,pick.outer);
+    opener=alignment?.hook||"你内在和外在的表现，在这个数字上有明显反差。";
+  }
+
+  const table=rows.map(x=>{
+    const mark=x.priority==="core"?"核心张力":x.priority==="assist"?"辅助话题":"低优先";
+    return '<div class="contrast-row '+x.priority+'"><b>'+x.n+'</b><span>'+x.inner+'</span><span>'+x.outer+'</span><span>'+x.diff+'</span><em>'+mark+'</em></div>';
+  }).join("");
+
+  const focus=pick&&pick.diff>0
+    ? '<div class="consult-opener-card"><div class="source-tag">'+(pick.diff>=3?"首选开场":"当前最明显反差")+'</div><h4>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</h4><blockquote>'+esc(opener)+'</blockquote><p>'+esc(alignment?.body||"先用这句开场，再让顾客用自己的故事来验证。")+'</p><div class="question-box"><b>探针问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick.direction))+'</div></div>'
+    : '<div class="empty-mini">这张盘目前没有明显内外反差。开场不要硬找冲突，优先从高密度一致数字、缺失数或顾客主动提出的问题开始。</div>';
+
+  return '<div class="quick-consultation">'
+    +'<div class="card-heading"><div><small>30-SECOND SCAN</small><h3>30秒内外计数 · 找最大反差</h3></div><span>先找故事最多的地方</span></div>'
+    +'<div class="contrast-table"><div class="contrast-head"><b>数字</b><span>内</span><span>外</span><span>差</span><em>优先级</em></div>'+table+'</div>'
+    +'<div class="formula-note">实战优先级：差3个以上＝核心张力点；差2个＝辅助话题；差0–1＝通常先跳过。若有多个并列核心张力点，系统会保留并列，不硬选唯一答案。</div>'
+    +focus
+    +'<div class="consult-flow"><div><small>STEP 1 · 先说一句</small><b>把数字翻译成人话</b><p>用“你其实是___的人，但你习惯了___”切入，不先解释方法论。</p></div><div><small>STEP 2 · 让顾客讲</small><b>追问真实故事</b><p>可以问：从什么时候开始？最早发生在家庭、学校还是工作？后来这个模式有没有一直重复？</p></div><div><small>STEP 3 · 拉回盘</small><b>把故事挂回位置</b><p>再把顾客刚才讲的经历放回父亲基因、母亲基因、主性格、事业朋友、孩子下属或家庭晚年的对应位置验证。</p></div></div>'
+    +'<div class="formula-note">原则：先用盘提出“可能的模式”，再让顾客用经历确认或修正。目标不是让顾客被一句话“说中”，而是让她看见自己反复出现的模式。</div>'
+    +'</div>';
+}
+
 function densityComparison(a){
   const innerCounts=a.innerEnergy?.counts||{},outerCounts=a.outerEnergy?.counts||{};
   const innerMax=Math.max(...DIGITS.map(n=>Number(innerCounts[n]||0)));
@@ -114,6 +161,7 @@ function digitDensitySection(a){
     +'<div><h3>三角形外｜现实中活出来的你</h3><div class="density-grid">'+DIGITS.map(n=>densityCard(a,n,"outer")).join("")+'</div></div></div>'
     +densityComparison(a)
     +innerOuterAlignmentSection(a)
+    +quickConsultationSection(a)
     +'<div class="formula-note">流年命中高密度数字时，体感通常会更明显；黄金流年会把“流年数 × 内外密度”一起提示。密度与内外模式是AURMOVA咨询框架中的读取维度，不等同于确定事件。</div>'
     +'</section>';
 }
