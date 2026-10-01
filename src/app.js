@@ -57,9 +57,186 @@ function simpleZodiac(birthday){
  return d<=signs[m-1][1]?signs[m-1][0]:signs[m][0];
 }
 function libraryPage(){return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料与白话咨询版分开保存。")}<section class="card form-card"><div class="form-section-title"><span class="step">01</span><h2>快速查询</h2></div><div class="field"><label>输入数字／联合码／主题</label><input id="library-search" placeholder="例如：325、缺失4、挑战7、主性格2"></div><div class="notice">这里是私人资料查询入口。现有结构化资料会继续整合；没有核对到原始教材的内容不会自行补写。</div></section>`;}
-function whiteboardPage(){return `${header("CONSULTATION WHITEBOARD","咨询白板","一边讲解，一边直接画给顾客看。")}<section class="card" style="padding:14px"><div class="actions"><button class="btn btn-light" id="wb-undo">撤销</button><button class="btn btn-light" id="wb-clear">清空</button></div><canvas id="consult-whiteboard" width="1200" height="760" style="width:100%;height:min(68vh,760px);background:#fff;border:1px solid #e4dacb;touch-action:none;margin-top:12px"></canvas></section>`;}
+function whiteboardPage(){return `${header("CONSULTATION WHITEBOARD","咨询白板","像真正上课白板一样：可擦、可缩放、可拖动、可换颜色。")}
+<section class="card wb-card">
+  <div class="wb-toolbar" aria-label="白板工具">
+    <div class="wb-tool-group">
+      <button class="wb-tool active" id="wb-pen" type="button" aria-pressed="true">✎ 画笔</button>
+      <button class="wb-tool" id="wb-eraser" type="button" aria-pressed="false">⌫ 橡皮擦</button>
+    </div>
+    <div class="wb-colors" aria-label="画笔颜色">
+      <button class="wb-color active" data-wb-color="#1f1f1f" style="--swatch:#1f1f1f" aria-label="黑色"></button>
+      <button class="wb-color" data-wb-color="#b38a45" style="--swatch:#b38a45" aria-label="金色"></button>
+      <button class="wb-color" data-wb-color="#c44747" style="--swatch:#c44747" aria-label="红色"></button>
+      <button class="wb-color" data-wb-color="#376da8" style="--swatch:#376da8" aria-label="蓝色"></button>
+      <button class="wb-color" data-wb-color="#3f8b62" style="--swatch:#3f8b62" aria-label="绿色"></button>
+      <button class="wb-color" data-wb-color="#7657a6" style="--swatch:#7657a6" aria-label="紫色"></button>
+    </div>
+    <label class="wb-width">笔粗细
+      <select id="wb-width">
+        <option value="3">细</option>
+        <option value="7" selected>中</option>
+        <option value="14">粗</option>
+      </select>
+    </label>
+    <div class="wb-tool-group wb-history-tools">
+      <button class="wb-tool" id="wb-undo" type="button">↶ 撤销</button>
+      <button class="wb-tool" id="wb-redo" type="button">↷ 重做</button>
+      <button class="wb-tool" id="wb-clear" type="button">清空整页</button>
+    </div>
+    <div class="wb-tool-group">
+      <button class="wb-tool" id="wb-zoom-out" type="button">−</button>
+      <span id="wb-zoom-label" class="wb-zoom-label">100%</span>
+      <button class="wb-tool" id="wb-zoom-in" type="button">＋</button>
+      <button class="wb-tool" id="wb-reset-view" type="button">适合画面</button>
+    </div>
+  </div>
+  <div class="wb-tip">一指／Apple Pencil 写画 · 两指捏合缩放并移动画布 · 往内捏可看到更多空白空间</div>
+  <div class="wb-viewport" id="wb-viewport">
+    <canvas id="consult-whiteboard" width="3200" height="2200" aria-label="AURMOVA 咨询白板"></canvas>
+  </div>
+</section>`;}
 function followupPage(){const rows=loadCustomers().filter(c=>c.whatsapp).map(c=>`<article class="card" style="margin-bottom:10px"><h3>${c.name}</h3><p>${c.whatsapp} · ${c.occupation||"未填写职业"}</p><p>咨询后可从这里准备个性化关心讯息。自动无人值守发送需连接 WhatsApp Business 正式接口后启用。</p><a class="btn btn-light" href="#workspace?id=${c.id}">打开顾客</a></article>`).join("");return `${header("CLIENT CARE","Follow-up 中心","管理咨询后的顾客关心与后续联系。")}<section>${rows||'<div class="card empty"><h3>暂无可跟进号码</h3><p>建立顾客时填写 WhatsApp 号码后会显示在这里。</p></div>'}</section>`;}
-function initWhiteboard(){const canvas=document.querySelector("#consult-whiteboard");if(!canvas)return;const ctx=canvas.getContext("2d");ctx.lineWidth=3;ctx.lineCap="round";let down=false,last=null,snap=[];const pos=e=>{const r=canvas.getBoundingClientRect(),p=e.touches?.[0]||e;return{x:(p.clientX-r.left)*canvas.width/r.width,y:(p.clientY-r.top)*canvas.height/r.height}};const start=e=>{e.preventDefault();snap.push(canvas.toDataURL());down=true;last=pos(e)};const move=e=>{if(!down)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p};const end=()=>{down=false};canvas.addEventListener("pointerdown",start);canvas.addEventListener("pointermove",move);window.addEventListener("pointerup",end);document.querySelector("#wb-clear")?.addEventListener("click",()=>{snap.push(canvas.toDataURL());ctx.clearRect(0,0,canvas.width,canvas.height)});document.querySelector("#wb-undo")?.addEventListener("click",()=>{const src=snap.pop();ctx.clearRect(0,0,canvas.width,canvas.height);if(src){const im=new Image();im.onload=()=>ctx.drawImage(im,0,0);im.src=src}});}
+function initWhiteboard(){
+  const canvas=document.querySelector("#consult-whiteboard"), viewport=document.querySelector("#wb-viewport");
+  if(!canvas||!viewport)return;
+  const ctx=canvas.getContext("2d",{alpha:true});
+  const W=canvas.width,H=canvas.height;
+  const MIN_SCALE=.28,MAX_SCALE=2;
+  let scale=1,tool="pen",color="#1f1f1f",width=7,current=null,strokes=[],history=[],redo=[];
+  const pointers=new Map();
+  let pinch=null;
+
+  ctx.lineCap="round";ctx.lineJoin="round";
+
+  const setScale=(next,clientX,clientY)=>{
+    const old=scale;
+    next=Math.max(MIN_SCALE,Math.min(MAX_SCALE,next));
+    if(Math.abs(next-old)<.001)return;
+    const vr=viewport.getBoundingClientRect();
+    const cx=(clientX??(vr.left+vr.width/2))-vr.left;
+    const cy=(clientY??(vr.top+vr.height/2))-vr.top;
+    const worldX=(viewport.scrollLeft+cx)/old;
+    const worldY=(viewport.scrollTop+cy)/old;
+    scale=next;
+    canvas.style.width=(W*scale)+"px";
+    canvas.style.height=(H*scale)+"px";
+    viewport.scrollLeft=Math.max(0,worldX*scale-cx);
+    viewport.scrollTop=Math.max(0,worldY*scale-cy);
+    const label=document.querySelector("#wb-zoom-label");if(label)label.textContent=Math.round(scale*100)+"%";
+  };
+
+  const fitView=()=>{
+    const target=Math.min(1,(viewport.clientWidth-24)/W);
+    setScale(Math.max(MIN_SCALE,target),viewport.getBoundingClientRect().left+12,viewport.getBoundingClientRect().top+12);
+    viewport.scrollLeft=0;viewport.scrollTop=0;
+  };
+
+  const point=e=>{
+    const r=canvas.getBoundingClientRect();
+    return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};
+  };
+
+  const drawStroke=s=>{
+    if(!s||!s.points?.length)return;
+    ctx.save();
+    ctx.globalCompositeOperation=s.tool==="eraser"?"destination-out":"source-over";
+    ctx.strokeStyle=s.color;ctx.lineWidth=s.width;ctx.lineCap="round";ctx.lineJoin="round";
+    const pts=s.points;
+    if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,s.width/2,0,Math.PI*2);s.tool==="eraser"?ctx.clearRect(pts[0].x-s.width/2,pts[0].y-s.width/2,s.width,s.width):ctx.fillStyle=s.color,ctx.fill();}
+    else{ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke();}
+    ctx.restore();
+  };
+
+  const redraw=()=>{ctx.clearRect(0,0,W,H);strokes.forEach(drawStroke);};
+
+  const setTool=next=>{
+    tool=next;
+    document.querySelector("#wb-pen")?.classList.toggle("active",tool==="pen");
+    document.querySelector("#wb-eraser")?.classList.toggle("active",tool==="eraser");
+    document.querySelector("#wb-pen")?.setAttribute("aria-pressed",String(tool==="pen"));
+    document.querySelector("#wb-eraser")?.setAttribute("aria-pressed",String(tool==="eraser"));
+    canvas.classList.toggle("eraser-mode",tool==="eraser");
+  };
+
+  canvas.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    canvas.setPointerCapture?.(e.pointerId);
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+    if(pointers.size>=2){
+      current=null;
+      const pts=[...pointers.values()].slice(0,2);
+      const dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;
+      pinch={distance:Math.hypot(dx,dy)||1,scale,midX:(pts[0].x+pts[1].x)/2,midY:(pts[0].y+pts[1].y)/2};
+      return;
+    }
+    current={tool,color,width:tool==="eraser"?Math.max(28,width*4):width,points:[point(e)]};
+    drawStroke(current);
+  });
+
+  canvas.addEventListener("pointermove",e=>{
+    if(!pointers.has(e.pointerId))return;
+    e.preventDefault();
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+    if(pointers.size>=2){
+      const pts=[...pointers.values()].slice(0,2);
+      const dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y,dist=Math.hypot(dx,dy)||1;
+      const mx=(pts[0].x+pts[1].x)/2,my=(pts[0].y+pts[1].y)/2;
+      if(!pinch)pinch={distance:dist,scale,midX:mx,midY:my};
+      setScale(pinch.scale*(dist/pinch.distance),mx,my);
+      const ddx=mx-pinch.midX,ddy=my-pinch.midY;
+      viewport.scrollLeft=Math.max(0,viewport.scrollLeft-ddx);
+      viewport.scrollTop=Math.max(0,viewport.scrollTop-ddy);
+      pinch.midX=mx;pinch.midY=my;
+      return;
+    }
+    if(!current)return;
+    current.points.push(point(e));
+    const p=current.points,s={...current,points:p.slice(-2)};
+    drawStroke(s);
+  });
+
+  const finish=e=>{
+    pointers.delete(e.pointerId);
+    if(pointers.size<2)pinch=null;
+    if(current&&current.points.length){
+      strokes.push(current);history.push({type:"stroke",stroke:current});redo.length=0;current=null;
+    }
+  };
+  canvas.addEventListener("pointerup",finish);
+  canvas.addEventListener("pointercancel",finish);
+  canvas.addEventListener("contextmenu",e=>e.preventDefault());
+
+  document.querySelector("#wb-pen")?.addEventListener("click",()=>setTool("pen"));
+  document.querySelector("#wb-eraser")?.addEventListener("click",()=>setTool("eraser"));
+  document.querySelectorAll("[data-wb-color]").forEach(btn=>btn.addEventListener("click",()=>{
+    color=btn.dataset.wbColor||color;setTool("pen");
+    document.querySelectorAll("[data-wb-color]").forEach(x=>x.classList.toggle("active",x===btn));
+  }));
+  document.querySelector("#wb-width")?.addEventListener("change",e=>{width=Number(e.target.value)||7;});
+  document.querySelector("#wb-undo")?.addEventListener("click",()=>{
+    const action=history.pop();if(!action)return;
+    if(action.type==="stroke")strokes.pop();
+    else if(action.type==="clear")strokes=action.strokes.slice();
+    redo.push(action);redraw();
+  });
+  document.querySelector("#wb-redo")?.addEventListener("click",()=>{
+    const action=redo.pop();if(!action)return;
+    if(action.type==="stroke")strokes.push(action.stroke);
+    else if(action.type==="clear")strokes=[];
+    history.push(action);redraw();
+  });
+  document.querySelector("#wb-clear")?.addEventListener("click",()=>{
+    if(!strokes.length)return;
+    history.push({type:"clear",strokes:strokes.slice()});redo.length=0;strokes=[];redraw();
+  });
+  document.querySelector("#wb-zoom-out")?.addEventListener("click",()=>setScale(scale-.15));
+  document.querySelector("#wb-zoom-in")?.addEventListener("click",()=>setScale(scale+.15));
+  document.querySelector("#wb-reset-view")?.addEventListener("click",fitView);
+
+  canvas.style.width=W+"px";canvas.style.height=H+"px";
+  requestAnimationFrame(fitView);
+}
 function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
 function workspace(){
  const id=new URLSearchParams(location.hash.split('?')[1]).get('id');
