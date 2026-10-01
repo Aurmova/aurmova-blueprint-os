@@ -1,11 +1,11 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=27";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=27";
-import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=27";
-import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=27";
-import { MAIN_DETAIL, DIGIT_CORE, MODULES } from "./floot-knowledge.js?v=27";
-import { ENERGY_LIBRARY } from "./energy-library.js?v=27";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=27";
-import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=27";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=28";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=28";
+import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=28";
+import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=28";
+import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=28";
+import { ENERGY_LIBRARY } from "./energy-library.js?v=28";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=28";
+import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=28";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -66,7 +66,16 @@ function simpleZodiac(birthday){
 function libraryEntries(){
   const entries=[];
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"原书拍照资料",title:x.title||"",keywords:(x.keywords||"")+" "+(x.source||""),text:(x.source?("来源："+x.source+"\n"):"")+(x.text||"")}));
-  (JOINT_DB||[]).forEach(x=>entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:x.text||""}));
+  (JOINT_DB||[]).forEach(x=>{const first=String(x.code||"").split("/")[0],k=getKnowledge(first)||{};entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:[
+    k.script&&("Josephine白话："+k.script),
+    k.logic&&("核心逻辑："+k.logic),
+    k.strengths&&("正面优势："+k.strengths),
+    k.challenges&&("常见卡点："+k.challenges),
+    k.order&&("顺序差异："+k.order),
+    k.growth&&("成长方向："+k.growth),
+    k.positions&&("位置资料："+k.positions),
+    x.text&&("原始整理：\n"+x.text)
+  ].filter(Boolean).join("\n\n")}));});
   for(let n=1;n<=9;n++){
     const d=MAIN_DETAIL[n]||{}, core=DIGIT_CORE[n]||{}, e=ENERGY_LIBRARY[n]||{}, child=CHILD?.[n]||CHILD?.[String(n)]||{}, mode=CHILDHOOD_MODES[n]||{}, polarity=INNER_DIGIT_POLARITY[n]||{};
     entries.push({category:"1–9主性格",title:"主性格 "+n+" · "+(d.title||""),keywords:"主性格"+n+" "+n+"号人 性格",text:[
