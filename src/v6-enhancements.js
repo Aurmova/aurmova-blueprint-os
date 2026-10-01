@@ -458,34 +458,62 @@ function yearFinalSummary(a,personal,environment,climate){
     +'</ol></div>';
 }
 
+function axisGroupsHtml(groups,labels,activeNumber){
+  return '<div class="golden-axis-grid">'+Object.entries(groups).map(([name,arr],i)=>{
+    const codeValue=arr.join("");
+    const hit=arr.includes(activeNumber);
+    const data=getFlootKnowledge(codeValue)||findJointCode(codeValue);
+    const positive=data?.strengths||data?.text||"这组联合码已计算完成；详细正向资料按AURMOVA资料库读取。";
+    const negative=data?.challenges||"负向／卡点资料若原始库未写明，系统不会自行杜撰。";
+    return '<article class="golden-axis-code '+(hit?'hit':'')+'"><small>'+esc(labels[i]||"")+' · '+esc(name)+'</small><strong>'+esc(codeValue)+'</strong>'
+      +(hit?'<em>命中今年数字 '+activeNumber+'</em>':'')
+      +'<p><b>正向：</b>'+esc(positive)+'</p><p><b>负向／卡点：</b>'+esc(negative)+'</p></article>';
+  }).join("")+'</div>';
+}
+
+function yearSnapshotCard(c,year,label){
+  const snap=calculateGoldenYearSnapshot(c.birthday,year);
+  if(!snap) return "";
+  const a=calculateBlueprint(c.birthday);
+  const p=snap.personal,e=snap.environment;
+  const missing=a.innerEnergy?.missing||[],repeated=a.innerEnergy?.repeated||[];
+  const personalHits=snap.personalHits.length?snap.personalHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接命中";
+  const envHits=snap.environmentHits.length?snap.environmentHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接命中";
+  return '<section class="golden-year-sheet '+(label==="今年"?"current":"")+'">'
+    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>个人流年 '+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境</small><b>'+e.number+'</b><span>'+esc(e.title)+'</span></div></div>'
+    +'<div class="year-positive-negative"><div><small>正面／顺势</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>负面／反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
+    +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年主轴 · MNO → MOQ / NOP → PQR</h4></div><span>最主要</span></div>'
+    +'<p class="panel-note">因果 MNO；过程 MOQ、NOP；结果 PQR。个人流年数字 '+p.number+' 主要观察在哪一组出现、重复几次，以及与内圈密度／缺失／过强怎样叠加。</p>'
+    +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number)
+    +'<div class="formula-note">今年个人流年命中：'+esc(personalHits)+'</div>'
+    +'<div class="golden-axis-title"><div><small>ENVIRONMENT YEAR AXIS</small><h4>大流年／天气 · KLN → KNV / LNW → VWX</h4></div><span>共同天气</span></div>'
+    +'<p class="panel-note">因果 KLN；过程 KNV、LNW；结果 VWX。大环境是所有人共享的天气，但每个人是否有这个数字、密度高低与落位不同，所以体感不同。</p>'
+    +axisGroupsHtml(snap.environmentAxis.groups,snap.environmentAxis.labels,e.number)
+    +'<div class="formula-note">今年大环境命中：'+esc(envHits)+'｜个人 × 大环境：'+esc(snap.climate.type)+'。'+esc(snap.climate.description)+'</div>'
+    +'<div class="golden-support-grid">'
+      +'<div><span>起始数</span><b>'+snap.startingThoughtCode+'</b></div>'
+      +'<div><span>制约数</span><b>'+snap.constraintCode+'</b></div>'
+      +'<div><span>内心码</span><b>'+snap.innerCode+'</b></div>'
+      +'<div><span>潜意识</span><b>'+snap.subconsciousCode+'</b></div>'
+      +'<div><span>缺失数</span><b>'+(missing.length?missing.join(" · "):"无")+'</b></div>'
+      +'<div><span>过强／挑战</span><b>'+(repeated.length?repeated.join(" · "):"无")+'</b></div>'
+    +'</div>'
+    +yearDensityResonance(a,p)
+    +missingActivationPanel(a,p)
+    +'</section>';
+}
+
 function yearPanel(c,target){
   const year=Number(target)||new Date().getFullYear();
-  const set=calculateYearCycleSet(c.birthday,year);
-  const personal=set.current;
-  const environment=calculateEnvironmentYear(year);
-  const climate=compareYearClimate(personal.number,environment.number);
-  const a=calculateBlueprint(c.birthday);
-
-  const cards=[["去年",set.previous],["今年",set.current],["明年",set.next]].map(([label,y])=>
-    '<article class="year-card '+(label==="今年"?"current-year":"")+'"><small>'+label+'</small><h3>'+y.year+' · 流年 '+y.number+'</h3><b>'+esc(y.title)+'</b><p>'+esc(y.summary)+'</p><div class="year-mini-tags"><span>'+esc(y.cycle)+'</span><span>'+esc(y.rhythm)+'</span></div></article>'
-  ).join("");
-
-  return '<div class="module-render year-v12">'
-    +'<div class="card-heading"><div><small>GOLDEN YEAR</small><h2>黄金流年 · 时间定位器</h2></div><span>9年循环 · 先看节奏，再看落位</span></div>'
-    +'<p class="panel-note">流年的重点不是“今年好不好”，而是你现在站在9年循环的哪个位置：这一年更适合开始、积累、扎根、突破、收获、反思，还是收尾。</p>'
-    +'<div class="year-control"><label>分析年份 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
-    +'<div class="formula-note">个人流年 = 出生月份 + 出生日期 + 目标年份 → 逐位相加 → 化简至1–9。大环境流年 = 1 + 2 + 目标年份各位数字 → 化简至1–9。</div>'
-    +'<div class="year-headline-grid"><div class="year-headline"><small>个人流年 · 第一优先</small><strong>'+personal.number+'</strong><b>'+esc(personal.title)+'</b><p>'+esc(personal.role)+'</p></div><div class="year-headline"><small>大环境流年</small><strong>'+environment.number+'</strong><b>'+esc(environment.title)+'</b><p>'+esc(environment.role)+'</p></div><div class="year-headline climate"><small>两者叠加</small><strong>'+esc(climate.type)+'</strong><p>'+esc(climate.description)+'</p></div></div>'
-    +yearNineCycle(personal.number)
-    +yearSourcePanel(a,personal,environment)
-    +'<div class="year-focus-card"><div><small>今年节奏</small><b>'+esc(personal.rhythm)+'</b><p>'+esc(personal.advice)+'</p></div><div><small>今年最容易踩的坑</small><b>'+esc(personal.pit)+'</b><p>流年不是命运预言，而是提醒你今年最容易在哪种模式里失衡。</p></div></div>'
-    +'<div class="year-cycle-grid">'+cards+'</div>'
-    +yearPriorityTable()
-    +yearLocationPanel(a,personal)
-    +yearDensityResonance(a,personal)
-    +missingActivationPanel(a,personal)
-    +yearJointPanel()
-    +yearFinalSummary(a,personal,environment,climate)
+  const current=calculateGoldenYearSnapshot(c.birthday,year);
+  return '<div class="module-render golden-year-v20">'
+    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 已改为流年专用结构</h2></div><span>去年 · 今年 · 明年</span></div>'
+    +'<div class="year-control"><label>以哪一年为“今年” <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
+    +'<div class="formula-note">个人流年＝出生月＋出生日＋目标年份 → 化简1–9。大环境流年按你给的示例规则：1＋目标年份各位数字 → 化简1–9（例如2026＝2、2027＝3）。黄金流年不再重复人生蓝图的三阶段图。</div>'
+    +'<div class="golden-master-summary"><div><small>今年个人流年</small><strong>'+current.personal.number+'</strong><span>'+esc(current.personal.title)+'</span></div><div><small>今年大环境</small><strong>'+current.environment.number+'</strong><span>'+esc(current.environment.title)+'</span></div><div><small>节奏关系</small><b>'+esc(current.climate.type)+'</b><p>'+esc(current.climate.description)+'</p></div></div>'
+    +yearSnapshotCard(c,year-1,"去年")
+    +yearSnapshotCard(c,year,"今年")
+    +yearSnapshotCard(c,year+1,"明年")
     +'</div>';
 }
 
