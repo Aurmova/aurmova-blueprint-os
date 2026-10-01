@@ -256,52 +256,93 @@ export function calculateBlueprint(birthday) {
   };
 }
 
-export function yearSourceAxes(blueprint) {
-  if (!blueprint) return null;
-  const p = blueprint.positions || {};
+export function calculateGoldenYearBlueprint(birthday,targetYear=new Date().getFullYear()) {
+  const parsed=parseBirthday(birthday);
+  if(!parsed) return null;
+  const {dd,mm}=parsed;
+  const yyyy=Number(targetYear);
 
-  // 黄金流年使用独立的“流年衍生位”命名。
-  // 这组 P/Q/R/V/W/X 不覆盖人生蓝图外圈位置，只用于黄金流年读取。
-  const P = add(p.N,p.O);
-  const Q = add(p.M,p.O);
-  const R = add(P,Q);
-  const V = add(p.K,p.N);
-  const W = add(p.L,p.N);
-  const X = add(V,W);
+  // 黄金流年盘：日、月沿用顾客出生资料；“年”替换成目标年份。
+  // 因此 IJM 不变，KLN 随年份变化；MNO 把个人固定基础与当年环境合起来。
+  const [A,B]=String(dd).padStart(2,"0").split("").map(Number);
+  const [C,D]=String(mm).padStart(2,"0").split("").map(Number);
+  const [E,F,G,H]=String(yyyy).padStart(4,"0").split("").map(Number);
+
+  const I=add(A,B);
+  const J=add(C,D);
+  const M=add(I,J);
+  const K=add(E,F);
+  const L=(yyyy===2000&&G===0&&H===0)?5:add(G,H);
+  const N=add(K,L);
+  const O=add(M,N);
+
+  // 黄金流年专用衍生位（沿用 Josephine 的流年结构命名）。
+  const P=add(N,O);
+  const Q=add(M,O);
+  const R=add(P,Q);
+  const V=add(K,N);
+  const W=add(L,N);
+  const X=add(V,W);
+
+  const positions={A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,V,W,X};
+  const innerTriangle=[I,J,K,L,M,N,O];
 
   return {
-    personal: {
-      base: [p.M,p.N,p.O],
-      baseCode: [p.M,p.N,p.O].join(""),
-      groups: {
-        MNO:[p.M,p.N,p.O],
-        MOQ:[p.M,p.O,Q],
-        NOP:[p.N,p.O,P],
+    year:yyyy,
+    positions,
+    fixedFatherCode:[I,J,M].join(""),
+    personalAxis:{
+      groups:{
+        MNO:[M,N,O],
+        MOQ:[M,O,Q],
+        NOP:[N,O,P],
         PQR:[P,Q,R]
       },
       labels:["因果","过程一","过程二","结果"]
     },
-    environment: {
-      base: [p.K,p.L,p.N],
-      baseCode: [p.K,p.L,p.N].join(""),
-      groups: {
-        KLN:[p.K,p.L,p.N],
-        KNV:[p.K,p.N,V],
-        LNW:[p.L,p.N,W],
+    environmentAxis:{
+      groups:{
+        KLN:[K,L,N],
+        KNV:[K,N,V],
+        LNW:[L,N,W],
         VWX:[V,W,X]
       },
       labels:["因果","过程一","过程二","结果"]
     },
-    derivedPositions:{P,Q,R,V,W,X}
+    startingThoughtCode:I,
+    constraintCode:add(sumDigits(dd),sumDigits(mm)),
+    innerCode:innerCode(O),
+    subconsciousCode:add(I,O,L),
+    mainYearCode:O,
+    innerTriangle,
+    innerEnergy:scanEnergy(innerTriangle)
+  };
+}
+
+export function yearSourceAxes(goldenBlueprint) {
+  if(!goldenBlueprint) return null;
+  return {
+    personal:{
+      base:goldenBlueprint.personalAxis.groups.MNO,
+      baseCode:goldenBlueprint.personalAxis.groups.MNO.join(""),
+      groups:goldenBlueprint.personalAxis.groups,
+      labels:goldenBlueprint.personalAxis.labels
+    },
+    environment:{
+      base:goldenBlueprint.environmentAxis.groups.KLN,
+      baseCode:goldenBlueprint.environmentAxis.groups.KLN.join(""),
+      groups:goldenBlueprint.environmentAxis.groups,
+      labels:goldenBlueprint.environmentAxis.labels
+    }
   };
 }
 
 export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFullYear()) {
-  const blueprint=calculateBlueprint(birthday);
-  if(!blueprint) return null;
+  const golden=calculateGoldenYearBlueprint(birthday,targetYear);
+  if(!golden) return null;
   const personal=calculatePersonalYear(birthday,targetYear);
   const environment=calculateEnvironmentYear(targetYear);
-  const axes=yearSourceAxes(blueprint);
+  const axes=yearSourceAxes(golden);
   const hitGroups=(groups,n)=>Object.entries(groups).filter(([,arr])=>arr.includes(n)).map(([key,arr])=>({key,code:arr.join(""),count:arr.filter(v=>v===n).length}));
   return {
     year:Number(targetYear),
@@ -312,12 +353,16 @@ export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFu
     environmentAxis:axes.environment,
     personalHits:hitGroups(axes.personal.groups,personal.number),
     environmentHits:hitGroups(axes.environment.groups,environment.number),
-    startingThoughtCode:blueprint.startingThoughtCode,
-    constraintCode:blueprint.constraintCode,
-    innerCode:blueprint.innerCode,
-    subconsciousCode:blueprint.subconsciousCode,
-    innerEnergy:blueprint.innerEnergy,
-    mainPersonality:blueprint.mainPersonality
+    fixedFatherCode:golden.fixedFatherCode,
+    startingThoughtCode:golden.startingThoughtCode,
+    constraintCode:golden.constraintCode,
+    innerCode:golden.innerCode,
+    subconsciousCode:golden.subconsciousCode,
+    innerEnergy:golden.innerEnergy,
+    yearTriangle:golden.innerTriangle,
+    yearPositions:golden.positions,
+    mainPersonality:golden.mainYearCode,
+    consistency:{personalYearMatchesO:personal.number===golden.mainYearCode}
   };
 }
 
