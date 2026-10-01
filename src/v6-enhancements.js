@@ -537,7 +537,7 @@ function yearPanel(c,target){
   return '<div class="module-render golden-year-v22">'
     +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 个人流年 × 大环境四码</h2></div><span>去年 · 今年 · 明年</span></div>'
     +'<div class="year-control"><label>以哪一年为“今年” <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
-    +'<div class="formula-note">计算逻辑：保留顾客出生的“日＋月”，把“年”替换成目标年份重新排流年盘。自身流年看 MNO／MOQ／NOP／PQR；大环境直接看 KLN／KNV／LNW／VWX。大环境不再另算一个单独数字来代表整年。</div>'
+    +'<div class="formula-note"><b>固定图版：</b>黄金流年也使用与人生／关系／亲子／合作完全相同的方框数字盘，只把年份替换为目标年份重新排盘。计算逻辑：保留顾客出生的“日＋月”；自身流年看 MNO／MOQ／NOP／PQR；大环境直接看 KLN／KNV／LNW／VWX。大环境不再另算一个单独数字来代表整年。</div>'
     +'<div class="golden-master-summary"><div><small>今年自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>今年大环境主码</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 因果</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN因果 → KNV / LNW过程 → VWX结果；四组共同定义今年的“天气”。</p></div></div>'
     +yearTeachingPanel()
     +yearSnapshotCard(c,year-1,"去年")
@@ -550,7 +550,7 @@ function partnerRow(p,i){
   let result='<div class="partner-result empty-mini">填写生日后自动计算这位伙伴。</div>';
   if(p.birthday){
     const a=calculateBlueprint(p.birthday);
-    if(a) result='<div class="partner-result"><span>伙伴 '+(i+1)+'</span><b>主性格 '+a.mainPersonality+'</b><span>坐镇码 '+a.seatCode+'</span><span>父亲基因 '+code(Object.values(a.fatherGenes))+'</span><span>母亲基因 '+code(Object.values(a.motherGenes))+'</span></div>';
+    if(a) result='<div class="partner-result">'+blueprintMap(a,true)+'<span>伙伴 '+(i+1)+'</span><b>主性格 '+a.mainPersonality+'</b><span>坐镇码 '+a.seatCode+'</span><span>父亲基因 '+code(Object.values(a.fatherGenes))+'</span><span>母亲基因 '+code(Object.values(a.motherGenes))+'</span></div>';
   }
   return '<article class="partner-card" data-v6-partner="'+i+'"><div class="partner-title"><b>合作伙伴 '+(i+1)+'</b><button type="button" class="danger-lite" data-v6-remove-partner="'+i+'">移除</button></div><div class="partner-fields"><label>姓名<input data-v6-partner-name="'+i+'" value="'+esc(p.name||"")+'" placeholder="伙伴姓名"></label><label>生日（日/月/年）<input inputmode="numeric" data-v6-partner-birthday="'+i+'" value="'+esc(p.birthday||"")+'" placeholder="21/11/1995"></label></div>'+result+'</article>';
 }
@@ -705,6 +705,8 @@ function relationshipCross(a,b){
 function relationshipPanel(c){
   const r=loadRelationship(c.id),a=calculateBlueprint(c.birthday),b=r.birthday?calculateBlueprint(r.birthday):null;
   return '<div class="module-render"><div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT</small><h2>关系蓝图 · 双方资料</h2></div><span>两张蓝图交叉看</span></div>'
+    +blueprintSheet(c,a,"关系蓝图 · "+c.name)
+    +plainLanguagePanel(a)
     +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并生成双方蓝图</button></div>'
     +'<div class="two-blueprints"><div><h3>'+esc(c.name)+' · 当事人</h3>'+miniBlueprint({birthday:c.birthday})+'</div><div><h3>'+esc(r.name||"对方")+'</h3>'+miniBlueprint(r)+'</div></div>'
     +(b?relationshipCross(a,b):'<div class="empty-mini">填写对方资料后，系统会把双方主性格、内心码、制约数、原生模式、缺失／过强与共同数字放在一起比较。</div>')
@@ -717,7 +719,7 @@ function familyMemberCard(role,prefix,person){
 }
 
 function familyPanel(c){
-  const f=loadFamily(c.id);
+  const f=loadFamily(c.id),selfA=calculateBlueprint(c.birthday);
   const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(ch)+'</article>').join("");
   const adults=[f.father?.birthday?calculateBlueprint(f.father.birthday):null,f.mother?.birthday?calculateBlueprint(f.mother.birthday):null].filter(Boolean);
   const kids=(f.children||[]).map(x=>x.birthday?calculateBlueprint(x.birthday):null).filter(Boolean);
@@ -731,6 +733,8 @@ function familyPanel(c){
     familyInsight='<div class="family-insight"><h4>家庭系统观察</h4><p>父母主性格：'+parentMains+'｜孩子主性格：'+kidMains+'</p><p>父母较强数字：'+(parentStrong.join(" · ")||"—")+'｜孩子缺失数字：'+(kidSensitive.join(" · ")||"—")+'</p><p><b>需要特别验证的互动：</b>'+(overlap.length?overlap.join(" · ")+" 在父母较强、孩子较弱，容易形成“父母觉得理所当然，孩子却需要后天学习”的落差。":"目前没有明显的“父母强／孩子缺”重合，继续看主性格、制约数与真实互动。")+'</p></div>';
   }
   return '<div class="module-render"><div class="card-heading"><div><small>PARENT CHILD BLUEPRINT</small><h2>亲子蓝图 · 全家一起看</h2></div><span>爸爸 + 妈妈 + 多个孩子</span></div>'
+    +blueprintSheet(c,selfA,"亲子蓝图 · "+c.name)
+    +plainLanguagePanel(selfA)
     +'<div class="family-grid">'+familyMemberCard("爸爸","father",f.father||{})+familyMemberCard("妈妈","mother",f.mother||{})+childCards+'</div>'
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v20-add-child">＋ 增加孩子</button><button type="button" class="btn btn-light" id="v20-save-family">保存并重新解析全家</button></div>'
     +familyInsight+'</div>';
