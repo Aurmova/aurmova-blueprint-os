@@ -3,7 +3,7 @@ import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=2026093
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
-import { getTrianglePattern, getDensityReading } from "./triangle-pattern-library.js?v=20261001-v16";
+import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=20261001-v17";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -70,6 +70,28 @@ function densityCard(a,number,scope){
     +'</article>';
 }
 
+function alignmentCard(a,number){
+  const innerCount=Number(a.innerEnergy?.counts?.[number]||0);
+  const outerCount=Number(a.outerEnergy?.counts?.[number]||0);
+  const r=getInnerOuterAlignment(number,innerCount,outerCount);
+  if(!r||r.mode==="low") return "";
+  return '<article class="alignment-card '+r.mode+'">'
+    +'<div class="alignment-card-top"><span>'+number+'</span><div><b>'+esc(r.modeName)+'</b><small>'+esc(r.label)+'</small></div><em>内'+innerCount+' · 外'+outerCount+'</em></div>'
+    +'<h4>'+esc(r.hook)+'</h4>'
+    +'<p>'+esc(r.body)+'</p>'
+    +'<div class="alignment-focus">'+esc(r.focus)+'</div>'
+    +'</article>';
+}
+
+function innerOuterAlignmentSection(a){
+  const cards=DIGITS.map(n=>alignmentCard(a,n)).filter(Boolean).join("");
+  return '<div class="alignment-section">'
+    +'<div class="card-heading"><div><small>INNER × OUTER ALIGNMENT</small><h3>内外一致／压抑／补偿</h3></div><span>咨询突破层</span></div>'
+    +'<div class="formula-note">目前系统以“1次=轻触型、2次以上=高密度”作为“少／多”的判断：内≥2、外≥2＝内外一致；内≥2、外≤1＝内在压抑；内≤1、外≥2＝外在补偿。内外都≤1时不强行套模式。</div>'
+    +'<div class="alignment-grid">'+(cards||'<div class="empty-mini">当前没有形成明显的内外高密度组合。</div>')+'</div>'
+    +'</div>';
+}
+
 function densityComparison(a){
   const innerCounts=a.innerEnergy?.counts||{},outerCounts=a.outerEnergy?.counts||{};
   const innerMax=Math.max(...DIGITS.map(n=>Number(innerCounts[n]||0)));
@@ -91,7 +113,8 @@ function digitDensitySection(a){
     +'<div class="density-columns"><div><h3>三角形内｜骨子里的你</h3><div class="density-grid">'+DIGITS.map(n=>densityCard(a,n,"inner")).join("")+'</div></div>'
     +'<div><h3>三角形外｜现实中活出来的你</h3><div class="density-grid">'+DIGITS.map(n=>densityCard(a,n,"outer")).join("")+'</div></div></div>'
     +densityComparison(a)
-    +'<div class="formula-note">流年命中高密度数字时，体感通常会更明显；以后黄金流年会把“流年数 × 内外密度”一起提示。密度是AURMOVA咨询框架中的读取维度，不等同于确定事件。</div>'
+    +innerOuterAlignmentSection(a)
+    +'<div class="formula-note">流年命中高密度数字时，体感通常会更明显；黄金流年会把“流年数 × 内外密度”一起提示。密度与内外模式是AURMOVA咨询框架中的读取维度，不等同于确定事件。</div>'
     +'</section>';
 }
 
