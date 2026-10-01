@@ -223,7 +223,7 @@ export function calculateBlueprint(birthday) {
   const combinedEnergy = scanEnergy(combinedTriangle);
 
   // 外心数字只会落在 3 / 6 / 9。
-  const outerHeartCode = add(S,R,T);
+  const outerHeartCode = add(U,R,X);
   const outerHeartMeaning = ({
     3:"理想主义",
     6:"现实主义",
