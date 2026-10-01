@@ -1,6 +1,10 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=21";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=21";
-import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=21";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=26";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=26";
+import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=26";
+import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=26";
+import { MAIN_DETAIL, DIGIT_CORE, MODULES } from "./floot-knowledge.js?v=26";
+import { ENERGY_LIBRARY } from "./energy-library.js?v=26";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=26";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -22,6 +26,8 @@ const routes = [
 const app = document.querySelector("#app");
 const loadCustomers = () => JSON.parse(localStorage.getItem("aurmova.customers") || "[]");
 const saveCustomers = data => localStorage.setItem("aurmova.customers", JSON.stringify(data));
+
+function escapeLibraryHtml(value){return String(value??"").replace(/[&<>"\']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\'":"&#39;"}[c]));}
 
 function navMarkup() { return routes.map(([route,label,icon]) => `<a class="nav-link" data-route="${route}" href="#${route}">${icons[icon]}<span>${label}</span></a>`).join(""); }
 document.querySelector(".desktop-nav").innerHTML = navMarkup(); document.querySelector(".mobile-nav").innerHTML = navMarkup();
@@ -56,7 +62,67 @@ function simpleZodiac(birthday){
  const signs=[["摩羯座",20],["水瓶座",19],["双鱼座",20],["白羊座",20],["金牛座",21],["双子座",21],["巨蟹座",23],["狮子座",23],["处女座",23],["天秤座",23],["天蝎座",22],["射手座",22],["摩羯座",31]];
  return d<=signs[m-1][1]?signs[m-1][0]:signs[m][0];
 }
-function libraryPage(){return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料与白话咨询版分开保存。")}<section class="card form-card"><div class="form-section-title"><span class="step">01</span><h2>快速查询</h2></div><div class="field"><label>输入数字／联合码／主题</label><input id="library-search" placeholder="例如：325、缺失4、挑战7、主性格2"></div><div class="notice">这里是私人资料查询入口。现有结构化资料会继续整合；没有核对到原始教材的内容不会自行补写。</div></section>`;}
+function libraryEntries(){
+  const entries=[];
+  (JOINT_DB||[]).forEach(x=>entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:x.text||""}));
+  for(let n=1;n<=9;n++){
+    const d=MAIN_DETAIL[n]||{}, core=DIGIT_CORE[n]||{}, e=ENERGY_LIBRARY[n]||{}, child=CHILD?.[n]||CHILD?.[String(n)]||{}, mode=CHILDHOOD_MODES[n]||{}, polarity=INNER_DIGIT_POLARITY[n]||{};
+    entries.push({category:"1–9主性格",title:"主性格 "+n+" · "+(d.title||""),keywords:"主性格"+n+" "+n+"号人 性格",text:[
+      MAIN?.[n]||"", "思考："+(d.thinking||""), "行为："+(d.behavior||""), "说话："+(d.speech||""), "压力："+(d.stress||""),
+      "情感需求："+(d.emotion||""), "童年模式："+(d.childhood||""), "内驱力："+(d.drive||""), "核心天赋："+(d.talents||""),
+      "留意："+(d.watch||""), "Josephine白话："+(d.script||"")
+    ].filter(Boolean).join("\n")});
+    entries.push({category:"内驱力",title:"内驱力 "+n,keywords:"内驱 内驱力 "+n+"号",text:["核心内驱："+(d.drive||""),"内在偏好："+(INNER_PREF?.[n]||""),"咨询白话："+(d.script||"")].filter(Boolean).join("\n")});
+    entries.push({category:"起始数",title:"起始数 "+n,keywords:"起始 起始数 "+n,text:["核心："+(core.core||""),"优势："+(core.gift||""),"卡点："+(core.shadow||""),"适合发挥："+(core.work||"")].filter(Boolean).join("\n")});
+    entries.push({category:"缺失数",title:"缺失 "+n,keywords:"缺失"+n+" 缺失数"+n,text:["常见表现："+(e.low||""),"成长／补足方向："+(e.gift||""),"提醒：缺失不等于没有能力，而是这股能量更需要后天练习。"].join("\n")});
+    entries.push({category:"挑战数",title:"挑战 "+n,keywords:"挑战"+n+" 挑战数"+n+" 重复"+n,text:["正向潜力："+(e.gift||""),"过强／失衡时："+(e.high||""),"提醒：重复出现要把天赋与过强风险一起看。"].join("\n")});
+    entries.push({category:"制约数／原生家庭",title:"制约数 "+n,keywords:"制约"+n+" 制约数"+n+" 原生家庭 "+n,text:[
+      CONSTRAINT_NOTES[n]||"", mode.pattern?("小时候发生的模式："+mode.pattern):"", mode.need?("小时候真正需要："+mode.need):"",
+      mode.adult?("长大后容易重复："+mode.adult):"", mode.guide?("开解方向："+mode.guide):""
+    ].filter(Boolean).join("\n")});
+    entries.push({category:"三角形内数字",title:"数字 "+n+" · 正面／负面",keywords:"数字"+n+" 正面 负面 三角形内",text:["正面："+(polarity.positive||""),"负面："+(polarity.negative||"")].filter(Boolean).join("\n")});
+    entries.push({category:"儿童天赋",title:n+"号儿童 · "+(child.name||""),keywords:"儿童"+n+" 亲子"+n+" 天赋"+n,text:[
+      child.keywords?.length?("关键词："+child.keywords.join("、")):"", child.strength?("天赋／优势："+child.strength):"",
+      child.watch?("需要留意："+child.watch):"", child.guide?("教育方向："+child.guide):""
+    ].filter(Boolean).join("\n")});
+  }
+  entries.push({category:"679综合",title:"679综合 · 原资料保留",keywords:"679 福禄寿 财富 人缘 贵人 机会 认同",text:"现有资料库确认曾经收录679综合相关课程内容。旧版曾把它过度简化成只看6／7／9出现次数，这个做法已经停用。当前保留课程索引与基础关键词，但完整判断必须回到原拍照教材的条件、位置和组合一起核对；找不到原页的部分不会自行补写。咨询时可先说：『679我会看资源、人际和机会怎样互相承接，但不会只凭某个数字出现几次就断定好坏；还要看它落在哪里、跟什么组合一起出现，再用你的真实经历验证。』"});
+  (MODULES||[]).forEach(x=>entries.push({category:"资料库索引",title:x[0],keywords:x[0],text:x[1]||""}));
+  return entries;
+}
+function renderLibraryResults(query=""){
+  const box=document.querySelector("#library-results"); if(!box)return;
+  const all=libraryEntries();
+  const q=String(query||"").trim().toLowerCase().replace(/\s+/g,"");
+  const filtered=q?all.filter(x=>(x.category+" "+x.title+" "+x.keywords+" "+x.text).toLowerCase().replace(/\s+/g,"").includes(q)):all;
+  const grouped=new Map();
+  filtered.forEach(x=>{if(!grouped.has(x.category))grouped.set(x.category,[]);grouped.get(x.category).push(x);});
+  box.innerHTML='<div class="library-result-head"><b>找到 '+filtered.length+' 条资料</b><span>'+(q?"查询："+escapeLibraryHtml(query):"显示全部已恢复资料")+'</span></div>'
+    +(filtered.length?[...grouped.entries()].map(([cat,items])=>'<section class="library-group"><h3>'+escapeLibraryHtml(cat)+' <small>'+items.length+'</small></h3>'
+      +items.map((x,i)=>'<details class="library-entry" '+(filtered.length<=6&&i===0?'open':'')+'><summary><span>'+escapeLibraryHtml(x.title)+'</span><em>查看完整资料</em></summary><div class="library-entry-body">'+escapeLibraryHtml(x.text).replace(/\n/g,"<br>")+'</div></details>').join("")+'</section>').join("")
+      :'<div class="card empty"><h3>没有找到这项资料</h3><p>可以换成号码、关键词或主题，例如 112、缺失4、挑战7、内驱2、679。</p></div>');
+}
+function initLibrarySearch(){
+  const input=document.querySelector("#library-search"); if(!input)return;
+  renderLibraryResults(input.value);
+  input.addEventListener("input",()=>renderLibraryResults(input.value));
+}
+function libraryPage(){
+  const total=(JOINT_DB||[]).length;
+  return \`${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料、结构化资料与白话咨询版集中查询。")}
+  <section class="card form-card">
+    <div class="form-section-title"><span class="step">01</span><h2>快速查询全部资料</h2></div>
+    <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、缺失4、挑战7、主性格2、内驱8、679"></div>
+    <div class="library-stats">
+      <div><strong>\${total}</strong><span>联合码资料条目</span></div>
+      <div><strong>1–9</strong><span>主性格／内驱／天赋</span></div>
+      <div><strong>1–9</strong><span>缺失／挑战／制约</span></div>
+      <div><strong>679</strong><span>原资料索引保留</span></div>
+    </div>
+    <div class="notice">这次不是只有输入框：下面会直接显示已经找回并接回系统的资料。没有核对到原始拍照教材的内容会明确标记，不会自己编写。</div>
+  </section>
+  <div id="library-results"></div>\`;
+}
 function whiteboardPage(){return `${header("CONSULTATION WHITEBOARD","咨询白板","像真正上课白板一样：可擦、可缩放、可拖动、可换颜色。")}
 <section class="card wb-card">
   <div class="wb-toolbar" aria-label="白板工具">
@@ -295,7 +361,7 @@ function render() {
   if (route === "new") app.innerHTML = newCustomer();
   else if (route === "history" || route === "delete") app.innerHTML = history();
   else if (route === "workspace") app.innerHTML = workspace();
-  else if (route === "library") app.innerHTML = libraryPage();
+  else if (route === "library") { app.innerHTML = libraryPage(); setTimeout(initLibrarySearch,0); }
   else if (route === "whiteboard") { app.innerHTML = whiteboardPage(); setTimeout(initWhiteboard,0); }
   else if (route === "followup") app.innerHTML = followupPage();
   else app.innerHTML = home();
