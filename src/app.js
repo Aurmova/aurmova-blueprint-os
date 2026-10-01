@@ -1,6 +1,6 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=18";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=19";
 import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=15";
-import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=20260930-v6";
+import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=19";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -37,16 +37,15 @@ function home() {
 function newCustomer(selected="") {
  const years=Array.from({length:100},(_,i)=>new Date().getFullYear()-i).map(y=>`<option>${y}</option>`).join("");
  return `${header("Client Profile","建立顧客檔案","只收集本次諮詢所需資料；生日格式固定為日 / 月 / 年。")}
- <form id="customer-form" class="card form-card"><section class="form-section"><div class="form-section-title"><span class="step">01</span><h2>基本資料</h2></div><div class="fields"><div class="field"><label for="name">姓名 *</label><input id="name" name="name" autocomplete="name" placeholder="輸入顧客姓名" required></div><div class="field"><label for="gender">性別 *</label><select id="gender" name="gender" required><option value="">請選擇</option><option>女性</option><option>男性</option><option>非二元／其他</option><option>不透露</option></select></div><div class="field" style="grid-column:1/-1"><label>生日 · 日 / 月 / 年 *</label><div class="date-fields"><select name="day" aria-label="日" required><option value="">日</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="month" aria-label="月" required><option value="">月</option>${Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="year" aria-label="年" required><option value="">年</option>${years}</select></div></div>
- <div class="field"><label>历法</label><select name="calendarType"><option>阳历</option><option>农历</option></select></div>
- <div class="field"><label>出生时间</label><input name="birthTime" placeholder="例如 10:05 AM／不知道可留空"></div>
+ <form id="customer-form" class="card form-card"><section class="form-section"><div class="form-section-title"><span class="step">01</span><h2>基本資料</h2></div><div class="fields"><div class="field"><label for="name">姓名 *</label><input id="name" name="name" autocomplete="name" placeholder="輸入顧客姓名" required></div><div class="field"><label for="gender">性別 *</label><select id="gender" name="gender" required><option value="">请选择</option><option>女性</option><option>男性</option></select></div><div class="field" style="grid-column:1/-1"><label>生日 · 日 / 月 / 年 *</label><div class="date-fields"><select name="day" aria-label="日" required><option value="">日</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="month" aria-label="月" required><option value="">月</option>${Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="year" aria-label="年" required><option value="">年</option>${years}</select></div></div>
  <div class="field"><label>出生城市</label><input name="birthCity" placeholder="例如 Johor Bahru"></div>
  <div class="field"><label>本次最想聊的主题</label><select name="consultationTheme"><option value="">未指定</option><option>事业／工作</option><option>感情／关系</option><option>家庭／亲子</option><option>金钱／资源</option><option>自我方向</option><option>综合</option></select></div>
- </div><div class="notice">出生时间与城市会先作为预约资料保存；目前 AURMOVA 数字计算仍以你已经确认的生日公式为准，不会擅自把时间／地点加入未确认算法。</div></section>
- <section class="form-section"><div class="form-section-title"><span class="step">02</span><h2>選擇諮詢項目</h2></div><div class="radio-grid">${CONSULTATION_TYPES.map((x,i)=>`<label class="radio-card"><input type="radio" name="consultationType" value="${x}" ${selected===x?'checked':''} required><span>0${i+1}　${x}</span></label>`).join("")}</div></section>
+ </div><div class="notice">AURMOVA 统一使用阳历生日计算；不需要出生时间。出生城市仅作为顾客档案资料，不参与目前数字公式。</div></section>
+ <section class="form-section"><div class="form-section-title"><span class="step">02</span><h2>选择咨询项目 · 可多选</h2></div><div class="radio-grid">${CONSULTATION_TYPES.map((x,i)=>`<label class="radio-card"><input type="checkbox" name="consultationTypes" value="${x}" ${selected===x?'checked':''}><span>0${i+1}　${x}</span></label>`).join("")}</div></section>
+ <section class="form-section"><div class="form-section-title"><span class="step">03</span><h2>选择本次咨询重点 · 可多选</h2></div><div class="projects">${FOCUS_OPTIONS.map(x=>`<label class="chip"><input type="checkbox" name="consultationFocus" value="${x}"><span>${x}</span></label>`).join("")}</div><div class="notice">主性格、父母基因、坐镇码、三阶段、81组联合码、缺失数、挑战数、679、原生模式等属于每次咨询的基础解析，不再让你手动勾选。</div></section>
  <div class="notice">建立後，系統只會建立資料骨架，不會執行或推測任何數字心理學計算。完整分析僅保留在 Josephine 私人諮詢區。</div><div class="actions"><button class="btn btn-primary" type="submit">建立私人檔案</button><a class="btn btn-light" href="#home">取消</a></div></form>`;
 }
-function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${c.consultationType}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
+function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
 function workspace(){
  const id=new URLSearchParams(location.hash.split('?')[1]).get('id');
  const c=loadCustomers().find(x=>x.id===id);
@@ -61,7 +60,7 @@ function workspace(){
  return `${header("AURMOVA · PRIVATE CONSULTATION","AURMOVA 咨询工作台","透过数字认识自己｜透过美学展现魅力")}
  <section class="client-summary card">
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
-   <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · ${age}岁 · ${c.consultationType}</p></div>
+   <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · ${age}岁 · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
    <div class="quick-actions"><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
@@ -144,7 +143,10 @@ document.addEventListener("click", event => {
 document.addEventListener("submit", event => {
   if (event.target.id !== "customer-form") return;
   event.preventDefault();
-  const formData = Object.fromEntries(new FormData(event.target).entries());
+  const fd = new FormData(event.target);
+  const formData = Object.fromEntries(fd.entries());
+  formData.consultationTypes = fd.getAll("consultationTypes");
+  formData.consultationFocus = fd.getAll("consultationFocus");
   const error = validateCustomer(formData);
   if (error) {
     showToast(error);
