@@ -477,6 +477,26 @@ function axisGroupsHtml(groups,labels,activeNumber){
   }).join("")+'</div>';
 }
 
+function goldenYearVisual(snap){
+  const p=snap.yearPositions||{};
+  const personalCodes=Object.entries(snap.personalAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  const envCodes=Object.entries(snap.environmentAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  return '<div class="golden-chart-visual">'
+    +'<div class="golden-chart-label top"><small>自身流年</small><b>'+esc(personalCodes)+'</b></div>'
+    +'<div class="golden-chart-label side"><small>大流年／天气</small><b>'+esc(envCodes)+'</b></div>'
+    +'<svg viewBox="0 0 600 410" role="img" aria-label="黄金流年三角形">'
+      +'<polygon points="300,40 105,345 495,345" fill="none" stroke="currentColor" stroke-width="3"/>'
+      +'<line x1="202" y1="195" x2="398" y2="195" stroke="currentColor" stroke-width="2"/>'
+      +'<line x1="150" y1="275" x2="450" y2="275" stroke="currentColor" stroke-width="2"/>'
+      +'<line x1="300" y1="195" x2="300" y2="345" stroke="currentColor" stroke-width="2"/>'
+      +'<text x="300" y="108" text-anchor="middle" class="gy-main">'+(p.O??"")+'</text>'
+      +'<text x="250" y="185" text-anchor="middle" class="gy-num">'+(p.M??"")+'</text><text x="350" y="185" text-anchor="middle" class="gy-num">'+(p.N??"")+'</text>'
+      +'<text x="205" y="267" text-anchor="middle" class="gy-num">'+(p.I??"")+'</text><text x="270" y="267" text-anchor="middle" class="gy-num">'+(p.J??"")+'</text><text x="335" y="267" text-anchor="middle" class="gy-num">'+(p.K??"")+'</text><text x="400" y="267" text-anchor="middle" class="gy-num">'+(p.L??"")+'</text>'
+      +'<text x="300" y="382" text-anchor="middle" class="gy-base">'+[p.A,p.B,p.C,p.D,p.E,p.F,p.G,p.H].filter(v=>v!==undefined).join("   ")+'</text>'
+    +'</svg>'
+    +'</div>';
+}
+
 function goldenInnerDensityPanel(snap){
   const repeated=snap.innerEnergy.repeated||[];
   const missing=snap.innerEnergy.missing||[];
@@ -498,6 +518,7 @@ function yearSnapshotCard(c,year,label){
   return '<section class="golden-year-sheet '+(label==="今年"?"current":"")+'">'
     +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>个人流年 '+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境</small><b>'+e.number+'</b><span>'+esc(e.title)+'</span></div></div>'
     +'<div class="year-positive-negative"><div><small>正面／顺势</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>负面／反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
+    +goldenYearVisual(snap)
     +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年主轴 · MNO → MOQ / NOP → PQR</h4></div><span>最主要</span></div>'
     +'<p class="panel-note">这张流年盘用“出生的日＋月＋目标年份”重新排。IJM固定不变；MNO是自身流年的因果，MOQ／NOP看过程，PQR看结果。</p>'
     +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number)
