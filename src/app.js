@@ -56,7 +56,8 @@ function workspace(){
  const profile=a?PERSONALITY_LIBRARY[a.mainPersonality]:null;
  if(!c) return `${header("Consultation Workspace","AURMOVA 咨询工作台","请先从历史档案开启一位顾客。")}<section class="card empty"><h3>尚未选择顾客</h3><p>从历史档案开启顾客后，完整咨询资料会显示在这里。</p><a class="btn btn-primary" href="#history">前往历史档案</a></section>`;
  const phaseCards=Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>过程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>结果 ${v.result.join("")}</span></div>`).join("");
- const focus=FOCUS_OPTIONS.map((x,i)=>`<label class="focus-chip"><input type="checkbox" ${i<6?'checked':''}><span>${x}</span></label>`).join("");
+ const selectedFocus=new Set(c?.consultationFocus||[]);
+ const focus=FOCUS_OPTIONS.map(x=>`<label class="focus-chip"><input type="checkbox" ${selectedFocus.has(x)?'checked':''}><span>${x}</span></label>`).join("");
  return `${header("AURMOVA · PRIVATE CONSULTATION","AURMOVA 咨询工作台","透过数字认识自己｜透过美学展现魅力")}
  <section class="client-summary card">
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
