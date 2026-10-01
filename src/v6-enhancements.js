@@ -535,6 +535,140 @@ function cooperationPanel(c){
   const ps=loadPartners(c.id);
   return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div><p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。</p><div id="v6-partners">'+(ps.length?ps.map(partnerRow).join(""):'<div class="empty-mini">还没有合作伙伴。</div>')+'</div><div class="actions"><button type="button" class="btn btn-primary" id="v6-add-partner">＋ 增加合作伙伴</button><button type="button" class="btn btn-light" id="v6-save-partners">保存合作伙伴</button></div></div>';
 }
+function blueprintSheet(c,a,title="完整人生蓝图"){
+  const p=a.positions;
+  const phase21=Object.values(a.phases["21–40"]).map(x=>x.join("")).join(" · ");
+  const phase41=Object.values(a.phases["41–60"]).map(x=>x.join("")).join(" · ");
+  const phase61=Object.values(a.phases["61+"]).map(x=>x.join("")).join(" · ");
+  return '<section class="filled-blueprint">'
+    +'<div class="filled-blueprint-head"><div><small>AURMOVA BLUEPRINT</small><h3>'+esc(title)+'</h3><p>'+esc(c.name||"")+' · '+esc(c.birthday||"")+'</p></div><div class="bp-main-number"><span>主性格</span><b>'+a.mainPersonality+'</b></div></div>'
+    +'<div class="bp-core-grid">'
+      +'<div><span>父亲基因</span><b>'+a.fatherCode+'</b></div><div><span>母亲基因</span><b>'+a.motherCode+'</b></div><div><span>坐镇码</span><b>'+a.seatCode+'</b></div>'
+      +'<div><span>起始数</span><b>'+a.startingThoughtCode+'</b></div><div><span>制约数</span><b>'+a.constraintCode+'</b></div><div><span>内心码</span><b>'+a.innerCode+'</b></div>'
+      +'<div><span>潜意识</span><b>'+a.subconsciousCode+'</b></div><div><span>外心数</span><b>'+a.outerHeartCode+'</b><small>'+esc(a.outerHeartMeaning||"")+'</small></div><div><span>缺失数</span><b>'+(a.innerEnergy.missing.length?a.innerEnergy.missing.join(" · "):"无")+'</b></div>'
+    +'</div>'
+    +'<div class="bp-map-wrap">'
+      +'<div class="bp-phase-label top"><small>41–60岁 · 孩子／下属</small><b>'+esc(phase41)+'</b></div>'
+      +'<div class="bp-phase-label left"><small>21–40岁 · 事业／朋友</small><b>'+esc(phase21)+'</b></div>'
+      +'<div class="bp-phase-label right"><small>61岁以后 · 家庭／晚年</small><b>'+esc(phase61)+'</b></div>'
+      +'<svg class="bp-svg" viewBox="0 0 600 430" role="img" aria-label="AURMOVA 三角形蓝图">'
+        +'<polygon points="300,38 105,360 495,360" fill="none" stroke="currentColor" stroke-width="3"/>'
+        +'<line x1="202" y1="200" x2="398" y2="200" stroke="currentColor" stroke-width="2"/>'
+        +'<line x1="150" y1="285" x2="450" y2="285" stroke="currentColor" stroke-width="2"/>'
+        +'<line x1="300" y1="200" x2="300" y2="360" stroke="currentColor" stroke-width="2"/>'
+        +'<text x="300" y="105" text-anchor="middle" class="bp-num main">'+p.O+'</text>'
+        +'<text x="250" y="190" text-anchor="middle" class="bp-num">'+p.M+'</text><text x="350" y="190" text-anchor="middle" class="bp-num">'+p.N+'</text>'
+        +'<text x="205" y="277" text-anchor="middle" class="bp-num">'+p.I+'</text><text x="270" y="277" text-anchor="middle" class="bp-num">'+p.J+'</text><text x="335" y="277" text-anchor="middle" class="bp-num">'+p.K+'</text><text x="400" y="277" text-anchor="middle" class="bp-num">'+p.L+'</text>'
+        +'<text x="120" y="390" class="bp-base">'+a.birthDigits.join("   ")+'</text>'
+      +'</svg>'
+    +'</div>'
+    +'<div class="bp-footer-line"><span>三角形内：'+a.innerTriangle.join(" · ")+'</span><span>三角形外：'+a.outerTriangle.join(" · ")+'</span></div>'
+    +'</section>';
+}
+
+function innerPolarityPanel(a){
+  const present=DIGITS.filter(n=>(a.innerEnergy.counts[n]||0)>0);
+  return '<div class="foundation-block"><div class="card-heading"><div><small>INNER DIGITS</small><h3>三角形内数字 · 正面与负面</h3></div><span>自动读取</span></div>'
+    +'<div class="polarity-grid">'+present.map(n=>{const d=INNER_DIGIT_POLARITY[n],count=a.innerEnergy.counts[n];return '<div><b>'+n+' · '+count+'次</b><p><strong>正面：</strong>'+esc(d.positive)+'</p><p><strong>负面：</strong>'+esc(d.negative)+'</p></div>'}).join("")+'</div></div>';
+}
+
+function originalFamilyPanel(a){
+  const n=a.constraintCode,d=CHILDHOOD_MODES[n];
+  return '<div class="foundation-block"><div class="card-heading"><div><small>ORIGIN PATTERN</small><h3>制约数 '+n+' · 原生家庭模式</h3></div><span>基础必讲</span></div>'
+    +'<p><b>制约数：</b>'+esc(CONSTRAINT_NOTES[n]||"")+'</p>'
+    +(d?'<div class="origin-grid"><div><span>小时候发生的模式</span><p>'+esc(d.pattern)+'</p></div><div><span>小时候真正需要</span><p>'+esc(d.need)+'</p></div><div><span>长大后容易重复</span><p>'+esc(d.adult)+'</p></div><div><span>开解方向</span><p>'+esc(d.guide)+'</p></div></div>':'')
+    +'<div class="formula-note">原生家庭看“成长环境发生了什么”；制约数看这些经历在当事人身上留下了什么反应模式。两者分开讲。</div></div>';
+}
+
+function energy679Panel(a){
+  const items=[6,7,9].map(n=>{
+    const count=Number(a.innerEnergy.counts[n]||0);
+    const label=n===6?"资源／财富感":n===7?"人际／贵人感":"机会／认同感";
+    const text=count===0?"需要后天主动建立":count===1?"有基础，但不是主轴":"重复"+count+"次，优势明显，也要留意过强";
+    return '<div><strong>'+n+'</strong><span>'+label+'</span><p>'+text+'</p></div>';
+  }).join("");
+  return '<div class="foundation-block"><div class="card-heading"><div><small>679</small><h3>679综合</h3></div><span>资源 · 人际 · 机会</span></div><div class="energy679-mini">'+items+'</div></div>';
+}
+
+function mandatoryJointCodes(a){
+  const all=[
+    ...Object.values(a.phases["21–40"]),
+    ...Object.values(a.phases["41–60"]),
+    ...Object.values(a.phases["61+"])
+  ].map(x=>x.join(""));
+  const unique=[...new Set(all)];
+  return '<div class="foundation-block"><div class="card-heading"><div><small>81 JOINT CODES</small><h3>联合码 · 正面 + 负面一起讲</h3></div><span>自动必读</span></div>'
+    +'<div class="joint-stack">'+unique.map((x,i)=>jointBlock(x,"联合码 "+(i+1))).join("")+'</div></div>';
+}
+
+function lifeBlueprintPanel(c){
+  const a=calculateBlueprint(c.birthday);
+  const profile=PERSONALITY_LIBRARY[a.mainPersonality];
+  const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
+  return '<div class="module-render">'
+    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · 完整自动解析</h2></div><span>不是勾选项 · 每次必读</span></div>'
+    +blueprintSheet(c,a,"人生蓝图 · "+c.name)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN PERSONALITY</small><h3>主性格 '+a.mainPersonality+' · '+esc(profile?.title||"")+'</h3></div><span>正面 + 负面</span></div>'
+      +'<div class="year-positive-negative"><div><small>正面优势</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>负面／压力模式</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
+      +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
+    +'</div>'
+    +originalFamilyPanel(a)
+    +innerPolarityPanel(a)
+    +energy679Panel(a)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
+      +phaseDetails(a,"21–40")+phaseDetails(a,"41–60")+phaseDetails(a,"61+")
+    +'</div>'
+    +mandatoryJointCodes(a)
+    +'</div>';
+}
+
+function miniBlueprint(person){
+  if(!person?.birthday) return '<div class="empty-mini">填写生日后生成蓝图。</div>';
+  const a=calculateBlueprint(person.birthday); if(!a)return '<div class="empty-mini">生日格式请用 日/月/年。</div>';
+  return '<div class="mini-blueprint"><div><span>主性格</span><b>'+a.mainPersonality+'</b></div><div><span>坐镇码</span><b>'+a.seatCode+'</b></div><div><span>父亲基因</span><b>'+a.fatherCode+'</b></div><div><span>母亲基因</span><b>'+a.motherCode+'</b></div><div><span>内心码</span><b>'+a.innerCode+'</b></div><div><span>制约数</span><b>'+a.constraintCode+'</b></div></div>';
+}
+
+function relationshipCross(a,b){
+  const shared=DIGITS.filter(n=>a.innerEnergy.present.includes(n)&&b.innerEnergy.present.includes(n));
+  const tensionA=DIGITS.filter(n=>(a.innerEnergy.counts[n]||0)>=2&&b.innerEnergy.missing.includes(n));
+  const tensionB=DIGITS.filter(n=>(b.innerEnergy.counts[n]||0)>=2&&a.innerEnergy.missing.includes(n));
+  return '<div class="relationship-cross"><div><small>共同容易理解的数字</small><b>'+(shared.length?shared.join(" · "):"暂无明显重合")+'</b></div><div><small>A强／B缺</small><b>'+(tensionA.length?tensionA.join(" · "):"无")+'</b></div><div><small>B强／A缺</small><b>'+(tensionB.length?tensionB.join(" · "):"无")+'</b></div></div>'
+    +'<div class="formula-note">这里是双方蓝图的交叉观察线索，不用单一合数替关系下结论。重点继续结合两人的负面模式、制约数、原生家庭和真实互动验证。</div>';
+}
+
+function relationshipPanel(c){
+  const r=loadRelationship(c.id),a=calculateBlueprint(c.birthday),b=r.birthday?calculateBlueprint(r.birthday):null;
+  return '<div class="module-render"><div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT</small><h2>关系蓝图 · 双方资料</h2></div><span>两张蓝图交叉看</span></div>'
+    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并生成双方蓝图</button></div>'
+    +'<div class="two-blueprints"><div><h3>'+esc(c.name)+' · 当事人</h3>'+miniBlueprint({birthday:c.birthday})+'</div><div><h3>'+esc(r.name||"对方")+'</h3>'+miniBlueprint(r)+'</div></div>'
+    +(b?relationshipCross(a,b):'<div class="empty-mini">填写对方资料后，系统会把双方主性格、内心码、制约数、原生模式、缺失／过强与共同数字放在一起比较。</div>')
+    +'</div>';
+}
+
+function familyMemberCard(role,prefix,person){
+  return '<article class="family-member"><h4>'+esc(role)+'</h4><label>姓名<input data-family-field="'+prefix+'.name" value="'+esc(person?.name||"")+'"></label><label>生日（日/月/年）<input data-family-field="'+prefix+'.birthday" value="'+esc(person?.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(person)+'</article>';
+}
+
+function familyPanel(c){
+  const f=loadFamily(c.id);
+  const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(ch)+'</article>').join("");
+  const adults=[f.father?.birthday?calculateBlueprint(f.father.birthday):null,f.mother?.birthday?calculateBlueprint(f.mother.birthday):null].filter(Boolean);
+  const kids=(f.children||[]).map(x=>x.birthday?calculateBlueprint(x.birthday):null).filter(Boolean);
+  let familyInsight='<div class="empty-mini">填写爸爸、妈妈和孩子资料后，系统会把全家的蓝图放在一起看。</div>';
+  if(adults.length&&kids.length){
+    const parentMains=adults.map(x=>x.mainPersonality).join(" / ");
+    const kidMains=kids.map(x=>x.mainPersonality).join(" / ");
+    const parentStrong=DIGITS.filter(n=>adults.some(x=>(x.innerEnergy.counts[n]||0)>=2));
+    const kidSensitive=DIGITS.filter(n=>kids.some(x=>x.innerEnergy.missing.includes(n)));
+    const overlap=parentStrong.filter(n=>kidSensitive.includes(n));
+    familyInsight='<div class="family-insight"><h4>家庭系统观察</h4><p>父母主性格：'+parentMains+'｜孩子主性格：'+kidMains+'</p><p>父母较强数字：'+(parentStrong.join(" · ")||"—")+'｜孩子缺失数字：'+(kidSensitive.join(" · ")||"—")+'</p><p><b>需要特别验证的互动：</b>'+(overlap.length?overlap.join(" · ")+" 在父母较强、孩子较弱，容易形成“父母觉得理所当然，孩子却需要后天学习”的落差。":"目前没有明显的“父母强／孩子缺”重合，继续看主性格、制约数与真实互动。")+'</p></div>';
+  }
+  return '<div class="module-render"><div class="card-heading"><div><small>PARENT CHILD BLUEPRINT</small><h2>亲子蓝图 · 全家一起看</h2></div><span>爸爸 + 妈妈 + 多个孩子</span></div>'
+    +'<div class="family-grid">'+familyMemberCard("爸爸","father",f.father||{})+familyMemberCard("妈妈","mother",f.mother||{})+childCards+'</div>'
+    +'<div class="actions"><button type="button" class="btn btn-primary" id="v20-add-child">＋ 增加孩子</button><button type="button" class="btn btn-light" id="v20-save-family">保存并重新解析全家</button></div>'
+    +familyInsight+'</div>';
+}
+
 function renderModule(key,c){
   const panel=document.querySelector("#v6-module-panel");
   if(!panel||!c) return;
