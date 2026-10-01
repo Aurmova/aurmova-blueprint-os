@@ -76,7 +76,7 @@ export function calculateYearJointCode(endpointA, yearNumber, endpointB) {
 
 export function calculateEnvironmentYear(targetYear = new Date().getFullYear()) {
   const year = Number(targetYear);
-  const raw = 1 + 2 + sumDigits(year);
+  const raw = 1 + sumDigits(year);
   const number = reduce(raw);
   return {
     year,
@@ -234,6 +234,7 @@ export function calculateBlueprint(birthday) {
     fatherCode:[I,J,M].join(""),
     motherCode:[K,L,N].join(""),
     startingThoughtCode:I,
+    constraintCode:add(sumDigits(dd),sumDigits(mm)),
     innerCode:innerCode(O),
     // 旧资料中潜意识码仍独立保留，待 Josephine 的最终原始公式复核。
     subconsciousCode:add(I,O,L),
@@ -258,20 +259,65 @@ export function calculateBlueprint(birthday) {
 export function yearSourceAxes(blueprint) {
   if (!blueprint) return null;
   const p = blueprint.positions || {};
+
+  // 黄金流年使用独立的“流年衍生位”命名。
+  // 这组 P/Q/R/V/W/X 不覆盖人生蓝图外圈位置，只用于黄金流年读取。
+  const P = add(p.N,p.O);
+  const Q = add(p.M,p.O);
+  const R = add(P,Q);
+  const V = add(p.K,p.N);
+  const W = add(p.L,p.N);
+  const X = add(V,W);
+
   return {
     personal: {
       base: [p.M,p.N,p.O],
       baseCode: [p.M,p.N,p.O].join(""),
-      derived: {
-        MOP: [p.M,p.O,p.P],
-        NOQ: [p.N,p.O,p.Q],
-        PQR: [p.P,p.Q,p.R]
-      }
+      groups: {
+        MNO:[p.M,p.N,p.O],
+        MOQ:[p.M,p.O,Q],
+        NOP:[p.N,p.O,P],
+        PQR:[P,Q,R]
+      },
+      labels:["因果","过程一","过程二","结果"]
     },
     environment: {
-      base: [p.K,p.L,p.M],
-      baseCode: [p.K,p.L,p.M].join("")
-    }
+      base: [p.K,p.L,p.N],
+      baseCode: [p.K,p.L,p.N].join(""),
+      groups: {
+        KLN:[p.K,p.L,p.N],
+        KNV:[p.K,p.N,V],
+        LNW:[p.L,p.N,W],
+        VWX:[V,W,X]
+      },
+      labels:["因果","过程一","过程二","结果"]
+    },
+    derivedPositions:{P,Q,R,V,W,X}
+  };
+}
+
+export function calculateGoldenYearSnapshot(birthday,targetYear=new Date().getFullYear()) {
+  const blueprint=calculateBlueprint(birthday);
+  if(!blueprint) return null;
+  const personal=calculatePersonalYear(birthday,targetYear);
+  const environment=calculateEnvironmentYear(targetYear);
+  const axes=yearSourceAxes(blueprint);
+  const hitGroups=(groups,n)=>Object.entries(groups).filter(([,arr])=>arr.includes(n)).map(([key,arr])=>({key,code:arr.join(""),count:arr.filter(v=>v===n).length}));
+  return {
+    year:Number(targetYear),
+    personal,
+    environment,
+    climate:compareYearClimate(personal.number,environment.number),
+    personalAxis:axes.personal,
+    environmentAxis:axes.environment,
+    personalHits:hitGroups(axes.personal.groups,personal.number),
+    environmentHits:hitGroups(axes.environment.groups,environment.number),
+    startingThoughtCode:blueprint.startingThoughtCode,
+    constraintCode:blueprint.constraintCode,
+    innerCode:blueprint.innerCode,
+    subconsciousCode:blueprint.subconsciousCode,
+    innerEnergy:blueprint.innerEnergy,
+    mainPersonality:blueprint.mainPersonality
   };
 }
 
