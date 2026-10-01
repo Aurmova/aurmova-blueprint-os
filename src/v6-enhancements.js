@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=21";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=20261001-v17";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS } from "./consultation-library.js?v=21";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=22";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -464,26 +464,29 @@ function yearFinalSummary(a,personal,environment,climate){
     +'</ol></div>';
 }
 
-function axisGroupsHtml(groups,labels,activeNumber){
+function axisGroupsHtml(groups,labels,activeNumber=null,allEnvironment=false){
   return '<div class="golden-axis-grid">'+Object.entries(groups).map(([name,arr],i)=>{
     const codeValue=arr.join("");
-    const hit=arr.includes(activeNumber);
+    const hit=activeNumber!==null && activeNumber!==undefined && arr.includes(activeNumber);
     const data=getFlootKnowledge(codeValue)||findJointCode(codeValue);
     const positive=data?.strengths||data?.text||"这组联合码已计算完成；详细正向资料按AURMOVA资料库读取。";
-    const negative=data?.challenges||"负向／卡点资料若原始库未写明，系统不会自行杜撰。";
-    return '<article class="golden-axis-code '+(hit?'hit':'')+'"><small>'+esc(labels[i]||"")+' · '+esc(name)+'</small><strong>'+esc(codeValue)+'</strong>'
-      +(hit?'<em>命中今年数字 '+activeNumber+'</em>':'')
-      +'<p><b>正向：</b>'+esc(positive)+'</p><p><b>负向／卡点：</b>'+esc(negative)+'</p></article>';
+    const negative=data?.challenges||"负面／卡点资料若原始库未写明，系统不会自行杜撰。";
+    return '<article class="golden-axis-code '+(hit?'hit':'')+' '+(allEnvironment?'environment-code':'')+'"><small>'+esc(labels[i]||"")+' · '+esc(name)+'</small><strong>'+esc(codeValue)+'</strong>'
+      +(hit?'<em>个人流年数 '+activeNumber+' 在这组出现</em>':'')
+      +(allEnvironment?'<em>大环境四码之一 · 全年都要看</em>':'')
+      +'<p><b>正面：</b>'+esc(positive)+'</p><p><b>负面／卡点：</b>'+esc(negative)+'</p>'
+      +(data?.growth?'<p><b>修正方向：</b>'+esc(data.growth)+'</p>':'')
+      +'</article>';
   }).join("")+'</div>';
 }
 
 function goldenYearVisual(snap){
   const p=snap.yearPositions||{};
   const personalCodes=Object.entries(snap.personalAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
-  const envCodes=Object.entries(snap.environmentAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  const envCodes=snap.environmentCodes.map(x=>x.key+" "+x.code).join(" · ");
   return '<div class="golden-chart-visual">'
     +'<div class="golden-chart-label top"><small>自身流年</small><b>'+esc(personalCodes)+'</b></div>'
-    +'<div class="golden-chart-label side"><small>大流年／天气</small><b>'+esc(envCodes)+'</b></div>'
+    +'<div class="golden-chart-label side"><small>大环境四码</small><b>'+esc(envCodes)+'</b></div>'
     +'<svg viewBox="0 0 600 410" role="img" aria-label="黄金流年三角形">'
       +'<polygon points="300,40 105,345 495,345" fill="none" stroke="currentColor" stroke-width="3"/>'
       +'<line x1="202" y1="195" x2="398" y2="195" stroke="currentColor" stroke-width="2"/>'
@@ -508,25 +511,52 @@ function goldenInnerDensityPanel(snap){
     +'<div class="formula-note">缺失：'+(missing.length?missing.join(" · "):"无")+'｜过强／挑战：'+(repeated.length?repeated.join(" · "):"无")+'。数量越多不是越好，而是这股能量在该年的体感更强，正面与反面都会一起放大。</div></div>';
 }
 
+function environmentSynthesis(snap){
+  const example=ENVIRONMENT_YEAR_EXAMPLES[snap.year];
+  const entries=snap.environmentCodes.map(x=>({code:x.code,data:getFlootKnowledge(x.code)||findJointCode(x.code)}));
+  if(example){
+    return '<div class="environment-synthesis"><div class="card-heading"><div><small>ENVIRONMENT SYNTHESIS</small><h3>'+snap.year+'大环境 · 四码共同主题</h3></div><span>'+esc(example.headline)+'</span></div>'
+      +'<p>'+esc(example.summary)+'</p>'
+      +'<div class="origin-grid"><div><span>事业／赚钱</span><p>'+esc(example.business)+'</p></div><div><span>人际关系</span><p>'+esc(example.relationship)+'</p></div><div><span>个人状态</span><p>'+esc(example.personal)+'</p></div><div><span>四组码</span><p>'+esc(example.codes.join(" · "))+'</p></div></div>'
+      +'</div>';
+  }
+  const titles=entries.map(x=>x.code+" "+(x.data?.title||"")).filter(Boolean).join("；");
+  const strengths=entries.map(x=>x.data?.strengths).filter(Boolean).join("；");
+  const challenges=entries.map(x=>x.data?.challenges).filter(Boolean).join("；");
+  return '<div class="environment-synthesis"><div class="card-heading"><div><small>ENVIRONMENT SYNTHESIS</small><h3>'+snap.year+'大环境 · 四码共同读取</h3></div><span>'+snap.environmentCodes.map(x=>x.code).join(" · ")+'</span></div>'
+    +'<p><b>共同主题：</b>'+esc(titles||"按四组联合码逐组读取。")+'</p>'
+    +'<p><b>正面汇总：</b>'+esc(strengths||"以各组正面资料为准。")+'</p>'
+    +'<p><b>负面汇总：</b>'+esc(challenges||"以各组负面／卡点资料为准。")+'</p>'
+    +'<div class="formula-note">大环境不另外简化成一个数字下结论；KLN、KNV、LNW、VWX四组共同构成这一年的“天气”。</div></div>';
+}
+
+function yearTeachingPanel(){
+  const soup=YEAR_TEACHING_ANALOGIES.soup,weather=YEAR_TEACHING_ANALOGIES.weather;
+  return '<details class="year-teaching-note"><summary>学员教学解释 · 为什么个人流年要和大环境一起看？</summary>'
+    +'<div class="teaching-analogy"><div><small>'+esc(soup.title)+'</small><b>'+esc(soup.short)+'</b><p>'+esc(soup.script)+'</p></div>'
+    +'<div><small>'+esc(weather.title)+'</small><b>'+esc(weather.short)+'</b><p>'+esc(weather.script)+'</p></div></div>'
+    +'<div class="formula-note">教学重点：汤底＝KLN／KNV／LNW／VWX四组大环境码；个人加料＝MNO／MOQ／NOP／PQR四组自身流年码。不是“一个大环境数字＋一个个人数字”这么简单。</div>'
+    +'</details>';
+}
+
 function yearSnapshotCard(c,year,label){
   const snap=calculateGoldenYearSnapshot(c.birthday,year);
   if(!snap) return "";
-  const p=snap.personal,e=snap.environment;
+  const p=snap.personal;
   const missing=snap.innerEnergy?.missing||[],repeated=snap.innerEnergy?.repeated||[];
-  const personalHits=snap.personalHits.length?snap.personalHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接命中";
-  const envHits=snap.environmentHits.length?snap.environmentHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接命中";
+  const personalHits=snap.personalHits.length?snap.personalHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接重复命中";
   return '<section class="golden-year-sheet '+(label==="今年"?"current":"")+'">'
-    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>个人流年 '+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境</small><b>'+e.number+'</b><span>'+esc(e.title)+'</span></div></div>'
-    +'<div class="year-positive-negative"><div><small>正面／顺势</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>负面／反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
+    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>自身流年 O='+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境主码 KLN</small><b>'+esc(snap.environmentMainCode)+'</b><span>再连同 KNV / LNW / VWX 一起看</span></div></div>'
+    +'<div class="year-positive-negative"><div><small>自身流年正面</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>自身流年负面／反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
     +goldenYearVisual(snap)
-    +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年主轴 · MNO → MOQ / NOP → PQR</h4></div><span>最主要</span></div>'
-    +'<p class="panel-note">这张流年盘用“出生的日＋月＋目标年份”重新排。IJM固定不变；MNO是自身流年的因果，MOQ／NOP看过程，PQR看结果。</p>'
-    +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number)
-    +'<div class="formula-note">个人流年 '+p.number+' 命中：'+esc(personalHits)+'｜年盘O位＝'+snap.mainPersonality+'，与个人流年数'+(snap.consistency.personalYearMatchesO?'一致':'需要复核')+'。</div>'
-    +'<div class="golden-axis-title"><div><small>ENVIRONMENT YEAR AXIS</small><h4>大流年／天气 · KLN → KNV / LNW → VWX</h4></div><span>共同天气</span></div>'
-    +'<p class="panel-note">KLN来自目标年份，所以同一年所有人的这一条“天气结构”相同；KNV、LNW是过程，VWX是结果。每个人的体感差异，再叠加自己的MNO与内三角结构看。</p>'
-    +axisGroupsHtml(snap.environmentAxis.groups,snap.environmentAxis.labels,e.number)
-    +'<div class="formula-note">大环境单数 '+e.number+' 命中：'+esc(envHits)+'｜个人 × 大环境：'+esc(snap.climate.type)+'。'+esc(snap.climate.description)+'</div>'
+    +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年 · MNO → MOQ / NOP → PQR</h4></div><span>个人这年的料</span></div>'
+    +'<p class="panel-note">MNO看因果；MOQ、NOP看过程；PQR看结果。个人流年数直接读取这张年盘的O位，不再另外计算另一套数字。</p>'
+    +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number,false)
+    +'<div class="formula-note">O位／个人流年＝'+p.number+'｜在四组自身流年码中的重复命中：'+esc(personalHits)+'。</div>'
+    +'<div class="golden-axis-title"><div><small>ENVIRONMENT YEAR AXIS</small><h4>大环境／天气 · KLN → KNV / LNW → VWX</h4></div><span>所有人的共同汤底</span></div>'
+    +'<p class="panel-note">KLN是大环境因果主码；KNV、LNW是两个过程；VWX是结果。四组一起才是这一年的整体大环境，不能只抽一个数字代表整年。</p>'
+    +axisGroupsHtml(snap.environmentAxis.groups,snap.environmentAxis.labels,null,true)
+    +environmentSynthesis(snap)
     +'<div class="golden-support-grid">'
       +'<div><span>固定 IJM</span><b>'+snap.fixedFatherCode+'</b></div>'
       +'<div><span>起始数</span><b>'+snap.startingThoughtCode+'</b></div>'
@@ -545,11 +575,13 @@ function yearSnapshotCard(c,year,label){
 function yearPanel(c,target){
   const year=Number(target)||new Date().getFullYear();
   const current=calculateGoldenYearSnapshot(c.birthday,year);
-  return '<div class="module-render golden-year-v20">'
-    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 已改为流年专用结构</h2></div><span>去年 · 今年 · 明年</span></div>'
+  const envCodes=current.environmentCodes.map(x=>x.code).join(" · ");
+  return '<div class="module-render golden-year-v22">'
+    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 个人流年 × 大环境四码</h2></div><span>去年 · 今年 · 明年</span></div>'
     +'<div class="year-control"><label>以哪一年为“今年” <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
-    +'<div class="formula-note">个人流年＝出生月＋出生日＋目标年份 → 化简1–9。黄金流年会把出生的“日＋月”保留，再把“年”替换成目标年份重新排盘：自身主轴看 MNO／MOQ／NOP／PQR，大环境看 KLN／KNV／LNW／VWX。大环境单数按你给的示例：1＋目标年份各位数字 → 化简1–9（2026＝2、2027＝3）。</div>'
-    +'<div class="golden-master-summary"><div><small>今年个人流年</small><strong>'+current.personal.number+'</strong><span>'+esc(current.personal.title)+'</span></div><div><small>今年大环境</small><strong>'+current.environment.number+'</strong><span>'+esc(current.environment.title)+'</span></div><div><small>节奏关系</small><b>'+esc(current.climate.type)+'</b><p>'+esc(current.climate.description)+'</p></div></div>'
+    +'<div class="formula-note">计算逻辑：保留顾客出生的“日＋月”，把“年”替换成目标年份重新排流年盘。自身流年看 MNO／MOQ／NOP／PQR；大环境直接看 KLN／KNV／LNW／VWX。大环境不再另算一个单独数字来代表整年。</div>'
+    +'<div class="golden-master-summary"><div><small>今年自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>今年大环境主码</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 因果</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN因果 → KNV / LNW过程 → VWX结果；四组共同定义今年的“天气”。</p></div></div>'
+    +yearTeachingPanel()
     +yearSnapshotCard(c,year-1,"去年")
     +yearSnapshotCard(c,year,"今年")
     +yearSnapshotCard(c,year+1,"明年")
