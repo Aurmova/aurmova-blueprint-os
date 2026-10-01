@@ -604,16 +604,21 @@ function mandatoryJointCodes(a){
 function lifeBlueprintPanel(c){
   const a=calculateBlueprint(c.birthday);
   const profile=PERSONALITY_LIBRARY[a.mainPersonality];
+  const detail=MAIN_DETAIL[a.mainPersonality];
   const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
+  const challenges=a.innerEnergy.repeated||[];
   return '<div class="module-render">'
     +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · 完整自动解析</h2></div><span>不是勾选项 · 每次必读</span></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN PERSONALITY</small><h3>主性格 '+a.mainPersonality+' · '+esc(profile?.title||"")+'</h3></div><span>正面 + 负面</span></div>'
       +'<div class="year-positive-negative"><div><small>正面优势</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>负面／压力模式</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
+      +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
       +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
     +'</div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>GENE & SEAT</small><h3>父母基因影响 · 坐镇码</h3></div><span>基础必讲</span></div><div class="joint-stack">'+jointBlock(a.fatherCode,"父亲基因")+jointBlock(a.motherCode,"母亲基因")+jointBlock(a.seatCode,"坐镇码／主性格结构")+'</div></div>'
     +originalFamilyPanel(a)
     +innerPolarityPanel(a)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>MISSING & CHALLENGE</small><h3>缺失数 · 挑战数</h3></div><span>正负两面</span></div><div class="formula-note">缺失数：'+(a.innerEnergy.missing.length?a.innerEnergy.missing.join(" · "):"无")+'｜挑战数／过强：'+(challenges.length?challenges.join(" · "):"无")+'。挑战数不是坏数字，而是某股能量重复出现后，天赋与失衡都会被放大。</div></div>'
     +energy679Panel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
       +phaseDetails(a,"21–40")+phaseDetails(a,"41–60")+phaseDetails(a,"61+")
@@ -751,7 +756,7 @@ function buildJosephineReply(c,a,phase,step,answer){
     theme,
     html:'<div class="reply-part"><small>① 接住顾客</small><p>'+esc(b.catch)+'</p></div>'
       +'<div class="reply-part"><small>② 连接数字／位置</small><p>'+esc(b.connect)+'</p><span class="reply-context">当前：'+esc(activeModuleName())+' · '+esc(meta.label)+' · '+esc(meta.theme)+' · 主性格 '+a.mainPersonality+'</span></div>'
-      +'<div class="reply-part"><small>③ 再追一层</small><div class="question-box">'+esc(b.next)+'</div></div>'
+      +'<div class="reply-part"><small>③ 再追一层</small><div class="question-box">'+esc(b.next)+'</div>'+(PERSONALITY_QUESTIONS[a.mainPersonality]?.length?'<div class="question-box"><b>'+a.mainPersonality+'号人专属追问：</b><br>'+esc(PERSONALITY_QUESTIONS[a.mainPersonality][Math.min(Number(step)||0,PERSONALITY_QUESTIONS[a.mainPersonality].length-1)])+'</div>':'')+'</div>'
       +'<div class="reply-part"><small>④ 开解方向</small><p>'+esc(b.action)+'</p></div>'
   };
 }
