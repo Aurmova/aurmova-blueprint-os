@@ -1,9 +1,10 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20261001-v15";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=20";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=20260930-v6";
-import { PERSONALITY_LIBRARY } from "./personality-library.js?v=20260930-v6";
+import { PERSONALITY_LIBRARY } from "./personality-library.js?v=19";
 import { findJointCode } from "./aurmova-knowledge.js?v=20260930-v6";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=20260930-v7";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=20261001-v17";
+import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS } from "./consultation-library.js?v=20";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
