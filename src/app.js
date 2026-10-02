@@ -1,5 +1,5 @@
 import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=32";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=32";
+import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=48";
 import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=32";
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
