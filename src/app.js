@@ -193,7 +193,104 @@ function whiteboardPage(){return `${header("CONSULTATION WHITEBOARD","咨询白�
     <canvas id="consult-whiteboard" width="3200" height="2200" aria-label="AURMOVA 咨询白板"></canvas>
   </div>
 </section>`;}
-function followupPage(){const rows=loadCustomers().filter(c=>c.whatsapp).map(c=>`<article class="card" style="margin-bottom:10px"><h3>${c.name}</h3><p>${c.whatsapp} · ${c.occupation||"未填写职业"}</p><p>咨询后可从这里准备个性化关心讯息。自动无人值守发送需连接 WhatsApp Business 正式接口后启用。</p><a class="btn btn-light" href="#workspace?id=${c.id}">打开顾客</a></article>`).join("");return `${header("CLIENT CARE","Follow-up 中心","管理咨询后的顾客关心与后续联系。")}<section>${rows||'<div class="card empty"><h3>暂无可跟进号码</h3><p>建立顾客时填写 WhatsApp 号码后会显示在这里。</p></div>'}</section>`;}
+
+function followupStorageKey(id){return "aurmova.followup."+id;}
+function loadFollowupState(id){try{return JSON.parse(localStorage.getItem(followupStorageKey(id))||"{}")}catch{return{}}}
+function saveFollowupState(id,data){localStorage.setItem(followupStorageKey(id),JSON.stringify(data||{}));}
+
+function normalizeWhatsAppNumber(raw){
+  const original=String(raw||"").trim();
+  let digits=original.replace(/\D/g,"");
+  if(!digits)return "";
+  if(original.startsWith("+"))return digits;
+  if(digits.startsWith("00"))digits=digits.slice(2);
+  if(digits.startsWith("0"))return "60"+digits.slice(1);
+  if(digits.startsWith("60"))return digits;
+  return digits;
+}
+
+function followupTopic(c){
+  const types=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean);
+  const joined=types.join("、");
+  const theme=c.consultationTheme&&c.consultationTheme!=="未指定"?c.consultationTheme:"";
+  if(joined.includes("黄金流年")) return "今年的节奏和你接下来最想调整的方向";
+  if(joined.includes("关系")) return "你在关系里的反应、边界和真正需要";
+  if(joined.includes("亲子")) return "你和孩子互动时最容易重复的那个模式";
+  if(joined.includes("合作")) return "你在合作、沟通和分工上的习惯";
+  if(joined.includes("人生")) return "你最近最常重复出现的那个模式";
+  if(theme) return theme;
+  return "我们那天聊到的那一个重点";
+}
+
+function followupHumanMessage(c,stage){
+  const name=(c.name||"你").trim();
+  const topic=followupTopic(c);
+  const typeText=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join("、");
+  const special={
+    golden:typeText.includes("黄金流年"),
+    relation:typeText.includes("关系"),
+    parent:typeText.includes("亲子"),
+    coop:typeText.includes("合作")
+  };
+  if(stage==="d0"){
+    return "嗨 "+name+" 🤍 今天谢谢你愿意跟我聊这么多。刚刚咨询结束后，我还是想留一句给你：不用急着一次把所有东西都改掉，先把今天最有感觉的那一个点带回生活里观察就好。\\n\\n如果接下来你遇到一个场景，突然发现“原来我真的会这样”，可以直接回我，我会记得我们今天聊过的方向。";
+  }
+  if(stage==="d3"){
+    let middle="这几天有没有哪一刻，你突然想起我们那天聊到的「"+topic+"」？";
+    if(special.golden) middle="这几天有没有开始感觉到，今年的节奏跟之前真的有一点不一样？尤其是我们聊到的「"+topic+"」，有没有在哪个场景突然对上？";
+    if(special.relation) middle="这几天在关系里，有没有出现一个小场景，让你突然看见自己原来真的会用我们那天聊到的那种方式反应？";
+    if(special.parent) middle="这几天跟孩子互动的时候，有没有哪一个瞬间，让你突然想起我们那天聊到的「"+topic+"」？";
+    if(special.coop) middle="这几天在工作或合作里，有没有出现一个场景，让你突然看见自己原来真的会这样沟通、分工或扛责任？";
+    return "嗨 "+name+"～我来轻轻回访一下 🤍\\n\\n"+middle+"\\n\\n很多时候不是咨询当下最有感觉，而是回到生活里再次遇到类似场景时，才会突然“对上”。如果你有一个这样的瞬间，可以回我一句，我很想知道。";
+  }
+  if(stage==="d7"){
+    return "嗨 "+name+" 🤍 一个星期了，我想问你一个很简单的问题：\\n\\n这周有没有一件事，你发现自己的反应跟以前有一点点不一样？\\n\\n不一定要是很大的改变。可能只是比以前早一点说出来、少纠结一下、比较敢做决定，或者你终于发现“原来这里就是我一直卡住的地方”。\\n\\n你不用写很长，告诉我一个小变化就好 😊";
+  }
+  if(stage==="d30"){
+    return "嗨 "+name+"～差不多一个月了，我回来看看你最近的状态 🤍\\n\\n如果把这一个月跟我们咨询前比，你觉得自己现在最明显的变化是什么？\\n\\n也可以是“其实我还是卡在原来的地方”。都没关系，我比较想知道真实的你现在走到哪里了。\\n\\n如果你愿意，也可以把最近最困扰你的那一件事告诉我，我会帮你一起把它放回我们之前看到的模式里看。";
+  }
+  return "";
+}
+
+function followupWhatsappUrl(c,message){
+  const phone=normalizeWhatsAppNumber(c.whatsapp);
+  return phone?"https://wa.me/"+phone+"?text="+encodeURIComponent(message):"#";
+}
+
+function followupStageLabel(stage){
+  return ({d0:"当天关心",d3:"第3天",d7:"第7天",d30:"第30天"})[stage]||stage;
+}
+
+function followupCard(c){
+  const state=loadFollowupState(c.id);
+  const active=state.active||"d3";
+  const text=state.drafts?.[active]||followupHumanMessage(c,active);
+  const sent=state.sent||{};
+  const types=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" · ")||"未指定项目";
+  return '<article class="card followup-card" data-followup-card="'+escapeLibraryHtml(c.id)+'">'
+    +'<div class="followup-head"><div><small>CLIENT FOLLOW-UP</small><h3>'+escapeLibraryHtml(c.name)+'</h3><p>'+escapeLibraryHtml(c.whatsapp)+' · '+escapeLibraryHtml(c.occupation||"未填写职业")+'</p><span>'+escapeLibraryHtml(types)+'</span></div><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(c.id)+'">打开顾客</a></div>'
+    +'<div class="followup-stages">'
+      +["d0","d3","d7","d30"].map(k=>'<button type="button" class="followup-stage '+(active===k?'active':'')+'" data-followup-stage="'+k+'" data-followup-id="'+escapeLibraryHtml(c.id)+'">'+followupStageLabel(k)+(sent[k]?'<small>已联系 ✓</small>':'')+'</button>').join("")
+    +'</div>'
+    +'<div class="followup-editor">'
+      +'<div class="followup-note"><b>Human 文案</b><span>先像人一样关心，再继续关系；不硬推销、不复制罐头句。</span></div>'
+      +'<textarea class="followup-text" data-followup-text="'+escapeLibraryHtml(c.id)+'" data-stage="'+active+'" rows="8">'+escapeLibraryHtml(text)+'</textarea>'
+      +'<div class="followup-actions">'
+        +'<button type="button" class="btn btn-light" data-followup-regenerate="'+escapeLibraryHtml(c.id)+'">重新生成自然一点</button>'
+        +'<button type="button" class="btn btn-light" data-followup-copy="'+escapeLibraryHtml(c.id)+'">复制文案</button>'
+        +'<button type="button" class="btn btn-primary" data-followup-whatsapp="'+escapeLibraryHtml(c.id)+'">打开 WhatsApp →</button>'
+      +'</div>'
+      +'<p class="followup-help">按“打开 WhatsApp”会直接带入顾客号码和上面的文案，你确认后再发送。不会在你没看过内容的情况下自动发出去。</p>'
+    +'</div>'
+  +'</article>';
+}
+
+function followupPage(){
+  const rows=loadCustomers().filter(c=>c.whatsapp).map(followupCard).join("");
+  return header("CLIENT CARE","Follow-up 中心","直接打开 WhatsApp 跟进顾客；文案先由系统写成自然、像真人关心的语气，你可以改完再发。")
+    +'<section class="followup-intro card"><div><small>AURMOVA CLIENT CARE</small><h2>咨询不是结束，是关系开始变清楚的地方。</h2><p>这里准备了当天／第3天／第7天／第30天四个跟进节点。系统先写好自然文案，你只需要看一眼、微调，再直接打开 WhatsApp。</p></div></section>'
+    +'<section class="followup-list">'+(rows||'<div class="card empty"><h3>暂无可跟进号码</h3><p>建立顾客时填写 WhatsApp 号码后会显示在这里。</p></div>')+'</section>';
+}
 function initWhiteboard(){
   const canvas=document.querySelector("#consult-whiteboard"), viewport=document.querySelector("#wb-viewport");
   if(!canvas||!viewport)return;
@@ -474,6 +571,59 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  const fStage=event.target.closest("[data-followup-stage]");
+  if(fStage){
+    const id=fStage.dataset.followupId,stage=fStage.dataset.followupStage;
+    const customer=loadCustomers().find(x=>x.id===id); if(!customer)return;
+    const state=loadFollowupState(id); state.active=stage; saveFollowupState(id,state);
+    app.innerHTML=followupPage();
+    return;
+  }
+
+  const fRegen=event.target.closest("[data-followup-regenerate]");
+  if(fRegen){
+    const id=fRegen.dataset.followupRegenerate,customer=loadCustomers().find(x=>x.id===id); if(!customer)return;
+    const card=fRegen.closest("[data-followup-card]"),area=card?.querySelector("[data-followup-text]");
+    const stage=area?.dataset.stage||loadFollowupState(id).active||"d3";
+    const base=followupHumanMessage(customer,stage);
+    const variants=[
+      base,
+      base.replace(/我来轻轻回访一下/g,"突然想到你，回来关心一下").replace(/我很想知道/g,"你愿意的话可以跟我说说"),
+      base.replace(/嗨 /g,"Hello ").replace(/ 🤍/g,"～").replace(/你不用写很长/g,"不用特地组织得很完整")
+    ];
+    const state=loadFollowupState(id); state.variant=((state.variant||0)+1)%variants.length;
+    state.drafts={...(state.drafts||{}),[stage]:variants[state.variant]}; saveFollowupState(id,state);
+    if(area)area.value=variants[state.variant];
+    showToast("已换一版更自然的文案");
+    return;
+  }
+
+  const fCopy=event.target.closest("[data-followup-copy]");
+  if(fCopy){
+    const id=fCopy.dataset.followupCopy,card=fCopy.closest("[data-followup-card]"),area=card?.querySelector("[data-followup-text]");
+    const textValue=area?.value||"";
+    if(navigator.clipboard?.writeText) navigator.clipboard.writeText(textValue).then(()=>showToast("文案已复制"));
+    else { area?.select(); document.execCommand?.("copy"); showToast("文案已复制"); }
+    return;
+  }
+
+  const fWa=event.target.closest("[data-followup-whatsapp]");
+  if(fWa){
+    const id=fWa.dataset.followupWhatsapp,customer=loadCustomers().find(x=>x.id===id); if(!customer)return;
+    const card=fWa.closest("[data-followup-card]"),area=card?.querySelector("[data-followup-text]");
+    const stage=area?.dataset.stage||loadFollowupState(id).active||"d3";
+    const message=area?.value||followupHumanMessage(customer,stage);
+    const phone=normalizeWhatsAppNumber(customer.whatsapp);
+    if(!phone){showToast("这位顾客没有有效 WhatsApp 号码");return}
+    const state=loadFollowupState(id);
+    state.active=stage;
+    state.drafts={...(state.drafts||{}),[stage]:message};
+    state.sent={...(state.sent||{}),[stage]:new Date().toISOString()};
+    saveFollowupState(id,state);
+    window.open(followupWhatsappUrl(customer,message),"_blank","noopener,noreferrer");
+    return;
+  }
+
   const project = event.target.closest("[data-project]");
   if (project) {
     app.innerHTML = newCustomer(project.dataset.project || "");
@@ -503,6 +653,16 @@ document.addEventListener("click", event => {
     panel?.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
+});
+
+document.addEventListener("input", event => {
+  const area=event.target.closest("[data-followup-text]");
+  if(!area)return;
+  const id=area.dataset.followupText,stage=area.dataset.stage||"d3";
+  const state=loadFollowupState(id);
+  state.active=stage;
+  state.drafts={...(state.drafts||{}),[stage]:area.value};
+  saveFollowupState(id,state);
 });
 
 document.addEventListener("submit", event => {
