@@ -74,7 +74,7 @@ export function calculateYearJointCode(endpointA, yearNumber, endpointB) {
   };
 }
 
-export function calculateEnvironmentYear(targetYear = new Date().getFullYear()) {
+export function calculateEnvironmentYear(targetYear = activeFlowYear()) {
   const year = Number(targetYear);
   const raw = 1 + sumDigits(year);
   const number = reduce(raw);
@@ -118,7 +118,7 @@ export function compareYearClimate(personalNumber, environmentNumber) {
   };
 }
 
-export function calculatePersonalYear(birthday, targetYear = new Date().getFullYear()) {
+export function calculatePersonalYear(birthday, targetYear = activeFlowYear()) {
   const parsed = parseBirthday(birthday);
   if (!parsed) return null;
   const {dd,mm} = parsed;
@@ -132,7 +132,7 @@ export function calculatePersonalYear(birthday, targetYear = new Date().getFullY
   };
 }
 
-export function calculateYearCycleSet(birthday, targetYear = new Date().getFullYear()) {
+export function calculateYearCycleSet(birthday, targetYear = activeFlowYear()) {
   const year = Number(targetYear);
   return {
     previous:calculatePersonalYear(birthday, year - 1),
@@ -264,12 +264,14 @@ export function activeFlowYear(date=new Date()) {
   const d = date instanceof Date ? date : new Date(date);
   const y = d.getFullYear();
   const m = d.getMonth() + 1;
-  return m >= 10 ? y : y - 1;
+  // AURMOVA命名：流年以“结束所在年份”命名。
+  // 例如 2027 流年 = 2026-10-01 至 2027-09-30。
+  return m >= 10 ? y + 1 : y;
 }
 
 export function flowYearRange(year) {
   const y = Number(year);
-  return { start: String(y) + "-10-01", end: String(y + 1) + "-09-30" };
+  return { start: String(y - 1) + "-10-01", end: String(y) + "-09-30" };
 }
 
 export function calculateGoldenYearBlueprint(birthday,targetYear=activeFlowYear()) {
