@@ -316,6 +316,77 @@ function initWhiteboard(){
   requestAnimationFrame(fitView);
 }
 function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
+
+function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
+function firstConsultProfile(a){
+  const inner=a&&a.innerEnergy&&a.innerEnergy.counts?a.innerEnergy.counts:{};
+  const outer=a&&a.outerEnergy&&a.outerEnergy.counts?a.outerEnergy.counts:{};
+  const total=n=>Number(inner[n]||0)+Number(outer[n]||0);
+  const inward=total(2)+total(7), outward=total(3)+total(8);
+  let emotion="四码低显";
+  if(inward>outward) emotion=outward?"切换型｜内收底色":"内收型";
+  else if(outward>inward) emotion=inward?"切换型｜外放底色":"外放型";
+  else if(inward+outward>1) emotion="切换型｜两边接近";
+  const rational=total(1)+total(4)+total(5)+total(8);
+  const feeling=total(2)+total(3)+total(6)+total(7)+total(9);
+  const decision=rational>feeling?"理性偏高":feeling>rational?"感性偏高":"理性感性接近";
+  return {inward,outward,emotion,rational,feeling,decision};
+}
+function firstConsultPage(){
+  const id=new URLSearchParams(location.hash.split("?")[1]).get("id");
+  const c=loadCustomers().find(x=>x.id===id);
+  if(!c) return header("FIRST CONSULTATION","首次咨询模式","请先从顾客档案开启一位顾客。")+'<section class="card empty"><h3>尚未选择顾客</h3><a class="btn btn-primary" href="#history">前往顾客档案</a></section>';
+  const a=calculateBlueprint(c.birthday),profile=PERSONALITY_LIBRARY[a.mainPersonality],detail=MAIN_DETAIL[a.mainPersonality]||{};
+  const p=firstConsultProfile(a);
+  let saved={};try{saved=JSON.parse(localStorage.getItem(firstConsultStorageKey(c.id))||"{}")}catch{}
+  const val=(k,fallback="")=>escapeLibraryHtml(saved[k]===undefined?fallback:saved[k]);
+  const theme=val("theme",c.consultationTheme||"");
+  const obs1="主性格 "+a.mainPersonality+"｜"+(profile&&profile.title?profile.title:"");
+  const obs2="情绪模式："+p.emotion+"（2/7="+p.inward+"；3/8="+p.outward+"）";
+  const obs3="决策偏好："+p.decision+"（理性"+p.rational+"：感性"+p.feeling+"）";
+  const opening="你好 "+c.name+"，我是 Josephine。今天我不会一开始就把很多数字丢给你。我会先听你最近最在意的事情，再用你的盘帮你看见比较常出现的模式。过程中你随时可以打断我，觉得不像也可以直接告诉我，我们一起验证。";
+  const follow="嗨 "+c.name+" 🤍 我是 Josephine。想回来关心一下，昨天我们聊到的内容对你有没有帮助？有没有哪一段是你回去以后又突然想起，或者开始发现自己真的会这样反应的？";
+  return header("AURMOVA · FIRST CONSULTATION",c.name+"｜首次咨询导航","不要讲满整张盘。先抓主线、验证、再深入。")
+  +'<section class="client-summary card"><div class="client-avatar">'+escapeLibraryHtml(c.name.slice(0,1).toUpperCase())+'</div><div class="client-main"><small>FIRST SESSION</small><h2>'+escapeLibraryHtml(c.name)+'</h2><p>'+escapeLibraryHtml(c.birthday)+' · 主性格 '+a.mainPersonality+' · '+escapeLibraryHtml(c.occupation||"职业未填")+' · '+escapeLibraryHtml(c.consultationTheme||"主题未指定")+'</p></div><div class="quick-actions"><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(c.id)+'">返回咨询工作台</a></div></section>'
+  +'<section class="card fc-dashboard"><div class="card-heading"><div><small>PREP · 5–10 MIN</small><h2>咨询前只准备 3 件事</h2></div><span>不要预写整场答案</span></div><div class="fc-grid">'
+  +'<label class="fc-check"><input type="checkbox" data-fc-check="chart" '+(saved.checks&&saved.checks.chart?"checked":"")+'><span><b>① 盘已经排好</b><small>确认三角形、缺失／高密度、情绪、理性／感性。</small></span></label>'
+  +'<label class="fc-check"><input type="checkbox" data-fc-check="tensions" '+(saved.checks&&saved.checks.tensions?"checked":"")+'><span><b>② 只标 2–3 个核心张力</b><small>不是把全部模块都讲完。</small></span></label>'
+  +'<label class="fc-check"><input type="checkbox" data-fc-check="opening" '+(saved.checks&&saved.checks.opening?"checked":"")+'><span><b>③ 准备 1–2 个开场观察</b><small>先共鸣，再解释数字。</small></span></label></div>'
+  +'<div class="fc-observations"><div><small>系统观察 01</small><b>'+escapeLibraryHtml(obs1)+'</b><p>'+escapeLibraryHtml(detail.behavior||(profile&&profile.positive?profile.positive.slice(0,2).join("、"):""))+'</p></div><div><small>系统观察 02</small><b>'+escapeLibraryHtml(obs2)+'</b><p>情绪不是看“多不多”，而是先看往内还是往外，以及内外位置是否一致。</p></div><div><small>系统观察 03</small><b>'+escapeLibraryHtml(obs3)+'</b><p>决策系统和情绪表达分开看，最后再交叉。</p></div></div></section>'
+  +'<section class="card fc-section"><div class="card-heading"><div><small>OPENING · 5 MIN</small><h2>第一阶段｜先建立连接</h2></div><span>先听，再解</span></div>'
+  +'<div class="question-box"><b>Josephine 开场可直接照读：</b><br>“'+escapeLibraryHtml(opening)+'”</div>'
+  +'<div class="question-box"><b>第一问：</b><br>“在开始之前，我想先知道，你今天最想聊的是什么？是事业、感情、家庭，还是你最近整体的状态？”</div>'
+  +'<div class="field"><label>顾客今天最想聊的主题</label><input data-fc-field="theme" value="'+theme+'" placeholder="例如：最近很想换工作，但一直不敢决定"></div>'
+  +'<div class="field"><label>顾客刚刚讲的真实事件／故事</label><textarea data-fc-field="story" rows="4" placeholder="先记录顾客自己的话，不急着解释。">'+val("story")+'</textarea></div></section>'
+  +'<section class="card fc-section"><div class="card-heading"><div><small>CORE · 25–30 MIN</small><h2>第二阶段｜只讲 3–4 个最相关模块</h2></div><span>讲深，不讲满</span></div><div class="fc-flow">'
+  +'<article><b>01 性格底色｜约5分钟</b><p>一句话概括，再问一个具体行为。</p><div class="question-box">“我先从你最自然的一面看。你会不会比较容易出现 '+escapeLibraryHtml(profile&&profile.positive?profile.positive.slice(0,2).join("、"):"这种模式")+'？最近有没有一个很明显的例子？”</div></article>'
+  +'<article><b>02 情绪模式｜约5分钟</b><p>看2/7和3/8，再看内外位置。</p><div class="question-box">“你的情绪比较像 '+escapeLibraryHtml(p.emotion)+'。我不想只用数字定义你，所以想问：你不舒服的时候通常是先忍、先说，还是看对象才决定？”</div></article>'
+  +'<article><b>03 核心张力｜约5分钟</b><p>用里面的你 vs 现实中的你去验证。</p><div class="question-box">“我看到你身上有两股力量可能会拉扯。你自己觉得，在最放松的时候和在工作／关系压力里，你会不会像两个不同版本的自己？”</div></article>'
+  +'<article><b>04 回到顾客最关心的事｜约10分钟</b><p>这才是本场主线。</p><div class="question-box">“我们先不看更多数字。回到你刚才讲的那件事——你真正卡住的，是事情本身，还是你担心做了这个决定以后会发生什么？”</div></article></div>'
+  +'<div class="field"><label>核心张力 1</label><input data-fc-field="tension1" value="'+val("tension1",obs1)+'"></div>'
+  +'<div class="field"><label>核心张力 2</label><input data-fc-field="tension2" value="'+val("tension2",obs2)+'"></div>'
+  +'<div class="field"><label>核心张力 3（有需要才讲）</label><input data-fc-field="tension3" value="'+val("tension3",obs3)+'"></div>'
+  +'<div class="notice"><b>节奏：</b>提出一个模式 → 停下来 → 让顾客讲例子 → 把例子挂回盘 → 再进入下一层。一次真正看见 2–3 个模式就够。</div></section>'
+  +'<section class="card fc-section"><div class="card-heading"><div><small>CLOSING · 5–10 MIN</small><h2>第三阶段｜让顾客带走一句话</h2></div><span>做减法</span></div>'
+  +'<div class="question-box"><b>重新定义：</b><br>“聊了这么多，我觉得今天最值得你看见的，不是你哪里有问题，而是你一直在用一种很熟悉的方法处理事情。现在你开始看见它了，就多了一个选择。”</div>'
+  +'<div class="field"><label>今天只带走的一句话</label><textarea data-fc-field="closing" rows="2" placeholder="必须来自今天真实分析，不用套话。">'+val("closing")+'</textarea></div>'
+  +'<div class="field"><label>只给一个行动</label><textarea data-fc-field="action" rows="2" placeholder="例如：下次想马上答应别人时，先停10秒问自己：这是我想要的吗？">'+val("action")+'</textarea></div>'
+  +'<div class="question-box"><b>开放结尾：</b><br>“今天的解读是我从你的盘和你刚刚讲的经历里一起整理出来的，但你对自己最了解。回去以后如果有新的感受或变化，随时可以告诉我。”</div></section>'
+  +'<section class="card fc-section"><div class="card-heading"><div><small>AFTER · 24H</small><h2>第四阶段｜咨询后跟进</h2></div><span>关心，不推销</span></div><div class="question-box"><b>24小时跟进话术：</b><br>“'+escapeLibraryHtml(follow)+'”</div><div class="notice">如果顾客主动问下一次还能聊什么，才根据这次未展开的主题给方向；第一次跟进不硬推第二次咨询。</div></section>'
+  +'<section class="card fc-section"><div class="card-heading"><div><small>WHEN SESSION GETS HARD</small><h2>现场卡住时这样处理</h2></div></div><div class="fc-mini-grid"><div><b>顾客沉默</b><p>先等几秒，再问：“你刚刚在想什么？”</p></div><div><b>顾客情绪上来</b><p>先停下来，问她要不要继续。可以说：“这段对你来说好像很重，我们可以慢一点。”</p></div><div><b>顾客说不像</b><p>不要硬解释。问：“那你觉得自己更像哪一种？有没有什么经历让我需要调整这个判断？”</p></div><div><b>顾客要你替她决定</b><p>“我可以帮你看清模式和卡点，但决定还是你来做。”</p></div></div></section>';
+}
+function initFirstConsult(){
+  const id=new URLSearchParams(location.hash.split("?")[1]).get("id"); if(!id)return;
+  const key=firstConsultStorageKey(id);
+  let state={};try{state=JSON.parse(localStorage.getItem(key)||"{}")}catch{}
+  const save=()=>{
+    state.checks=state.checks||{};
+    document.querySelectorAll("[data-fc-check]").forEach(x=>state.checks[x.dataset.fcCheck]=x.checked);
+    document.querySelectorAll("[data-fc-field]").forEach(x=>state[x.dataset.fcField]=x.value);
+    localStorage.setItem(key,JSON.stringify(state));
+  };
+  document.querySelectorAll("[data-fc-check],[data-fc-field]").forEach(x=>x.addEventListener("input",save));
+}
 function workspace(){
  const id=new URLSearchParams(location.hash.split('?')[1]).get('id');
  const c=loadCustomers().find(x=>x.id===id);
@@ -373,6 +444,7 @@ function render() {
   if (route === "new") app.innerHTML = newCustomer();
   else if (route === "history" || route === "delete") app.innerHTML = history();
   else if (route === "workspace") app.innerHTML = workspace();
+  else if (route === "firstconsult") { app.innerHTML = firstConsultPage(); setTimeout(initFirstConsult,0); }
   else if (route === "library") { app.innerHTML = libraryPage(); setTimeout(initLibrarySearch,0); }
   else if (route === "whiteboard") { app.innerHTML = whiteboardPage(); setTimeout(initWhiteboard,0); }
   else if (route === "followup") app.innerHTML = followupPage();
