@@ -99,7 +99,17 @@ function libraryEntries(){
     ].filter(Boolean).join("\n")});
   }
 
-  (MODULES||[]).forEach(x=>entries.push({category:"资料库索引",title:x[0],keywords:x[0],text:x[1]||""}));
+  const moduleOverviews=[
+    {title:"黄金20年阶段",keywords:"黄金20年 阶段 21-40 41-60 61岁以后 IJM IMS JMT STU MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【阶段结构】21–40岁：IJM＝因果，IMS／JMT＝过程，STU＝结果。41–60岁：MNO＝因果，MOQ／NOP＝过程，PQR＝结果。61岁以后：KLN＝因果，KNV／LNW＝过程，VWX＝结果。\n\n【咨询用法】先看顾客当前年龄所在阶段，再按“因果 → 两个过程 → 结果”往下解，不把四组码拆成互不相干的标签。\n\n【白话】“我现在先看你正处在哪一个20年阶段。这里不是在说命定结果，而是在看这一段人生最常重复的起点、过程和结果模式。我们会先看为什么会这样，再看事情通常怎么发展，最后才看长期容易累积成什么。”"},
+    {title:"黄金流年蓝图解析",keywords:"黄金流年 流年 大环境 个人流年 10月1日 9月30日 MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【时间边界】AURMOVA流年固定以每年10月1日开始，到次年9月30日结束。\n\n【个人流年】保留顾客生日的日＋月，把年份替换成目标年份，重新计算同一张固定三角形。O看当年主题；个人四组重点：MNO＝因果／核心，MOQ＝过程1，NOP＝过程2，PQR＝结果。\n\n【大环境】不使用“年份数字相加成一个数字”取代结构。大环境固定看：KLN＝因果，KNV＝过程1，LNW＝过程2，VWX＝结果。\n\n【咨询顺序】先讲个人主题，再讲个人四码怎样展开，再看大环境四码，最后比较两边是顺势、拉扯还是需要调整节奏。\n\n【白话】“同一年大家面对的是同一个大环境，但每个人怎么感受到、怎么回应，会被自己的个人流年结构影响。所以我不会只拿一个数字告诉你今年好不好，而是会把你的四个个人过程和四个外部环境一起看。”"},
+    {title:"财富密码",keywords:"财富 钱 金钱 资源 6 财富密码 守财 花钱 投资 责任 预算",text:"【AURMOVA读取原则】财富不是看一个数字就断“有钱／没钱”。要同时看与资源、责任、价值交换、行动和机会有关的联合码，再看它落在哪个位置、有没有重复或缺失，并用顾客真实的赚钱、花钱、储蓄、承担与合作习惯做验证。\n\n【咨询重点】赚钱能力、守财习惯、责任型支出、人情支出、资源配置、合作边界、风险承受与长期安全感。\n\n【白话】“我这里不会用一个号码就告诉你一定发财。数字给我看的是：你面对钱和资源时最自然的习惯是什么——你是容易赚但留不住、太谨慎不敢动，还是常常因为责任和人情多承担。真正有用的是找到你最容易漏财或失衡的那个行为点。”\n\n【边界】投资相关内容只作为行为与风险管理提醒，不根据数字直接建议买卖任何投资。"},
+    {title:"关系模式",keywords:"关系 人际 情绪 2 7 3 8 理性 感性 内外三角 边界 亲密 沟通",text:"【关系读取】关系模式不是单看“合不合”。会综合情绪数字2／7／3／8、理性与感性比例、内外三角是否一致、联合码所在位置，以及顾客现实中的沟通／付出／拒绝／边界模式。\n\n【情绪】2／7偏内收；3／8偏外放。四个都有时重点看切换：忍着 → 累积 → 爆发 → 再缩回去。\n\n【咨询白话】“我不会替你判断这段关系该不该继续。我会先帮你看：你在关系里最容易用哪一种方式保护自己、什么时候会委屈、什么时候会爆发、以及你为什么明明知道不舒服却还是很难说出口。”\n\n【成长方向】把“感觉到 → 忍着／爆发”缩短成“感觉到 → 识别 → 表达”。"},
+    {title:"九宫格",keywords:"九宫格 主线 辅线 缺失 重复 话术",text:"【系统用途】九宫格用于把盘里的主线、辅线、缺失与重复能量放在同一个视角里观察，帮助Josephine快速看到哪些数字持续出现、哪些位置较弱，再生成相应咨询问题。\n\n【咨询原则】九宫格不是单独拿来给顾客下结论，而是作为交叉验证工具：若主性格、联合码、缺失／挑战和九宫格都指向同一主题，该主题才优先深挖。\n\n【白话】“这个区块我主要拿来做交叉验证。不是看到一条线就说你一定怎样，而是看它有没有和你前面的主性格、关系模式或现实经历重复出现。如果重复，我们才把它当成这次咨询的重点。”"},
+    {title:"儿童1–9",keywords:"儿童 1号儿童 2号儿童 3号儿童 4号儿童 5号儿童 6号儿童 7号儿童 8号儿童 9号儿童 亲子 天赋",text:"【读取原则】儿童资料按1–9号主数字快速抓关键词，但不能只念标签。一定要落到学校、家庭、玩耍、学习、社交、物质要求、兴趣活动等真实场景。\n\n【咨询顺序】先讲孩子看得见的表现 → 再讲优势／天赋 → 再讲容易失衡的地方 → 最后给家长沟通与培养方向。\n\n【白话】“我不会只告诉你孩子是几号人。更重要的是，这个数字放到生活里会怎么出现：他在学校怎么反应、被催的时候怎么反应、跟兄弟姐妹怎么互动、真正喜欢什么。这样家长才知道应该怎么带，而不是给孩子贴标签。”"},
+    {title:"儿童天赋速查",keywords:"儿童天赋速查 儿童天赋 亲子 教育方向",text:"【用途】这是Josephine咨询时的快速调用页，用来先抓1–9号儿童的核心优势、常见失衡与教育方向，再回到孩子的完整盘和真实生活场景深化。\n\n【不是替代品】速查只负责帮你快速定位，不替代亲子蓝图的完整分析。\n\n【白话】“我先用孩子的主数字抓一个最明显的天赋方向，再结合他实际在家里、学校和社交里的表现确认。孩子不是一个号码，所以如果现实表现跟数字不一样，我们会以真实行为为准，再看是不是环境把另一部分压住了。”"},
+    {title:"亲子案例",keywords:"亲子案例 家庭系统 规则 边界 引导 孩子",text:"【案例结构】现实问题 → 家庭系统 → 父母互动／规则 → 孩子的数字模式 → 可执行的沟通调整。\n\n【咨询重点】先问发生了什么，不急着把问题归因给孩子；再看父母的回应方式是否不断强化同一个循环。\n\n【白话】“我不会先问‘这个孩子为什么这么难带’，我会先看整个家庭在这个场景里发生了什么：谁先说什么、孩子怎么反应、父母接着怎么处理。很多时候真正需要调整的不是孩子的性格，而是大家每天重复的互动方式。”\n\n【原则】亲子咨询不把孩子贴成‘问题孩子’，也不以数字取代发展、教育或医疗专业判断。"}
+  ];
+  moduleOverviews.forEach(x=>entries.push({category:"重点模块完整说明",title:x.title,keywords:x.keywords,text:x.text}));
   return entries;
 }
 function renderLibraryResults(query=""){
@@ -118,6 +128,12 @@ function initLibrarySearch(){
   const input=document.querySelector("#library-search"); if(!input)return;
   renderLibraryResults(input.value);
   input.addEventListener("input",()=>renderLibraryResults(input.value));
+  document.querySelectorAll("[data-library-query]").forEach(btn=>btn.addEventListener("click",()=>{
+    const q=btn.getAttribute("data-library-query")||"";
+    input.value=q;
+    renderLibraryResults(q);
+    document.querySelector("#library-results")?.scrollIntoView({behavior:"smooth",block:"start"});
+  }));
 }
 function libraryPage(){
   const total=(JOINT_DB||[]).reduce((sum,x)=>sum+String(x.code||"").split("/").filter(Boolean).length,0);
@@ -131,7 +147,10 @@ function libraryPage(){
       <div><strong>1–9</strong><span>缺失／挑战／制约</span></div>
       <div><strong>679</strong><span>原资料索引保留</span></div>
     </div>
-    <div class="notice">这次不是只有输入框：下面会直接显示已经找回并接回系统的资料。没有核对到原始拍照教材的内容会明确标记，不会自己编写。</div>
+    <div class="notice">下面显示的是实际资料内容，不再用只有一行说明的“空索引卡”。原书、结构化资料、AURMOVA白话和AI整合补充会分开标示。</div>
+    <div class="library-module-nav">
+      ${["81组联合码","1–9主性格","起始数","缺失数","挑战数","制约数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+    </div>
   </section>
   <div id="library-results"></div>`;
 }
