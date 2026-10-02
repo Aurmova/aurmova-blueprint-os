@@ -85,19 +85,14 @@ function flowConsultationLanguage(c,year,natal,snap,rows,{missing,density,direct
   const opener='“我先丢一个观察给你，你听听看像不像。'+s.feel+'”';
   const map='“今天我不会一次把所有数字丢给你。我主要帮你看三件事：第一，今年最核心的主题；第二，事业、感情和个人状态哪一块最明显；第三，今年最容易重复的旧模式是什么，以及你可以怎么换一种做法。”';
   const see=s.see.map(q=>'“'+q+'”').join("<br><br>");
-  let special="";
-  if(missing) special='你的流年数刚好也是本命缺失数，所以今年除了主主题，还要留意“补课感”——不熟悉、不自然，但很能练出新能力。';
-  else if(density>=3) special='这个数字本来就在你的本命七魄里很强，今年又被流年命中，所以不是学一个新东西，而是把原本的主旋律放大；优势和用过头的风险都要一起看。';
-  else if(direct.length) special='今年有直接命中本命区域，优先从'+directFocus+'问真实事件，因为这个位置更容易成为今年体感明显的主场。';
-  else if(indirect.length) special='今年没有直接命中M／N／O，但联合码结果碰到本命高频数字，属于间接共振；体感通常没有直接命中那么直白，要靠具体事件验证。';
-  else special='今年目前属于轻触，没有必要硬讲成“大事件年”，更适合看哪些主题慢慢浮上来。';
+  const special='今年的判断不再靠“直接命中／间接共振”分级。先看 O 位年度主题，再顺着自身4组的因果→过程→结果，最后把大环境4组叠上去；一场咨询只挑2–3个最贴近顾客现实的问题深入。';
 
   const close='“今天如果只带走一句话，我会想留给你这句：'+s.close+'”';
   const action='“如果今年只做一个练习：'+s.action+'”';
   const openEnd='“这是我从你今年的盘和你刚刚讲的经历里看到的方向，但你对自己最了解。回去以后如果有新的感受或变化，随时告诉我，我们再继续往下看。”';
 
   return '<div class="foundation-block aurmova-language-kit">'
-    +'<div class="card-heading"><div><small>JOSEPHINE TALK TRACK</small><h3>这一年怎么开口讲 · 可直接照读</h3></div><span>'+esc(resonance)+'</span></div>'
+    +'<div class="card-heading"><div><small>JOSEPHINE TALK TRACK</small><h3>这一年怎么开口讲 · 可直接照读</h3></div><span>最终8组结构</span></div>'
     +'<div class="question-box"><b>① 最推荐｜感受型开场</b><br>'+opener+'</div>'
     +'<div class="question-box"><b>② 备用｜变化型开场</b><br>“'+esc(s.change)+' 我先不急着说这是好还是不好，我们先看这些变化到底在把你带去哪里。”</div>'
     +'<div class="question-box"><b>③ 备用｜去年 vs 今年</b><br>“'+esc(contrast)+'”</div>'
@@ -125,30 +120,10 @@ function codeTalk(code,label){
 function advancedFlowHtml(c,year){
   const snap=calculateGoldenYearSnapshot(c.birthday,year);
   if(!snap)return "";
-  const self=snap.personalAxis?.groups||{};
-  const env=snap.environmentAxis?.groups||{};
-  const selfCodes=[
-    ["MNO｜自身因果",self.MNO],
-    ["MOQ｜自身过程一",self.MOQ],
-    ["NOP｜自身过程二",self.NOP],
-    ["PQR｜自身结果",self.PQR]
-  ].map(([label,v])=>[label,(v||[]).join("")]);
-  const envCodes=[
-    ["KLN｜大环境因果",env.KLN],
-    ["KNV｜大环境过程一",env.KNV],
-    ["LNW｜大环境过程二",env.LNW],
-    ["VWX｜大环境结果",env.VWX]
-  ].map(([label,v])=>[label,(v||[]).join("")]);
-
   return '<div class="foundation-block aurmova-advanced-flow" data-flow-year="'+year+'">'
-    +'<div class="card-heading"><div><small>AURMOVA YEAR READING</small><h3>'+year+' 黄金流年 · 唯一读取结构</h3></div><span>只看这8组</span></div>'
-    +'<div class="formula-note"><b>Josephine最终固定：</b>网络上的其他流年图、其他位置、其他组合方法全部不跟。AURMOVA永远只使用Josephine这一张三角形。黄金流年真正解读时，只读取下面8组：<b>MNO／MOQ／NOP／PQR</b>＝自身流年；<b>KLN／KNV／LNW／VWX</b>＝大环境流年。</div>'
+    +'<div class="card-heading"><div><small>JOSEPHINE YEAR TALK TRACK</small><h3>'+year+' 黄金流年 · 白话咨询提词</h3></div><span>基于最终8组结构</span></div>'
+    +'<div class="formula-note"><b>结构锁定：</b>白话提词只建立在 O位年度主题＋自身 MNO／MOQ／NOP／PQR＋大环境 KLN／KNV／LNW／VWX 上。不会再调用旧版“直接命中区域、三边流年联合码、单一大环境数字”。</div>'
     +flowConsultationLanguage(c,year,null,snap,[],{missing:false,density:0,direct:[],indirect:[]})
-    +'<div class="golden-axis-title"><div><small>SELF · 自身</small><h4>MNO → MOQ / NOP → PQR</h4></div><span>4组</span></div>'
-    +'<div class="joint-stack">'+selfCodes.map(x=>codeTalk(x[1],x[0])).join("")+'</div>'
-    +'<div class="golden-axis-title"><div><small>ENVIRONMENT · 大环境</small><h4>KLN → KNV / LNW → VWX</h4></div><span>4组</span></div>'
-    +'<div class="joint-stack">'+envCodes.map(x=>codeTalk(x[1],x[0])).join("")+'</div>'
-    +'<div class="question-box"><b>Josephine 收束顺序：</b><br>“我先看你今年自身的4组——为什么发生、你怎么走、最后走到哪里；再看外面的大环境4组——今年共同的天气是什么。最后把两边放在一起，看你今年是在顺着环境走，还是需要调整自己的节奏。”</div>'
     +'</div>';
 }
 
