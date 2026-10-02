@@ -299,3 +299,21 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .fc-flow article>b{font-size:11px}.fc-flow article>p{font-size:10px;color:var(--muted);line-height:1.6}
 .fc-mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media(max-width:800px){.fc-grid,.fc-observations,.fc-flow,.fc-mini-grid{grid-template-columns:1fr}}
+
+
+/* NOTION STYLE CONSULTATION v46 */
+.notion-consult-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.notion-consult-grid>div,.position-explain,.ai-supplement,.answer-branches>div{
+  border:1px solid var(--line);background:#fffdf9;padding:12px;border-radius:12px
+}
+.notion-consult-grid small{display:block;font-size:9px;letter-spacing:.08em;color:var(--gold);margin-bottom:6px}
+.notion-consult-grid p,.position-explain p,.ai-supplement p,.answer-branches p{margin:0;font-size:10.5px;line-height:1.75;color:#4f473d}
+.position-explain{margin:10px 0;background:#fff9ef}
+.position-explain>b{font-size:11px;display:block;margin-bottom:6px}
+.ai-supplement{margin:12px 0;background:#faf8f3}
+.ai-supplement .source-tag{display:inline-block;margin-bottom:8px}
+.answer-branches{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.answer-branches b{font-size:10px;display:block;margin-bottom:6px}
+.memory-line{border-top:1px dashed var(--line);padding-top:10px;margin-top:12px;font-size:10px;line-height:1.7}
+.joint-body .question-box{margin-top:10px}
+@media(max-width:800px){.notion-consult-grid,.answer-branches{grid-template-columns:1fr}}
