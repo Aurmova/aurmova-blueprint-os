@@ -317,3 +317,12 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .memory-line{border-top:1px dashed var(--line);padding-top:10px;margin-top:12px;font-size:10px;line-height:1.7}
 .joint-body .question-box{margin-top:10px}
 @media(max-width:800px){.notion-consult-grid,.answer-branches{grid-template-columns:1fr}}
+
+
+/* LIBRARY MODULE NAV v47 */
+.library-module-nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.library-module-btn{appearance:none;border:1px solid var(--line);background:#fffdf9;color:#5a4c3b;border-radius:999px;padding:9px 13px;font-size:11px;font-weight:600;cursor:pointer;transition:.18s ease}
+.library-module-btn:hover,.library-module-btn:focus{border-color:#b38a45;background:#fff8e9;color:#7c5d28;outline:none}
+.library-group h3{display:flex;align-items:center;gap:8px}
+.library-group h3 small{font-weight:500;color:#9c8c75}
+.library-entry-body{font-size:12px;line-height:1.85}
