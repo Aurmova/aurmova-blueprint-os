@@ -186,29 +186,99 @@ function trianglePatternSection(a){
     +'</section>';
 }
 
+function jointPositionMeaning(label){
+  const x=String(label||"");
+  if(x.includes("因果")) return "这个位置先看『为什么会启动』。它更像这段阶段的起点、惯性或背后动机，不是最后结果。";
+  if(x.includes("过程")) return "这个位置看『事情怎么展开』。重点是行为、互动和中途反应，不要把过程当成命定结果。";
+  if(x.includes("结果")) return "这个位置看『长期累积后容易呈现什么』。它是趋势和结果面，不等于一定发生。";
+  if(x.includes("父亲")) return "放在父亲基因时，优先看父系经验、权威关系、上级／规则与早年学会的做事方式。";
+  if(x.includes("母亲")) return "放在母亲基因时，优先看情感支持、安全感、照顾方式与亲密关系里的重复模式。";
+  if(x.includes("主性格")||x.includes("坐镇")) return "放在核心位置时，这组模式更接近长期惯性，会比偶发情境更常被顾客自己认出来。";
+  if(x.includes("工作")||x.includes("朋友")) return "放在工作／朋友位时，优先看职场合作、客户、人脉、表达方式与现实资源交换。";
+  if(x.includes("下属")||x.includes("子女")) return "放在下属／子女位时，优先看带人、教人、授权、控制与期待别人怎么做。";
+  return "这个位置要结合顾客真实发生的场景来解释。先看它落在哪一段人生／关系，再决定重点讲事业、关系还是自我模式。";
+}
+
+function jointCodeDigits(c){
+  return String(c||"").split("").map(Number).filter(n=>n>=1&&n<=9);
+}
+
+function jointWhiteBundle(c,structured,label){
+  const ds=jointCodeDigits(c);
+  const d1=DIGIT_CORE[ds[0]]||{}, d2=DIGIT_CORE[ds[1]]||{}, d3=DIGIT_CORE[ds[2]]||{};
+  const digitLine=ds.length===3
+    ?"第一位 "+ds[0]+"＝"+(d1.core||"")+"；第二位 "+ds[1]+"＝"+(d2.core||"")+"；第三位 "+ds[2]+"＝"+(d3.core||"")+"。"
+    :"";
+  const defaultQuestions=[
+    "这组特质在你身上，最明显是在工作、关系，还是家庭里？",
+    "顺的时候，你最常用到哪一个优势？",
+    "压力大的时候，刚才说的卡点有没有出现过？最近一次是什么情况？"
+  ];
+  const qs=(TALK_QUESTIONS[c]&&TALK_QUESTIONS[c].length?TALK_QUESTIONS[c]:defaultQuestions).slice(0,3);
+  const challenge=structured?.challenges||"压力下可能把原本的优势用过头，出现节奏、边界或沟通上的卡点。";
+  const strength=structured?.strengths||"这组数字有自己稳定的优势，但要结合真实场景验证。";
+  const growth=structured?.growth||"先看真实场景，再决定要加强哪一个能力、放松哪一个惯性。";
+  const script=structured?.script||"我先丢一个观察给你，你听听看像不像。这个组合不是在定义你好不好，而是在看你遇到事情时最容易用哪一套方式。";
+  const work=ds.map(n=>DIGIT_CORE[n]?.work).filter(Boolean).join("；");
+  return {
+    digitLine,
+    position:jointPositionMeaning(label),
+    scene:"顺的时候，这组码比较容易表现为："+strength+"；压力一上来，则要留意："+challenge,
+    work:work?("工作／事业上可以观察："+work+"。不是说只能做这些，而是这些能力比较容易被调用。"):"",
+    relationship:"关系里不要只看『合不合』，更要看这组码在沟通、边界、责任和期待上怎么运作。尤其当压力出现时，"+challenge,
+    pressure:"压力反应的重点不是给顾客贴标签，而是看优势什么时候开始用过头。可以直接追问：『你最近一次这样反应，是发生在谁身上／哪件事上？』",
+    script:"“我先丢一个观察给你，你听听看像不像。"+script+"”",
+    yes:"“那就对上了。重点不是说你有这个问题，而是你这组优势一旦用过头，就容易从『"+strength+"』走到『"+challenge+"』。我们现在要找的是那个转折点。”",
+    no:"“没关系，我不会硬套。那我们换一个角度看：这组模式是不是只会在特定的人、工作压力或某个阶段出现？如果还是不像，我们就以你的真实经历为准。”",
+    growth:"“你不用把自己变成另外一种人。你真正要做的是："+growth+"”",
+    mnemonic:ds.length===3?(ds[0]+" "+(d1.core||"")+" → "+ds[1]+" "+(d2.core||"")+" → "+ds[2]+" "+(d3.core||"")):"",
+    questions:qs
+  };
+}
+
 function jointBlock(c,label){
   const structured=getFlootKnowledge(c);
   const legacy=findJointCode(c);
   let body="";
   let source="系统计算结果";
   if(structured){
-    source="Floot × AURMOVA 结构化资料";
+    const white=jointWhiteBundle(c,structured,label);
+    source=structured.aiSupplement?"AURMOVA原始主题＋AI整合补全":"AURMOVA结构化资料＋AI咨询白话";
     body='<h4>'+esc(structured.title||c)+'</h4>'
-      +'<p><b>核心逻辑：</b>'+esc(structured.logic||"")+'</p>'
-      +'<p><b>正面／优势：</b>'+esc(structured.strengths||"")+'</p>'
-      +'<p><b>负面／卡点：</b>'+esc(structured.challenges||"")+'</p>'
-      +(structured.order?'<p><b>顺序差异：</b>'+esc(structured.order)+'</p>':"")
-      +'<p><b>成长方向：</b>'+esc(structured.growth||"")+'</p>'
-      +(structured.positions?'<p><b>位置资料：</b>'+esc(structured.positions)+'</p>':"")
-      +(structured.script?'<div class="question-box"><b>Josephine 可直接照读：</b><br>'+esc(structured.script)+'</div>':"")
-      +((TALK_QUESTIONS[c]||[]).map((q,i)=>'<p><b>追问 '+(i+1)+'：</b>'+esc(q)+'</p>').join(""));
+      +'<div class="notion-consult-grid">'
+        +'<div><small>① 数字结构</small><p>'+esc(white.digitLine||structured.logic||"")+'</p></div>'
+        +'<div><small>② 核心逻辑</small><p>'+esc(structured.logic||"")+'</p></div>'
+        +'<div><small>③ 正面／优势</small><p>'+esc(structured.strengths||"")+'</p></div>'
+        +'<div><small>④ 负面／卡点</small><p>'+esc(structured.challenges||"")+'</p></div>'
+      +'</div>'
+      +(structured.order?'<p><b>排列顺序差异：</b>'+esc(structured.order)+'</p>':"")
+      +'<div class="position-explain"><b>⑤ 这个位置怎么解｜'+esc(label)+'</b><p>'+esc(white.position)+'</p></div>'
+      +(structured.positions?'<p><b>原始／位置资料：</b>'+esc(structured.positions)+'</p>':"")
+      +'<div class="ai-supplement"><div class="source-tag">AI整合补充｜不是原书原句</div>'
+        +'<p><b>生活里会怎么表现：</b>'+esc(white.scene)+'</p>'
+        +(white.work?'<p><b>事业／工作：</b>'+esc(white.work)+'</p>':"")
+        +'<p><b>关系／沟通：</b>'+esc(white.relationship)+'</p>'
+        +'<p><b>压力时：</b>'+esc(white.pressure)+'</p>'
+      +'</div>'
+      +'<div class="question-box"><b>⑥ Josephine 白话｜可以直接照读：</b><br>'+white.script+'</div>'
+      +white.questions.map((q,i)=>'<p><b>验证问题 '+(i+1)+'：</b>'+esc(q)+'</p>').join("")
+      +'<div class="answer-branches"><div><b>顾客说「有」：</b><p>'+white.yes+'</p></div><div><b>顾客说「没有／不像」：</b><p>'+white.no+'</p></div></div>'
+      +'<div class="question-box"><b>⑦ 开解／成长方向：</b><br>'+white.growth+'</div>'
+      +(white.mnemonic?'<p class="memory-line"><b>学员记忆：</b>'+esc(white.mnemonic)+'</p>':"");
   }else if(legacy&&legacy.text){
-    source="AURMOVA 旧版资料库";
-    body='<p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>';
+    source="AURMOVA旧版资料＋AI待整合";
+    body='<p>'+esc(legacy.text).replace(/\n/g,"<br>")+'</p>'
+      +'<div class="question-box"><b>Josephine 白话：</b><br>“这组资料我会先以你真实发生的事情来验证，不会只因为看到号码就替你下结论。你先告诉我，最近最卡的是工作、关系还是自己的状态？”</div>';
   }else{
-    body='<p>这组号码已经由公式计算出来，详细原始课程资料仍按来源逐条复核，不会用AI臆测冒充原始课程内容。</p>';
+    const empty={logic:"",strengths:"",challenges:"",growth:"",script:""};
+    const white=jointWhiteBundle(c,empty,label);
+    source="AI结构补充｜原书来源待核对";
+    body='<div class="ai-supplement"><p><b>数字结构：</b>'+esc(white.digitLine)+'</p><p><b>位置：</b>'+esc(white.position)+'</p></div>'
+      +'<div class="question-box"><b>Josephine 可直接照读：</b><br>'+white.script+'</div>'
+      +'<p><b>验证：</b>'+esc(white.questions[0])+'</p>'
+      +'<div class="formula-note">这部分是AI根据数字结构与位置生成的咨询补充，不冒充原书。后续找到原始课程内容时，以原书为底稿再更新。</div>';
   }
-  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(structured||legacy?"已有资料":"待复核")+'</span></summary><div class="joint-body"><div class="source-tag">'+source+'</div>'+body+'</div></details>';
+  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(structured||legacy?"完整咨询":"AI补充")+'</span></summary><div class="joint-body"><div class="source-tag">'+source+'</div>'+body+'</div></details>';
 }
 function phaseDetails(a,name){
   const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
