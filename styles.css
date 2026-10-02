@@ -326,3 +326,10 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .library-group h3{display:flex;align-items:center;gap:8px}
 .library-group h3 small{font-weight:500;color:#9c8c75}
 .library-entry-body{font-size:12px;line-height:1.85}
+
+
+/* FLOW YEAR SWITCH v48 */
+.flow-year-quick{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.flow-year-chip{appearance:none;border:1px solid var(--line);background:#fffdf9;color:#5d5142;border-radius:999px;padding:9px 13px;font-size:11px;font-weight:600;cursor:pointer}
+.flow-year-chip.active{background:#b38a45;color:white;border-color:#b38a45}
+.flow-year-chip:hover{border-color:#b38a45}
