@@ -974,14 +974,170 @@ function buildJosephineReply(c,a,phase,step,answer){
       +'<div class="reply-part"><small>④ 开解方向</small><p>'+esc(b.action)+'</p></div>'
   };
 }
+
+function smartIntent(answer,c){
+  const t=String(answer||"").trim();
+  const tests=[
+    ["wealth_timing",/(什么时候|几岁|哪一年|哪年|多久).*(发达|发财|有钱|赚钱|赚大钱|收入|财富|起飞|翻身)|(?:发达|发财|有钱|赚钱|财富).*(什么时候|几岁|哪一年|哪年|多久)/],
+    ["wealth",/(发达|发财|有钱|赚钱|赚大钱|收入|财富|财运|钱|资产|生意|业绩)/],
+    ["career_fit",/(适合.*(?:工作|行业|职业|做什么)|做什么.*适合|要不要转行|换工作|辞职|创业|事业方向|职业方向)/],
+    ["relationship_decision",/(要不要.*(?:分手|离婚|在一起|结婚)|该不该.*(?:分手|离婚|在一起|结婚)|适不适合.*(?:在一起|结婚)|正缘|配不配)/],
+    ["relationship_timing",/(什么时候|几岁|哪一年|哪年).*(结婚|恋爱|遇到|对象|感情)|(?:结婚|恋爱|对象|感情).*(什么时候|几岁|哪一年|哪年)/],
+    ["flow_year",/(今年|明年|后年|202[6-9]|流年|今年会|今年适合|明年适合)/],
+    ["health",/(健康|生病|身体|失眠|焦虑|抑郁|胃|心脏|头痛|月经|怀孕|疾病|癌|血压)/],
+    ["family",/(孩子|小孩|儿子|女儿|父母|爸爸|妈妈|家人|家庭|亲子)/],
+    ["boundary",/(拒绝|不好意思|怕得罪|怕别人|委屈|答应|不敢说不|讨好|边界|不敢拒绝)/],
+    ["career",/(工作|事业|同事|朋友|客户|老板|上司|下属|团队|销售|生意|公司)/],
+    ["communicate",/(沟通|解释|说|讲|表达|问|谈|吵架)/],
+    ["observe",/(观察|想很多|考虑|分析|担心|看看|沉默|不说|先想|纠结|犹豫)/],
+    ["action",/(先行动|马上|处理|解决|负责|帮忙|扛|做掉|搞定|冲动)/],
+    ["self",/(我是谁|为什么我|性格|改变|成长|方向|迷茫|不知道自己|看不懂自己)/]
+  ];
+  for(const [key,re] of tests) if(re.test(t)) return key;
+  if(c?.consultationTheme==="事业／工作"||c?.consultationTheme==="金钱／资源") return "career";
+  if(c?.consultationTheme==="感情／关系") return "relationship_decision";
+  if(c?.consultationTheme==="家庭／亲子") return "family";
+  return "general";
+}
+function smartGoldenContext(a){
+  const p=a?.positions||{};
+  return [p.U,p.R,p.X].map(v=>v??"—").join("");
+}
+function currentYearContext(c){
+  const y=activeFlowYear();
+  const set=calculateYearCycleSet(c.birthday,y);
+  const cur=set?.current||{};
+  return {year:y,number:cur.number,title:cur.title||YEAR_THEMES?.[cur.number]?.title||""};
+}
+function buildSmartJosephineReply(c,a,phase,step,answer){
+  const intent=smartIntent(answer,c);
+  const meta=PHASE_META[phase]||{label:phase,theme:""};
+  const yc=currentYearContext(c);
+  const golden=smartGoldenContext(a);
+  const quote=String(answer||"").trim();
+  const ctx='当前：'+activeModuleName()+' · '+meta.label+' · '+meta.theme+' · 主性格 '+a.mainPersonality+' · 黄金20年 '+golden+' · '+yc.year+'流年 '+yc.number+(yc.title?(' '+yc.title):'');
+  const common={
+    wealth_timing:{
+      catch:"我听到你真正想问的是：不是“我有没有机会”，而是“哪个阶段比较容易把事业和财富做起来”。这个问题可以看，但我不会只凭一个数字告诉你某一年一定发财。",
+      connect:"要看“什么时候比较容易出成果”，我会把三个层次叠在一起：你现在走到哪个20年阶段、黄金20年的 U→R→X 结果线，以及当下流年的个人四组与大环境四组。这样看的是发力窗口和累积节奏，不是保证某年暴富。",
+      next:"你说的“发达”具体是指哪一种：收入明显提高、事业位置提升、创业稳定、资产累积，还是知名度／客户量上来？你先定义结果，我才不会答偏。",
+      action:"先把“发达”定义清楚，再看当前阶段适合累积、扩张还是收尾。系统下一步应该围绕这个目标去挑最相关的阶段码和流年码，而不是继续问一个无关的性格问题。"
+    },
+    wealth:{
+      catch:"你现在关心的是钱和成果，我会直接把问题放到事业／资源这一层，不绕去问无关的人际问题。",
+      connect:"财富不能只看一个“财运码”。我会同时看你当前20年阶段的结果、相关联合码、6／7／9等资源线索，以及今年流年的实际节奏，再结合你的职业和现实收入模式验证。",
+      next:"你现在最想改善的是哪一块：收入不够、赚得到但留不住、客户不稳定、事业卡住，还是想把规模做大？",
+      action:"不同问题的解法完全不同。先分清是“赚钱能力、留钱能力、机会来源、定价／成交，还是资源管理”，再回到盘里找对应证据。"
+    },
+    career_fit:{
+      catch:"这个问题我不会只用一句“适合／不适合”回答，因为职业选择不能只靠号码决定。",
+      connect:"我会先看你的自然工作方式、当前阶段和相关事业联合码，再用四个现实条件校准：趋势、价值、天赋、热爱。盘负责告诉我们你怎么做事比较顺，现实负责告诉我们这个行业值不值得做。",
+      next:"你现在考虑的具体行业／工作是什么？你最犹豫的是收入、能力、稳定、兴趣，还是怕转了以后后悔？",
+      action:"把行业说具体后，我们再分成“你做起来顺不顺”和“市场上值不值得做”两层判断，不会把性格倾向当成职业命令。"
+    },
+    relationship_decision:{
+      catch:"我知道你现在很想要一个明确答案，但关系里的“要不要”我不会替你拍板。我能帮你的是把真正让你犹豫的地方看清楚。",
+      connect:"盘可以帮助我们看你在关系里的重复模式、边界、情绪和需求，但不能代替对方的真实行为，也不能替你决定留下还是离开。",
+      next:"先不要问“要不要”。你告诉我：现在最让你不舒服的那件事是什么？它是偶尔发生，还是已经重复很多次？",
+      action:"我们会把问题缩小到安全感、尊重、信任、沟通、价值观和边界，再让你自己做决定。"
+    },
+    relationship_timing:{
+      catch:"如果你问的是“什么时候比较容易出现关系机会”，我可以看时间节奏，但不会把它说成某年一定结婚或一定遇到某个人。",
+      connect:"我会结合当前20年阶段、个人流年四组、大环境四组，以及关系相关的联合码看“关系议题什么时候比较被放大”。这代表关注度和机会窗口，不是命定事件。",
+      next:"你现在问时间，是因为目前单身想遇到对象，还是已经有对象、想知道关系什么时候会更稳定？",
+      action:"先分清“遇见机会”和“关系稳定”是两件事，再去找对应的流年重点。"
+    },
+    flow_year:{
+      catch:"你现在问的是时间节奏，我会直接切到流年，不再用固定性格问题绕一圈。",
+      connect:"AURMOVA的流年以10月1日切换。现在系统会用你的目标年份重新排完整三角，再看个人 MNO／MOQ／NOP／PQR 和大环境 KLN／KNV／LNW／VWX，两边一起读。",
+      next:"你最想知道这一年哪一块：事业、钱、感情、家庭，还是自己的状态？我会只抓最相关的2–3个重点讲。",
+      action:"先定主题，再从8组流年码中挑最相关的重点，不把整张流年一次塞给顾客。"
+    },
+    health:{
+      catch:"这个问题如果牵涉身体或症状，我会先把数字放在辅助理解的位置，不会用号码替你判断有没有疾病。",
+      connect:"数字资料最多只能帮助我们讨论压力、作息、情绪和生活习惯的可能模式；真正的症状、诊断和治疗要交给医生或合资格专业人员。",
+      next:"你现在说的是已经出现的身体症状，还是只是担心未来会不会有问题？如果已经有症状，持续多久、有没有看过医生？",
+      action:"咨询里可以继续看压力与生活模式，但有持续、严重或恶化的症状时，优先做医学评估。"
+    },
+    family:{
+      catch:"你刚才讲的是家庭／亲子场景，我会直接把它挂回家庭关系，而不是继续套一个通用问题。",
+      connect:"家庭里要同时看你的主性格、父母基因、孩子／下属区或家庭区，再看彼此真实互动。数字是用来找重复模式，不是用来判谁对谁错。",
+      next:"这件事发生时，你最希望对方怎么做？而对方实际做了什么，让你最受不了？",
+      action:"先把双方期待说清楚，再看是沟通、边界、控制、责任还是安全感的问题。"
+    },
+    boundary:{
+      catch:"你这句话里面最明显的不是“不会拒绝”，而是你在拒绝之前已经先想到关系会不会变差。",
+      connect:"我会把它放回关系边界、情绪表达和主性格一起看。重点不是给你贴“讨好型”的标签，而是找出你每次从不舒服走到答应的那一个转折点。",
+      next:"你最怕拒绝以后发生什么？是别人不开心、觉得你不好，还是关系真的会断？",
+      action:"练习不是突然变强硬，而是把“感觉到不愿意”到“说出来”之间的距离缩短。"
+    },
+    career:{
+      catch:"你讲的是工作／事业，我会先围绕真实工作场景接，不会硬把话题拉回一个固定性格题。",
+      connect:"事业要结合当前阶段、事业／朋友位置、相关联合码、主性格和现实职业。数字告诉我们你习惯怎么做事，经历告诉我们哪种能力已经被你练出来。",
+      next:"你现在最卡的是哪一个：方向、收入、客户、上司／团队、能力发挥，还是做很多却没有结果？",
+      action:"先找真正的瓶颈，再决定要看职业方向、销售方式、合作模式还是流年节奏。"
+    },
+    communicate:{
+      catch:"我听到的重点是“怎么把话说清楚／怎么让对方听懂”，所以这次先处理沟通，不先讲别的。",
+      connect:"沟通要分清楚你是在表达事实、表达感受、提出需求，还是想马上解决问题。不同目的会调用不同的数字优势和卡点。",
+      next:"当对方没有理解你时，你通常会继续解释、提高语气，还是干脆不说了？",
+      action:"先确认沟通目的，再决定要说事实、感受还是需求；目的越清楚，越不容易越讲越乱。"
+    },
+    observe:{
+      catch:"你不是没有答案，而是会先观察、分析、反复确认。这个过程本身是你的保护方式。",
+      connect:"我会把这段放回思考、情绪内收和安全感一起看，判断你是在做必要分析，还是已经进入反复内耗。",
+      next:"你现在最缺的到底是更多资料，还是其实资料已经够了，只是还不敢做决定？",
+      action:"如果资料已经够，就把下一步缩小到一个低风险动作，不需要等到100%确定才动。"
+    },
+    action:{
+      catch:"你遇到事情时会很快进入处理模式，这既是执行力，也可能让你太早把责任扛过来。",
+      connect:"我会看行动、责任、主导与结果相关的数字，再用真实事件确认：你是在有效推进，还是因为焦虑所以急着把事情做掉。",
+      next:"这件事真的需要你马上处理，还是你只是不舒服它悬在那里？",
+      action:"多加一个停顿：先确认责任归谁、结果要什么，再行动。"
+    },
+    self:{
+      catch:"你现在问的是“我到底是什么样的人／为什么我会这样”。这个问题不能只靠一个主性格号码解释。",
+      connect:"我会把主性格、内心码、起始数、内外三角反差、缺失和高密度一起看，再用你的真实经历确认哪些是底色、哪些是后天适应。",
+      next:"你最近最常觉得“这不像我”是在什么场景？工作、家庭、感情，还是一个人独处的时候？",
+      action:"目标不是找一个标签，而是分清你的本能、习惯和保护机制，知道什么时候可以多一种选择。"
+    },
+    general:{
+      catch:"我先接你原本这句话，不急着把你拉回固定问题。你刚才真正想问的是：“"+quote+"”。",
+      connect:"我会先判断这是事业、关系、时间、钱、家庭还是自我模式，再把它挂回你的主性格、当前阶段和对应位置。这样下一句才会跟你的问题在同一条线上。",
+      next:"如果只让我先帮你弄清楚一件事，你最想先得到哪一个答案？",
+      action:"先把问题缩小，再进盘找证据；不确定时宁可多问一句，也不要系统自己乱猜。"
+    }
+  };
+  const b=common[intent]||common.general;
+  let extra="";
+  if(intent==="wealth_timing"){
+    extra='<div class="question-box"><b>这位顾客目前可见的时间线：</b><br>当前阶段：'+esc(meta.label)+' · 黄金20年结果线：'+esc(golden)+' · 当前 '+yc.year+' 流年：'+esc(String(yc.number))+(yc.title?' · '+esc(yc.title):'')+'</div>';
+  }else if(intent==="flow_year"){
+    extra='<div class="question-box"><b>当前流年：</b><br>'+yc.year+' · '+esc(String(yc.number))+(yc.title?' · '+esc(yc.title):'')+'</div>';
+  }
+  return {
+    theme:intent,
+    html:'<div class="reply-part"><small>AI语义识别</small><p><b>系统理解：</b>'+esc(intent.replaceAll("_","／"))+'｜顾客原话：“'+esc(quote)+'”</p></div>'
+      +'<div class="reply-part"><small>① 先接顾客原话</small><p>'+esc(b.catch)+'</p></div>'
+      +'<div class="reply-part"><small>② 连接这张盘</small><p>'+esc(b.connect)+'</p><span class="reply-context">'+esc(ctx)+'</span></div>'
+      +extra
+      +'<div class="reply-part"><small>③ 下一句就问这个</small><div class="question-box">'+esc(b.next)+'</div></div>'
+      +'<div class="reply-part"><small>④ Josephine 开解方向</small><p>'+esc(b.action)+'</p></div>'
+      +'<div class="formula-note">智能模式会先理解顾客原句，再决定要连接哪一个模块；若顾客意思不清楚，优先追问，不硬套数字。</div>'
+  };
+}
+
 function consultationConsole(c,a,phase,step=0){
   const saved=loadConsultation(c.id);
   const item=saved[String(step)]||{};
+  const mode=item.replyMode||"smart";
   return '<section class="answer-console" id="v7-answer-console" data-step="'+step+'">'
-    +'<div class="answer-head"><div><p class="eyebrow">LIVE CONSULTATION</p><h3>顾客回答后 · Josephine 怎么接</h3></div><span>回答 → 接住 → 连接 → 深挖 → 开解</span></div>'
-    +'<label class="answer-label">记录顾客刚才的回答<textarea id="v7-customer-answer" placeholder="例如：我其实很不想答应，但我怕拒绝以后别人会觉得我很难相处。">'+esc(item.answer||"")+'</textarea></label>'
-    +'<div class="answer-actions"><button type="button" class="btn btn-light" id="v7-save-answer">保存回答</button><button type="button" class="btn btn-primary" id="v7-generate-reply">生成下一句回应话术</button></div>'
-    +'<div id="v7-reply-output" class="reply-output">'+(item.replyHtml||'<div class="empty-mini">输入顾客回答后，系统会给你“怎么接、怎么解释、下一题问什么、怎么开解”。</div>')+'</div>'
+    +'<div class="answer-head"><div><p class="eyebrow">LIVE CONSULTATION</p><h3>顾客回答后 · Josephine 怎么接</h3></div><span>先理解原话 → 再连接蓝图</span></div>'
+    +'<div class="formula-note"><b>智能接话模式：</b>不会再只靠几个关键词跳固定模板。系统会先判断顾客到底在问钱、时间、事业、感情、家庭、流年还是自我模式，再选择对应的盘与追问。</div>'
+    +'<label class="answer-label">记录顾客刚才的原话<textarea id="v7-customer-answer" placeholder="例如：我什么时候可以发达？／我到底要不要换工作？／为什么我每次都不敢拒绝？">'+esc(item.answer||"")+'</textarea></label>'
+    +'<label class="answer-label">回应模式<select id="v7-reply-mode"><option value="smart" '+(mode==="smart"?"selected":"")+'>智能语义模式（推荐）</option><option value="template" '+(mode==="template"?"selected":"")+'>固定模板模式（备用）</option></select></label>'
+    +'<div class="answer-actions"><button type="button" class="btn btn-light" id="v7-save-answer">保存回答</button><button type="button" class="btn btn-primary" id="v7-generate-reply">智能生成下一句回应</button></div>'
+    +'<div id="v7-reply-output" class="reply-output">'+(item.replyHtml||'<div class="empty-mini">输入顾客真实原话。智能模式会先理解她在问什么，再给你“怎么接、连接哪一层、下一题问什么、怎么开解”。</div>')+'</div>'
     +'</section>';
 }
 function refreshConsultationConsole(step){
@@ -1181,7 +1337,8 @@ document.addEventListener("click",event=>{
   const saveAnswer=event.target.closest("#v7-save-answer"); if(saveAnswer){
     const c=currentCustomer(); if(!c)return;
     const box=document.querySelector("#v7-answer-console"),step=Number(box?.dataset.step||0),answer=document.querySelector("#v7-customer-answer")?.value.trim()||"";
-    const data=loadConsultation(c.id); data[String(step)]={...(data[String(step)]||{}),answer}; saveConsultation(c.id,data);
+    const mode=document.querySelector("#v7-reply-mode")?.value||"smart";
+    const data=loadConsultation(c.id); data[String(step)]={...(data[String(step)]||{}),answer,replyMode:mode}; saveConsultation(c.id,data);
     saveAnswer.textContent="已保存 ✓"; setTimeout(()=>saveAnswer.textContent="保存回答",1200); return
   }
   const generateReply=event.target.closest("#v7-generate-reply"); if(generateReply){
@@ -1189,8 +1346,9 @@ document.addEventListener("click",event=>{
     const a=calculateBlueprint(c.birthday),phase=phaseForAge(ageFromBirthday(c.birthday));
     const box=document.querySelector("#v7-answer-console"),step=Number(box?.dataset.step||0),answer=document.querySelector("#v7-customer-answer")?.value.trim()||"";
     if(!answer){document.querySelector("#v7-reply-output").innerHTML='<div class="empty-mini">请先记录顾客的回答。</div>';return}
-    const reply=buildJosephineReply(c,a,phase,step,answer),data=loadConsultation(c.id);
-    data[String(step)]={answer,replyHtml:reply.html,theme:reply.theme,updatedAt:new Date().toISOString()}; saveConsultation(c.id,data);
+    const mode=document.querySelector("#v7-reply-mode")?.value||"smart";
+    const reply=mode==="smart"?buildSmartJosephineReply(c,a,phase,step,answer):buildJosephineReply(c,a,phase,step,answer),data=loadConsultation(c.id);
+    data[String(step)]={answer,replyHtml:reply.html,theme:reply.theme,replyMode:mode,updatedAt:new Date().toISOString()}; saveConsultation(c.id,data);
     document.querySelector("#v7-reply-output").innerHTML=reply.html; return
   }
   const gen=event.target.closest("#generate-script"); if(gen){setTimeout(()=>{document.querySelector("#script-panel")?.scrollIntoView({behavior:"smooth",block:"start"})},0);return}
