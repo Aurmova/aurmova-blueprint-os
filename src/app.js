@@ -19,6 +19,7 @@ const routes = [
   ["new","建立顾客","add"],
   ["history","顾客档案","history"],
   ["workspace","咨询工作台","work"],
+  ["firstconsult","首次咨询模式","work"],
   ["library","完整资料库","work"],
   ["whiteboard","咨询白板","work"],
   ["followup","Follow-up中心","history"],
@@ -332,7 +333,7 @@ function workspace(){
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
    <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
-   <div class="quick-actions"><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+   <div class="quick-actions"><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
  <div class="section-head"><div><p class="eyebrow">Josephine Only</p><h2>数字结构 · 仅供后台使用</h2></div><span class="private-pill">PRIVATE</span></div>
