@@ -563,18 +563,37 @@ function yearFinalSummary(a,personal,environment,climate){
     +'</ol></div>';
 }
 
+function synthesizeFlowCodeReading(codeValue,label=""){
+  const ds=String(codeValue||"").split("").map(Number).filter(n=>n>=1&&n<=9);
+  const [a,b,c]=ds;
+  const A=DIGIT_CORE[a]||{},B=DIGIT_CORE[b]||{},C=DIGIT_CORE[c]||{};
+  return {
+    source:"AURMOVA结构化白话补充",
+    strengths:"起因偏向「"+(A.core||a)+"」，过程会用「"+(B.gift||B.core||b)+"」推进，最后更容易把课题带到「"+(C.core||c)+"」这一层。优势是把"+(A.gift||A.core||"起点能力")+"、"+(B.gift||B.core||"过程能力")+"与"+(C.gift||C.core||"结果能力")+"串起来。",
+    challenges:"压力下要留意：起点可能出现「"+(A.shadow||"反应过度")+"」，过程中可能变成「"+(B.shadow||"用力过头")+"」，最后容易卡在「"+(C.shadow||"结果焦虑")+"」。这不是命定结果，而是需要用真实事件验证的反模式。",
+    growth:"先看事情是怎么开始的，再观察自己惯用的处理方式，最后确认这个做法把结果带去哪里。把最容易过度的那一位数字往正面能力拉回来。",
+    script:"这组 "+codeValue+" 我会分三层看：前面是事情为什么被触发，中间是你通常怎么处理，最后是这件事最容易把你带到哪里。你听听看，最近有没有一件事刚好很像这条路径？"
+  };
+}
+
 function axisGroupsHtml(groups,labels,activeNumber=null,allEnvironment=false){
   return '<div class="golden-axis-grid">'+Object.entries(groups).map(([name,arr],i)=>{
     const codeValue=arr.join("");
     const hit=activeNumber!==null && activeNumber!==undefined && arr.includes(activeNumber);
     const data=getFlootKnowledge(codeValue)||findJointCode(codeValue);
-    const positive=data?.strengths||data?.text||"这组联合码已计算完成；详细正向资料按AURMOVA资料库读取。";
-    const negative=data?.challenges||"负面／卡点资料若原始库未写明，系统不会自行杜撰。";
+    const derived=synthesizeFlowCodeReading(codeValue,(labels||[])[i]||"");
+    const positive=data?.strengths||data?.text||derived.strengths;
+    const negative=data?.challenges||derived.challenges;
+    const growth=data?.growth||derived.growth;
+    const script=data?.script||derived.script;
+    const source=data?"原资料／既有资料库":"AI结构化补充";
     return '<article class="golden-axis-code '+(hit?'hit':'')+' '+(allEnvironment?'environment-code':'')+'"><small>'+esc(labels[i]||"")+' · '+esc(name)+'</small><strong>'+esc(codeValue)+'</strong>'
-      +(hit?'<em>个人流年数 '+activeNumber+' 在这组出现</em>':'')
-      +(allEnvironment?'<em>大环境四码之一 · 全年都要看</em>':'')
-      +'<p><b>正面：</b>'+esc(positive)+'</p><p><b>负面／卡点：</b>'+esc(negative)+'</p>'
-      +(data?.growth?'<p><b>修正方向：</b>'+esc(data.growth)+'</p>':'')
+      +(hit?'<em>O位数字 '+activeNumber+' 在这组出现</em>':'')
+      +(allEnvironment?'<em>大环境四码之一 · 四组一起读</em>':'')
+      +'<span class="source-tag">'+source+'</span>'
+      +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(script)+'”</div>'
+      +'<p><b>正面／优势：</b>'+esc(positive)+'</p><p><b>负面／卡点：</b>'+esc(negative)+'</p>'
+      +'<p><b>成长／开解：</b>'+esc(growth)+'</p>'
       +'</article>';
   }).join("")+'</div>';
 }
@@ -600,32 +619,19 @@ function yearSnapshotCard(c,year,label){
   const snap=calculateGoldenYearSnapshot(c.birthday,year);
   if(!snap) return "";
   const p=snap.personal;
-  const missing=snap.innerEnergy?.missing||[],repeated=snap.innerEnergy?.repeated||[];
-  const personalHits=snap.personalHits.length?snap.personalHits.map(x=>x.key+" "+x.code).join(" · "):"没有直接重复命中";
-  return '<section class="golden-year-sheet '+(label==="今年"?"current":"")+'">'
-    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>自身流年 O='+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境主码 KLN</small><b>'+esc(snap.environmentMainCode)+'</b><span>再连同 KNV / LNW / VWX 一起看</span></div></div>'
-    +'<div class="year-positive-negative"><div><small>自身流年正面</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>自身流年负面／反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
+  const personalCodes=Object.entries(snap.personalAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  const environmentCodes=Object.entries(snap.environmentAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  return '<section class="golden-year-sheet '+(label==="当前查看"?"current":"")+'">'
+    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>自身流年 O='+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境因果 · KLN</small><b>'+esc(snap.environmentMainCode)+'</b><span>不是“大环境数字”；必须连同 KNV / LNW / VWX 一起读</span></div></div>'
+    +'<div class="formula-note"><b>AURMOVA唯一结构：</b>这一年只用同一张重排年盘。自身固定读取 <b>MNO → MOQ / NOP → PQR</b>；大环境固定读取 <b>KLN → KNV / LNW → VWX</b>。不再加入外三角三边流年码、直接命中主场、单一大环境数字或人为权重。</div>'
+    +'<div class="year-positive-negative"><div><small>O位年度主题 · 正面</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>O位年度主题 · 反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
     +goldenYearVisual(snap)
-    +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年 · MNO → MOQ / NOP → PQR</h4></div><span>个人这年的料</span></div>'
-    +'<p class="panel-note">MNO看因果；MOQ、NOP看过程；PQR看结果。个人流年数直接读取这张年盘的O位，不再另外计算另一套数字。</p>'
+    +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>因果 → 两个过程 → 结果</p></div><div><small>大环境4组</small><b>'+esc(environmentCodes)+'</b><p>因果 → 两个过程 → 结果</p></div></div>'
+    +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年 · MNO → MOQ / NOP → PQR</h4></div><span>4组全部计算</span></div>'
     +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number,false)
-    +'<div class="formula-note">O位／个人流年＝'+p.number+'｜在四组自身流年码中的重复命中：'+esc(personalHits)+'。</div>'
-    +'<div class="golden-axis-title"><div><small>ENVIRONMENT YEAR AXIS</small><h4>大环境／天气 · KLN → KNV / LNW → VWX</h4></div><span>所有人的共同汤底</span></div>'
-    +'<p class="panel-note">KLN是大环境因果主码；KNV、LNW是两个过程；VWX是结果。四组一起才是这一年的整体大环境，不能只抽一个数字代表整年。</p>'
+    +'<div class="golden-axis-title"><div><small>ENVIRONMENT YEAR AXIS</small><h4>大环境／天气 · KLN → KNV / LNW → VWX</h4></div><span>4组全部计算</span></div>'
     +axisGroupsHtml(snap.environmentAxis.groups,snap.environmentAxis.labels,null,true)
-    +environmentSynthesis(snap)
-    +'<div class="golden-support-grid">'
-      +'<div><span>固定 IJM</span><b>'+snap.fixedFatherCode+'</b></div>'
-      +'<div><span>起始数</span><b>'+snap.startingThoughtCode+'</b></div>'
-      +'<div><span>制约数</span><b>'+snap.constraintCode+'</b></div>'
-      +'<div><span>内心码</span><b>'+snap.innerCode+'</b></div>'
-      +'<div><span>潜意识</span><b>'+snap.subconsciousCode+'</b></div>'
-      +'<div><span>年盘内三角</span><b>'+snap.yearTriangle.join("")+'</b></div>'
-      +'<div><span>缺失数</span><b>'+(missing.length?missing.join(" · "):"无")+'</b></div>'
-      +'<div><span>过强／挑战</span><b>'+(repeated.length?repeated.join(" · "):"无")+'</b></div>'
-    +'</div>'
-    +goldenInnerDensityPanel(snap)
-    +missingActivationPanel({innerEnergy:snap.innerEnergy},p)
+    +'<div class="question-box"><b>Josephine 收束：</b><br>“我先看你这一年的自身4组——为什么发生、过程怎么走、最后走到哪里；再看外面的大环境4组——共同的天气是什么。最后只挑2–3个最值得讲的模式，跟你真实经历做验证。”</div>'
     +'</section>';
 }
 
@@ -633,19 +639,22 @@ function yearPanel(c,target){
   const active=activeFlowYear(new Date());
   const year=Number(target)||active;
   const current=calculateGoldenYearSnapshot(c.birthday,year);
+  const prev=calculateGoldenYearSnapshot(c.birthday,year-1);
+  const next=calculateGoldenYearSnapshot(c.birthday,year+1);
   const envCodes=current.environmentCodes.map(x=>x.code).join(" · ");
   const range=flowYearRange(year);
   const quick=[active-1,active,active+1,active+2];
+  const compare=[["上一流年",prev],["当前查看",current],["下一流年",next]].map(([label,x])=>'<div><small>'+label+' · '+x.year+'</small><b>O='+x.personal.number+' · '+esc(x.personal.title)+'</b><span>自身结果 '+x.personalAxis.groups.PQR.join("")+'｜大环境结果 '+x.environmentAxis.groups.VWX.join("")+'</span></div>').join("");
   return '<div class="module-render golden-year-v22">'
-    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 个人流年 × 大环境四码</h2></div><span>当前流年 '+active+'</span></div>'
+    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 只保留最终确认结构</h2></div><span>当前流年 '+active+'</span></div>'
     +'<div class="year-control"><label>查看哪个流年年度 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
     +'<div class="flow-year-quick">'+quick.map(y=>'<button type="button" class="flow-year-chip '+(y===year?'active':'')+'" data-v6-flow-year="'+y+'">'+y+(y===active?' · 当前':'')+'</button>').join("")+'</div>'
-    +'<div class="formula-note"><b>'+year+' 流年期间：</b>'+esc(range.start)+' → '+esc(range.end)+'。AURMOVA按10月1日切换流年，所以现在已经进入 '+active+' 流年。<br><b>固定图版：</b>保留顾客出生的“日＋月”，把年份替换成目标流年年度重新排同一张盘；自身流年看 MNO／MOQ／NOP／PQR，大环境看 KLN／KNV／LNW／VWX。</div>'
-    +'<div class="golden-master-summary"><div><small>'+year+' 自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>'+year+' 大环境主码</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 因果</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN因果 → KNV / LNW过程 → VWX结果；四组共同定义这一流年的“天气”。</p></div></div>'
+    +'<div class="formula-note"><b>'+year+' 流年期间：</b>'+esc(range.start)+' → '+esc(range.end)+'。AURMOVA按10月1日切换；现在已进入 '+active+' 流年。<br><b>计算：</b>保留出生“日＋月”，把年份替换成目标流年年度，重新计算同一张完整三角盘；O位＝个人年度主题。</div>'
+    +'<div class="formula-note"><b>本次清理：</b>旧版“单一大环境数字／直接命中六区域／外三角三边流年码／50-25-15-10权重”等旧逻辑已从流年页面停用，避免和你最终规则打架。</div>'
+    +'<div class="golden-master-summary"><div><small>'+year+' 自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>'+year+' 大环境因果</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 只代表因果，不代表整个大环境</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN → KNV / LNW → VWX 四组共同定义这一年的“天气”。</p></div></div>'
+    +'<div class="golden-support-grid">'+compare+'</div>'
     +yearTeachingPanel()
-    +yearSnapshotCard(c,year-1,"上一流年")
     +yearSnapshotCard(c,year,"当前查看")
-    +yearSnapshotCard(c,year+1,"下一流年")
     +'</div>';
 }
 
@@ -1005,8 +1014,8 @@ function smartGoldenContext(a){
 }
 function currentYearContext(c){
   const y=activeFlowYear();
-  const set=calculateYearCycleSet(c.birthday,y);
-  const cur=set?.current||{};
+  const snap=calculateGoldenYearSnapshot(c.birthday,y);
+  const cur=snap?.personal||{};
   return {year:y,number:cur.number,title:cur.title||YEAR_THEMES?.[cur.number]?.title||""};
 }
 function buildSmartJosephineReply(c,a,phase,step,answer){
@@ -1163,7 +1172,7 @@ function serviceChecklist(c){
 
 function scriptMarkup(c,a,phase){
   const profile=PERSONALITY_LIBRARY[a.mainPersonality],meta=PHASE_META[phase];
-  const y=calculateYearCycleSet(c.birthday,new Date().getFullYear()).current;
+  const y=calculateGoldenYearSnapshot(c.birthday,activeFlowYear(new Date())).personal;
   const rows=contrastRows(a).sort((x,y)=>y.diff-x.diff);
   const pick=rows[0];
   const alignment=pick&&pick.diff>0?getInnerOuterAlignment(pick.n,pick.inner,pick.outer):null;
