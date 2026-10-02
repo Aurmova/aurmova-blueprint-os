@@ -1,4 +1,4 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=28";
+import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=28";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode } from "./aurmova-knowledge.js?v=28";
@@ -601,18 +601,22 @@ function yearSnapshotCard(c,year,label){
 }
 
 function yearPanel(c,target){
-  const year=Number(target)||new Date().getFullYear();
+  const active=activeFlowYear(new Date());
+  const year=Number(target)||active;
   const current=calculateGoldenYearSnapshot(c.birthday,year);
   const envCodes=current.environmentCodes.map(x=>x.code).join(" · ");
+  const range=flowYearRange(year);
+  const quick=[active-1,active,active+1,active+2];
   return '<div class="module-render golden-year-v22">'
-    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 个人流年 × 大环境四码</h2></div><span>去年 · 今年 · 明年</span></div>'
-    +'<div class="year-control"><label>以哪一年为“今年” <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
-    +'<div class="formula-note"><b>固定图版：</b>黄金流年也使用与人生／关系／亲子／合作完全相同的方框数字盘，只把年份替换为目标年份重新排盘。计算逻辑：保留顾客出生的“日＋月”；自身流年看 MNO／MOQ／NOP／PQR；大环境直接看 KLN／KNV／LNW／VWX。大环境不再另算一个单独数字来代表整年。</div>'
-    +'<div class="golden-master-summary"><div><small>今年自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>今年大环境主码</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 因果</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN因果 → KNV / LNW过程 → VWX结果；四组共同定义今年的“天气”。</p></div></div>'
+    +'<div class="card-heading"><div><small>AURMOVA GOLDEN YEAR BLUEPRINT</small><h2>黄金流年蓝图 · 个人流年 × 大环境四码</h2></div><span>当前流年 '+active+'</span></div>'
+    +'<div class="year-control"><label>查看哪个流年年度 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
+    +'<div class="flow-year-quick">'+quick.map(y=>'<button type="button" class="flow-year-chip '+(y===year?'active':'')+'" data-v6-flow-year="'+y+'">'+y+(y===active?' · 当前':'')+'</button>').join("")+'</div>'
+    +'<div class="formula-note"><b>'+year+' 流年期间：</b>'+esc(range.start)+' → '+esc(range.end)+'。AURMOVA按10月1日切换流年，所以现在已经进入 '+active+' 流年。<br><b>固定图版：</b>保留顾客出生的“日＋月”，把年份替换成目标流年年度重新排同一张盘；自身流年看 MNO／MOQ／NOP／PQR，大环境看 KLN／KNV／LNW／VWX。</div>'
+    +'<div class="golden-master-summary"><div><small>'+year+' 自身流年</small><strong>'+current.personal.number+'</strong><span>O位 · '+esc(current.personal.title)+'</span></div><div><small>'+year+' 大环境主码</small><strong>'+esc(current.environmentMainCode)+'</strong><span>KLN · 因果</span></div><div><small>大环境四组</small><b>'+esc(envCodes)+'</b><p>KLN因果 → KNV / LNW过程 → VWX结果；四组共同定义这一流年的“天气”。</p></div></div>'
     +yearTeachingPanel()
-    +yearSnapshotCard(c,year-1,"去年")
-    +yearSnapshotCard(c,year,"今年")
-    +yearSnapshotCard(c,year+1,"明年")
+    +yearSnapshotCard(c,year-1,"上一流年")
+    +yearSnapshotCard(c,year,"当前查看")
+    +yearSnapshotCard(c,year+1,"下一流年")
     +'</div>';
 }
 
@@ -1161,7 +1165,7 @@ document.addEventListener("click",event=>{
   const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return{name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""}});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const regionBtn=event.target.closest("[data-v12-year-region]"); if(regionBtn){
     const c=currentCustomer(); if(!c)return;
-    const target=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();
+    const target=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());
     const personal=calculateYearCycleSet(c.birthday,target).current;
     const a=calculateBlueprint(c.birthday);
     const region=yearRegions(a).find(x=>x.key===regionBtn.dataset.v12YearRegion);
@@ -1177,7 +1181,7 @@ document.addEventListener("click",event=>{
     const box=document.querySelector("#v12-year-joint-output"); if(!box)return;
     if(input.length!==3){box.innerHTML='<div class="empty-mini">请输入完整3位流年联合码。</div>';return}
     const structured=getFlootKnowledge(input),legacy=findJointCode(input);
-    const target=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();
+    const target=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());
     const personal=calculateYearCycleSet(c.birthday,target).current;
     const a=calculateBlueprint(c.birthday);
     const activation=missingActivationSummary(a,personal.number,input);
@@ -1191,7 +1195,8 @@ document.addEventListener("click",event=>{
     }
     return
   }
-  const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||new Date().getFullYear();const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
+  const quickYear=event.target.closest("[data-v6-flow-year]"); if(quickYear){const c=currentCustomer();if(!c)return;const val=Number(quickYear.dataset.v6FlowYear)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
+  const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
 });
 document.addEventListener("input",event=>{
   const el=event.target.closest("[data-v6-partner-name],[data-v6-partner-birthday]"); if(!el)return;
