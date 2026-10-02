@@ -1,4 +1,4 @@
-import { calculateBlueprint, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange } from "./engine/blueprint.js?v=32";
+import { calculateBlueprint, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange } from "./engine/blueprint.js?v=48";
 import { getKnowledge } from "./floot-knowledge.js?v=34";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -11,7 +11,7 @@ function addFlowNotes(){
     input.dataset.aurmovaBoundaryChecked="1";
     const now=new Date();
     const active=activeFlowYear(now);
-    if(now.getMonth()+1<10 && Number(input.value)===now.getFullYear()){
+    if(Number(input.value)===now.getFullYear() && active!==now.getFullYear()){
       input.value=String(active);
       document.querySelector("#v6-recalc-year")?.click();
       return;
@@ -25,7 +25,7 @@ function addFlowNotes(){
     box.className="foundation-block aurmova-flow-rule";
     box.innerHTML='<div class="card-heading"><div><small>ORIGINAL YEAR METHOD</small><h3>数字流年计算方法</h3></div><span>原书页13–15</span></div>'
       +'<div class="question-box"><b>Josephine 可以直接这样讲：</b><br>“流年不是另外一套算法，而是把出生年份换成要看的年份，日和月保持不变，再用同一套密码盘重新计算。O位就是这一年的主流年数字。”</div>'
-      +'<div class="formula-note"><b>时间分界：</b>数字流年不是1月1日切换，也不是农历春节。按原书规则，每年阳历10月1日开始，到次年9月30日结束。当前数字流年：'+esc(active)+'（'+esc(range.start)+' → '+esc(range.end)+'）。</div>'
+      +'<div class="formula-note"><b>时间分界：</b>数字流年不是1月1日切换，也不是农历春节。按AURMOVA流年命名规则，2027流年代表2026年10月1日至2027年9月30日。当前数字流年：'+esc(active)+'（'+esc(range.start)+' → '+esc(range.end)+'）。</div>'
       +'<div class="formula-note">原书提醒：不建议把重点放在流月、流日；AURMOVA继续以去年／今年／明年与年度大方向为主。</div>';
     control?.insertAdjacentElement("afterend",box);
   }
