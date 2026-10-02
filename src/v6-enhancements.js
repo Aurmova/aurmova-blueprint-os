@@ -741,6 +741,44 @@ function plainLanguagePanel(a){
     +'<div class="question-box"><b>验证顾客：</b><br>“这些里面，哪一段最像你最近真实发生的事情？你给我一个最近的例子，我再顺着你的实际情况往下解。”</div>'
     +'</div>';
 }
+
+const GOLDEN_20_CODES = {
+  "966":{label:"少年得志",stage:"前段成果较早",strength:"较早遇到成绩、机会或被看见的阶段；容易较早建立自信与成果经验。",challenge:"早期顺利后，容易把旧方法当成长期答案；后续阶段节奏变化时可能出现比较与失落。",script:"你的黄金20年比较像前段容易出成绩。不是说年轻就一定大富大贵，而是你会比较早遇到需要证明自己、拿结果或被看见的机会。真正重要的是，后面每换一个阶段，都要重新升级做法。"},
+  "933":{label:"少年得志",stage:"前段成果较早",strength:"早期表达、行动、曝光或人脉资源较容易形成可见成绩。",challenge:"容易因为早期被肯定而急着维持高峰，忽略后面阶段真正需要的调整。",script:"你这条线也是偏早发型。年轻阶段容易先被看见，但你后面不能一直复制以前的成功方式，要看每个阶段真正要你练的是什么。"},
+  "339":{label:"先苦后甜",stage:"前段磨练、后段更稳",strength:"前期经验值高，越往后越懂得筛选方向、把过去的磨练转成判断力。",challenge:"前期容易怀疑自己，觉得别人比自己快；也可能因为吃过苦而越来越不敢冒险。",script:"你这条线比较像前面先练功，后面越来越稳。年轻时不一定没有机会，只是很多东西要靠经验一点点磨出来。后面真正值钱的，往往就是你前面走过的路。"},
+  "669":{label:"先苦后甜",stage:"前段累积、后段放大",strength:"早中期的责任、资源与实践经验，后面更容易累积成稳定成果。",challenge:"容易在前段把责任扛太多，导致觉得自己一直在付出却没有马上回报。",script:"你的结构不是一开始就轻松，而是越做越有底。前面的责任和经验会慢慢累积，后面更容易看见成果，所以不要因为前段慢，就否定自己。"},
+  "693":{label:"中年致富",stage:"中段资源放大",strength:"41–60阶段更值得观察事业成熟、资源整合、收入结构、专业与影响力的放大。",challenge:"容易把成功只等同金钱或位置，忽略真正想做的事、关系与身体节奏。",script:"你的黄金20年更像中段发力。前面累积的东西，到了中间这个阶段比较容易整合起来。这里不只是钱，也可能是专业成熟、客户累积、位置提升，或者终于知道什么值得长期做。"},
+  "396":{label:"中年致富",stage:"中段资源放大",strength:"中段较适合把早期经验、关系与专业转成更大规模的成果。",challenge:"容易在中段为了证明成绩而过度追逐规模、收入或外在认可。",script:"你这个结构的重点在中段。年轻时做过的尝试，到了中间阶段比较容易变成真正能承接的资源。越到这里，越要分清楚什么是你要的成果，什么只是别人眼里的成功。"},
+  "363":{label:"中年致富",stage:"中段资源放大",strength:"中段的表达、行动与资源整合更容易进入成熟期，适合把已验证的能力放大。",challenge:"机会增加时容易同时抓太多方向，造成分散。",script:"你的中段比较像把已经练熟的能力放大。机会可能会变多，但不是每个都要拿。真正重要的是，把最能复利的那一两件事做深。"},
+  "636":{label:"天降大任",stage:"关键阶段责任／挑战放大",strength:"关键阶段更容易承担复杂责任、处理转折，并把压力转成成熟度。",challenge:"容易觉得事情全压在自己身上，或把一次挫折解释成整个人生都不好。",script:"这组不是说一定会遇到灾难，更像是人生某个关键阶段事情会变大、责任会变重。接得住，它会变成成熟和位置升级；接不住，就会觉得压力特别集中。"},
+  "999":{label:"天降大任",stage:"关键阶段责任／格局放大",strength:"容易在关键阶段面对更大范围的选择、影响与责任，需要更高层次的取舍。",challenge:"容易理想拉太大、同时想抓很多机会，或把阶段压力看成必须马上翻盘。",script:"你的结构会把‘格局’和‘责任’放得比较大。不是命定大起大落，而是关键阶段更需要做取舍。越是机会多，越要聚焦，不要急着证明所有事情都能做到。"}
+};
+
+function golden20Code(a){
+  const p=a?.positions||{};
+  return [p.U,p.R,p.X].map(v=>v??"").join("");
+}
+function golden20Panel(a){
+  const p=a?.positions||{};
+  const g=golden20Code(a);
+  const info=GOLDEN_20_CODES[g];
+  const stageLine='<div class="phase-code-grid"><div><small>21–40结果 U</small><strong>'+esc(p.U??"—")+'</strong></div><div><small>41–60结果 R</small><strong>'+esc(p.R??"—")+'</strong></div><div><small>61+结果 X</small><strong>'+esc(p.X??"—")+'</strong></div></div>';
+  if(!info){
+    return '<div class="foundation-block"><div class="card-heading"><div><small>GOLDEN 20 YEARS · U→R→X</small><h3>黄金20年趋势码 · '+esc(g||"—")+'</h3></div><span>阶段趋势</span></div>'
+      +stageLine
+      +'<div class="formula-note"><b>读取方法：</b>按人生时间顺序读取 U（21–40结果）→ R（41–60结果）→ X（61岁以后结果）。这组码用于观察三个阶段的成果／责任重心，不替代每个阶段的“因果 → 过程 → 结果”完整分析。</div>'
+      +'<div class="question-box"><b>Josephine 白话：</b><br>“我会先把你三个20年阶段的结果位排成一条线，看哪一个阶段比较容易把前面的累积放大。它不是在告诉你哪一段一定发财或一定辛苦，而是提醒你：不同阶段，适合用的策略不一样。”</div>'
+      +'<p class="panel-note">目前这组 '+esc(g||"—")+' 不在本次课程截图列出的四类重点组合中，因此不硬套标签，继续按三个阶段本身解读。</p></div>';
+  }
+  return '<div class="foundation-block golden20-panel"><div class="card-heading"><div><small>GOLDEN 20 YEARS · U→R→X</small><h3>黄金20年趋势码 · '+g+' · '+esc(info.label)+'</h3></div><span>'+esc(info.stage)+'</span></div>'
+    +stageLine
+    +'<div class="year-positive-negative"><div><small>正面／优势</small><p>'+esc(info.strength)+'</p></div><div><small>负面／卡点</small><p>'+esc(info.challenge)+'</p></div></div>'
+    +'<div class="question-box"><b>Josephine 可以直接照读：</b><br>“'+esc(info.script)+'”</div>'
+    +'<div class="formula-note"><b>课程标签不等于命定结果：</b>'+esc(info.label)+'只是课程里的阶段归类。AURMOVA不会把它说成一定发财、一定成名、一定受苦或一定遇到大事；还要结合四组阶段码、现实经历、能力、资源与行动验证。</div>'
+    +'<p><b>验证顾客：</b>“回头看你前一个阶段，你觉得自己最大的累积是什么？它有没有正在影响你现在？”</p>'
+    +'</div>';
+}
+
 function lifeBlueprintPanel(c){
   const a=calculateBlueprint(c.birthday);
   const profile=PERSONALITY_LIBRARY[a.mainPersonality];
@@ -761,6 +799,7 @@ function lifeBlueprintPanel(c){
     +innerPolarityPanel(a)
     +detailedEnergyPanel(a)
     +energy679Panel(a)
+    +golden20Panel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
       +phaseDetails(a,"21–40")+phaseDetails(a,"41–60")+phaseDetails(a,"61+")
     +'</div>'
