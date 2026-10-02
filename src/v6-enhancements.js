@@ -817,25 +817,124 @@ function golden20Panel(a){
     +'</div>';
 }
 
+
+function talentNumbersPanel(a){
+  const repeated=(a.innerEnergy?.repeated||[]);
+  const cards=repeated.map(n=>{
+    const d=ENERGY_LIBRARY[n]||{};
+    return '<article><b>'+n+' · 天赋／挑战双面</b><p><strong>天赋面：</strong>'+esc(d.gift||"这股能量重复出现，代表它比较容易成为可被调用的能力。")+'</p><p><strong>挑战面：</strong>'+esc(d.high||d.low||"能量用过头时容易变成压力模式。")+'</p><small>出现次数：'+Number(a.innerEnergy?.counts?.[n]||0)+' 次</small></article>';
+  }).join("");
+  return '<div class="foundation-block"><div class="card-heading"><div><small>TALENT × CHALLENGE</small><h3>天赋数字 · 挑战数字</h3></div><span>同一股能量看两面</span></div>'
+    +'<div class="formula-note">AURMOVA读取方式：内三角重复2次以上的数字，不只当“挑战数”看，也先看它的正向天赋。重复越多，越容易成为惯用能力；同时也越要留意“优势用过头”的反模式。</div>'
+    +'<div class="v23-detail-grid">'+(cards||'<div class="empty-mini">目前没有重复2次以上的数字；继续看主性格、起始数、缺失数与内外差异。</div>')+'</div></div>';
+}
+
+function outerPolarityPanel(a){
+  const present=DIGITS.filter(n=>(a.outerEnergy?.counts?.[n]||0)>0);
+  return '<div class="foundation-block"><div class="card-heading"><div><small>OUTER DIGITS</small><h3>三角形外数字 · 正面与负面</h3></div><span>现实表现／社交面</span></div>'
+    +'<div class="polarity-grid">'+present.map(n=>{const d=INNER_DIGIT_POLARITY[n]||{};const count=a.outerEnergy.counts[n];return '<div><b>'+n+' · '+count+'次</b><p><strong>外在正面：</strong>'+esc(d.positive||"这股能量在现实环境中比较容易被别人看见。")+'</p><p><strong>外在过度时：</strong>'+esc(d.negative||"压力下可能把这股能力用得太满。")+'</p></div>'}).join("")+'</div>'
+    +'<div class="formula-note">这里看的是“别人比较容易看到的你”。同一个数字在内三角和外三角都出现时，再回到“内外都有”的模式解释；只在外面出现时，优先看后天适应、环境训练或社交面具。</div></div>';
+}
+
+function emotionCodePanel(a){
+  const c=a.innerEnergy?.counts||{};
+  const inward=(c[2]||0)+(c[7]||0);
+  const outward=(c[3]||0)+(c[8]||0);
+  let type="情绪码较少";
+  let script="你的内三角里2／7／3／8不算集中，所以情绪表达不是这张盘最需要优先放大的主题。";
+  if(inward>0||outward>0){
+    if(inward>outward){type="情绪内收偏强";script="你的情绪比较容易先往里面收。你不是没感觉，而是先消化、先观察，真正说出来通常会慢一点。";}
+    else if(outward>inward){type="情绪外放偏强";script="你的情绪比较容易直接显出来。好处是反应快、不会全部压在里面；要留意的是情绪比整理速度更快时，话可能先出去。";}
+    else {type="内收／外放切换型";script="你的内收和外放力量比较接近，所以不是固定一种模式。你可能平时先忍、先想，但踩到底线时又会突然直接表达。";}
+  }
+  return '<div class="foundation-block"><div class="card-heading"><div><small>EMOTION CODES</small><h3>三角形内情绪码 · 2／7／3／8</h3></div><span>'+esc(type)+'</span></div>'
+    +'<div class="origin-grid"><div><span>2 · 小水</span><p>出现 '+(c[2]||0)+' 次｜敏感、顾感受、容易先收住。</p></div><div><span>7 · 大水</span><p>出现 '+(c[7]||0)+' 次｜分析、内化、用思考消化情绪。</p></div><div><span>3 · 小火</span><p>出现 '+(c[3]||0)+' 次｜情绪反应快、表达直接、来得快。</p></div><div><span>8 · 大火</span><p>出现 '+(c[8]||0)+' 次｜立场与力量感强，被挑战时反应更明显。</p></div></div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(script)+'”</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“你不舒服的时候，通常是先忍着自己消化，还是会马上说出来？如果两种都会，什么人／什么场景最容易让你从忍变成爆？”</div></div>';
+}
+
+function genderForcePanel(c,a){
+  const counts=a.innerEnergy?.counts||{};
+  const maleDigits=[1,3,5,7,8,9], femaleDigits=[2,4,6,7,8];
+  const male=maleDigits.reduce((sum,n)=>sum+Number(counts[n]||0),0);
+  const female=femaleDigits.reduce((sum,n)=>sum+Number(counts[n]||0),0);
+  const g=String(c?.gender||"");
+  let focus="先看两组力量如何同时存在";
+  let white="这里不做“好／坏”判断，而是看你更自然用哪一种行动与关系方式。";
+  if(/男/.test(g)){
+    focus=male>female?"男性力量组偏强":male<female?"女性力量组偏强":"两组接近";
+    white=male>=female
+      ?"按这套课程框架，你比较容易用主导、行动、目标与承担去面对事业。7如果明显，会让男性力量里多一点柔和、思考与感受。"
+      :"按这套课程框架，你的关系感、稳定感与照顾面比较突出；事业动力不能只凭这一项下结论，要继续结合父亲关系、坐镇码、事业阶段与真实经历验证。";
+  }else if(/女/.test(g)){
+    focus=female>male?"女性力量组偏强":female<male?"男性力量组偏强":"两组接近";
+    white=female>=male
+      ?"按这套课程框架，你比较容易用承接、稳定、关系与细节去建立力量。7如果明显，会让女性力量里多一点刚性、独立判断与边界。"
+      :"按这套课程框架，你的主导、目标与事业推进感会比较明显；财富／资源不能只凭这一项下结论，要继续结合母亲关系、资源模式、事业阶段与现实收入结构验证。";
+  }
+  return '<div class="foundation-block"><div class="card-heading"><div><small>GENDER ENERGY · COURSE FRAMEWORK</small><h3>男性力量 × 女性力量</h3></div><span>'+esc(focus)+'</span></div>'
+    +'<div class="formula-note"><b>内部课程框架：</b>男性力量数字＝1、3、5、7、8、9；女性力量数字＝2、4、6、7、8。7在男性盘里偏柔、在女性盘里偏刚；7与8同时属于两组，因此这里看“力量构成”，不是简单二选一。</div>'
+    +'<div class="golden-support-grid"><div><small>男性力量组</small><b>'+male+'</b><span>1／3／5／7／8／9</span></div><div><small>女性力量组</small><b>'+female+'</b><span>2／4／6／7／8</span></div><div><small>顾客性别</small><b>'+esc(g||"未填")+'</b><span>按对应组重点验证</span></div></div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(white)+'”</div>'
+    +'<div class="question-box"><b>父母关系验证：</b><br>'+(/男/.test(g)
+      ?'“你跟爸爸的关系，会不会影响你对事业、责任、证明自己的方式？你跟妈妈的关系，会不会影响你在一个环境里能不能稳定待住、长期承接？”'
+      :/女/.test(g)
+        ?'“你跟妈妈的关系，会不会影响你对资源、价值感、接住成果的方式？你跟爸爸的关系，又会不会影响你做决定、推进事业和争取位置的方式？”'
+        :'“你跟父亲、母亲分别是什么关系？哪一边更影响你的事业、稳定感、价值感和承担方式？”')+'</div>'
+    +'<p class="panel-note">重要：这部分属于AURMOVA课程里的阴阳／性别力量象征框架，不当作科学因果，也不把“男性力量强＝一定更有钱”“父母关系不好＝一定事业／财富不好”当成事实。顾客端必须用验证式语言，不贴“男不男／女不女”的标签。</p></div>';
+}
+
+function strategyTacticPanel(a){
+  const c=a.innerEnergy?.counts||{};
+  const strategyDigits=[1,3,5,8,9], tacticDigits=[2,4,6,7];
+  const strategy=strategyDigits.reduce((sum,n)=>sum+Number(c[n]||0),0);
+  const tactic=tacticDigits.reduce((sum,n)=>sum+Number(c[n]||0),0);
+  const type=strategy>tactic?"战略【勇】偏强":strategy<tactic?"战术【谋】偏强":"勇谋相对平衡";
+  const script=strategy>tactic
+    ?"你比较容易先定方向、先出手、先推动。你的优势是敢做决定；要补的是细节、节奏与执行路径。"
+    :strategy<tactic
+      ?"你比较容易先观察、规划、拆步骤、看风险。你的优势是谋得细；要补的是决定时点与出手速度。"
+      :"你的“勇”和“谋”比较接近，既能看方向，也会顾过程。真正要留意的是压力下会不会两边都想顾，反而变慢。";
+  return '<div class="foundation-block"><div class="card-heading"><div><small>STRATEGY × TACTICS</small><h3>战略【勇】 × 战术【谋】</h3></div><span>'+esc(type)+'</span></div>'
+    +'<div class="golden-support-grid"><div><small>战略【勇】</small><b>'+strategy+'</b><span>1／3／5／8／9</span></div><div><small>战术【谋】</small><b>'+tactic+'</b><span>2／4／6／7</span></div></div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(script)+'”</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“你遇到一件新事情，通常是先决定方向再边做边调，还是会先把资料、步骤、风险想清楚才动？”</div></div>';
+}
+
+function lifeCoreFrameworkPanel(c,a){
+  return '<div class="foundation-block"><div class="card-heading"><div><small>LIFE BLUEPRINT · READING ORDER</small><h3>人生蓝图标准解读顺序</h3></div><span>Josephine 咨询主线</span></div>'
+    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 天赋数字 → 3 缺失数字 → 4 挑战数字 → 5 内心码 → 6 潜意识码 → 7 三角形内能量 → 8 内有外无／内无外有／内外都有 → 9 情绪码 → 10 性别力量 → 11 内外正负面 → 12 联合码 → 13 战略【勇】／战术【谋】。</div>'
+    +'<div class="question-box"><b>咨询原则：</b><br>先讲“这个人是谁”，再讲“哪里最顺、哪里最容易卡”，最后才用联合码和勇／谋去解释她／他的做事路径。每讲一层都要停下来让顾客用真实经历验证，不一次把全部资料念完。</div></div>';
+}
+
 function lifeBlueprintPanel(c){
   const a=calculateBlueprint(c.birthday);
   const profile=PERSONALITY_LIBRARY[a.mainPersonality];
   const detail=MAIN_DETAIL[a.mainPersonality];
   const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
-  const challenges=a.innerEnergy.repeated||[];
   return '<div class="module-render">'
-    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · 完整自动解析</h2></div><span>不是勾选项 · 每次必读</span></div>'
+    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>按固定顺序自动解析</span></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
+    +lifeCoreFrameworkPanel(c,a)
     +plainLanguagePanel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN PERSONALITY</small><h3>主性格 '+a.mainPersonality+' · '+esc(profile?.title||"")+'</h3></div><span>正面 + 负面</span></div>'
-      +'<div class="year-positive-negative"><div><small>正面优势</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>负面／压力模式</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN × START × SEAT</small><h3>主性格 '+a.mainPersonality+' × 起始数 '+a.startingThoughtCode+' × 坐镇码 '+a.seatCode+'</h3></div><span>第一层 · 先看这个人是谁</span></div>'
+      +'<div class="year-positive-negative"><div><small>主性格正面</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>主性格压力面</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
       +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
       +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
     +'</div>'
-    +'<div class="foundation-block"><div class="card-heading"><div><small>GENE & SEAT</small><h3>父母基因影响 · 坐镇码</h3></div><span>基础必讲</span></div><div class="joint-stack">'+jointBlock(a.fatherCode,"父亲基因")+jointBlock(a.motherCode,"母亲基因")+jointBlock(a.seatCode,"坐镇码／主性格结构")+'</div></div>'
-    +originalFamilyPanel(a)
-    +innerPolarityPanel(a)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>GENE & SEAT</small><h3>父母基因影响 · 坐镇码</h3></div><span>一起验证</span></div><div class="joint-stack">'+jointBlock(a.fatherCode,"父亲基因")+jointBlock(a.motherCode,"母亲基因")+jointBlock(a.seatCode,"坐镇码／主性格结构")+'</div></div>'
+    +talentNumbersPanel(a)
     +detailedEnergyPanel(a)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES</small><h3>内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'</h3></div><span>内在驱动</span></div>'
+      +'<div class="question-box"><b>Josephine 连接方式：</b><br>“主性格是别人比较容易看到的核心，内心码看你里面真正想要什么，潜意识码看你还没来得及想就会启动的反应。三层对上时会很顺；三层不一样时，就会出现‘别人以为我是这样，但我里面其实不是’的感觉。”</div></div>'
+    +innerPolarityPanel(a)
+    +trianglePatternSection(a)
+    +outerPolarityPanel(a)
+    +emotionCodePanel(a)
+    +genderForcePanel(c,a)
+    +strategyTacticPanel(a)
+    +mandatoryJointCodes(a)
+    +originalFamilyPanel(a)
     +energy679Panel(a)
     +golden20Panel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
