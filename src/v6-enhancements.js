@@ -310,7 +310,8 @@ function jointBlock(c,label){
       +'<div class="formula-note">这部分是AI根据数字结构与位置生成的咨询补充，不冒充原书。后续找到原始课程内容时，以原书为底稿再更新。</div>';
   }
   body+=salesSceneSupplement(c);
-  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'</span><span>'+(structured||legacy?"完整咨询":"AI补充")+'</span></summary><div class="joint-body"><div class="source-tag">'+source+'</div>'+body+'</div></details>';
+  const preview=structured?.script||legacy?.text?.split("\n")[0]||"点击展开查看白话、卡点、追问与开解";
+  return '<details class="joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'<small style="display:block;font-weight:400;margin-top:4px;opacity:.72">白话：'+esc(preview)+'</small></span><span>'+(structured||legacy?"完整咨询":"AI补充")+'</span></summary><div class="joint-body"><div class="source-tag">'+source+'</div>'+body+'</div></details>';
 }
 function phaseDetails(a,name){
   const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
@@ -731,6 +732,111 @@ function innerPolarityPanel(a){
     +'<div class="polarity-grid">'+present.map(n=>{const d=INNER_DIGIT_POLARITY[n],count=a.innerEnergy.counts[n];return '<div><b>'+n+' · '+count+'次</b><p><strong>正面：</strong>'+esc(d.positive)+'</p><p><strong>负面：</strong>'+esc(d.negative)+'</p></div>'}).join("")+'</div></div>';
 }
 
+
+const SEAT_SPECIAL = {
+  "167":{
+    nickname:"有头脑的开拓者",
+    visible:"这组不是只会想。1给独立判断，6让行动带品质、责任与价值标准，7负责研究、洞察与人际判断。比较常见的状态是：先自己想明白，再决定要不要出手；一旦认定，通常会希望把事情做得有质量。",
+    work:"能力比较容易落在需要“专业判断＋人际连接＋品质感”的场景，例如顾问／咨询、教育培训、品牌公关、客户关系、资源对接、内容策划、设计审美或需要专业信任的销售。不是说只能做这些，而是这些场景较容易同时调用1、6、7的优势。",
+    money:"167不是看到一个数字就能断定“会不会理财”。6会让人重价值与品质，7会先分析，1会按自己的判断决定。真正的资源管理仍要看三角形里有没有4、8等修正，以及真实的预算和习惯。",
+    core:"AURMOVA白话可以把167理解成“有头脑的开拓者”：有自己的方向，不喜欢盲从；会先观察和研究，但不是纯想不做，认准后会用自己的标准把事情推进。"
+  }
+};
+
+function seatRoleCopy(n,role){
+  const d=DIGIT_CORE[n]||{};
+  if(role===0) return "第一位（"+n+"）｜开端／开拓基因：事情一来时，比较容易先启动「"+(d.core||"")+"」。优势是"+(d.gift||"")+"；用过头时要留意"+(d.shadow||"")+"。";
+  if(role===1) return "第二位（"+n+"）｜行动风格：真正做事时，比较常用「"+(d.core||"")+"」推进。优势是"+(d.gift||"")+"；压力大时可能出现"+(d.shadow||"")+"。";
+  return "第三位（"+n+"）｜主性格／长期底色：这是最常被自己和身边人认出来的一层——"+(d.core||"")+"。顺的时候是"+(d.gift||"")+"；卡住时容易"+(d.shadow||"")+"。";
+}
+
+function mainModifierCopy(main,n){
+  const m=MAIN_DETAIL[main]||{}, d=DIGIT_CORE[n]||{};
+  const key=String(main)+"-"+String(n);
+  const special={
+    "7-4":{
+      title:"7号主性格＋内三角4｜深度被结构托住",
+      text:"7本来就会分析、研究、想透，4再进来，会把这种深度变得更有规划、秩序和收尾能力。好的一面是研究不只停在脑里，更容易做成流程、计划和长期积累；压力面是7的多想叠加4的怕错，容易变成反复检查、迟迟不决定。",
+      money:"这会增加预算、规则和规划意识，但不等于“有4就一定会理财”。是否真的能把钱留住，仍要看实际习惯、其他数字与现实选择。",
+      q:"你是不是越重要的事情越想先规划清楚，甚至有时因为怕错而迟迟不开始？"
+    },
+    "7-8":{
+      title:"7号主性格＋内三角8｜洞察开始往成果与资源走",
+      text:"7负责看深、判断与专业，8把注意力拉到成果、责任、资源和规模。好的时候，会从“我看懂了”进一步走到“我要怎样把这个判断做成结果”；压力大时则可能一边想很多、一边又逼自己要有成绩，形成内耗＋高压。",
+      money:"在事业和资源上，这组更容易关注“专业怎样转成价值、资源怎样放大”，但不代表数字本身保证赚钱。真正结果仍取决于能力、市场、执行和风险管理。",
+      q:"你会不会对自己有一种要求：不只要懂，还希望最后真的做出成绩、证明这个判断有价值？"
+    }
+  };
+  if(special[key]) return special[key];
+  return {
+    title:main+"号主性格＋内三角"+n+"｜"+(d.core||"补充能量"),
+    text:"主性格"+main+"的底色仍然是「"+(m.title||"")+"」，但内三角里的"+n+"会提供「"+(d.gift||d.core||"")+"」这一层能力。它不是把你变成"+n+"号人，而是在特定场景里修正你的做事方式。",
+    money:"资源与事业要看整张盘和现实经历，不能只因为出现"+n+"就直接断定收入、理财或职业结果。",
+    q:"你有没有发现，虽然你核心还是"+main+"号，但碰到某些事情时会明显用到"+n+"号这种「"+(d.core||"")+"」的方式？"
+  };
+}
+
+function seatCodeDeepPanel(a){
+  const codeValue=String(a.seatCode||"");
+  const ds=jointCodeDigits(codeValue);
+  const structured=getFlootKnowledge(codeValue)||{};
+  const main=Number(a.mainPersonality||ds[2]||0);
+  const start=Number(a.startingThoughtCode||0);
+  const mainD=MAIN_DETAIL[main]||{};
+  const startD=DIGIT_CORE[start]||{};
+  const sp=SEAT_SPECIAL[codeValue]||{};
+  const counts=a.innerEnergy?.counts||{};
+  const seatSet=new Set(ds);
+  const modifiers=DIGITS.filter(n=>Number(counts[n]||0)>0 && !seatSet.has(n));
+  const core=sp.core||structured.logic||("这组坐镇码把"+ds.map(n=>(DIGIT_CORE[n]?.core||n)).join("、")+"串在一起，重点不是单看每个数字，而是看三位数字怎样形成长期行为路径。");
+  const visible=sp.visible||structured.strengths||("顺的时候，比较容易把"+ds.map(n=>(DIGIT_CORE[n]?.gift||DIGIT_CORE[n]?.core||n)).join("、")+"一起用出来。");
+  const challenge=structured.challenges||"压力下容易把优势用过头，需要回到真实生活场景验证。";
+  const growth=structured.growth||"保留原本优势，同时给最容易过度的那一层加上边界、节奏与现实验证。";
+  const work=sp.work||ds.map(n=>DIGIT_CORE[n]?.work).filter(Boolean).join("；");
+  const baseScript=structured.script||("你这组"+codeValue+"不是一个单独标签，而是一条做事路径。前面决定你怎么启动，中间决定你怎么推进，最后的"+main+"才是最稳定的性格底色。");
+  const nickname=sp.nickname?(" · "+sp.nickname):"";
+  const modifierHtml=modifiers.length
+    ? modifiers.map(n=>{const x=mainModifierCopy(main,n);return '<article><small>三角形内修正数字 '+n+'</small><h4>'+esc(x.title)+'</h4><p>'+esc(x.text)+'</p><p><b>事业／资源提醒：</b>'+esc(x.money)+'</p><div class="question-box"><b>可问顾客：</b><br>“'+esc(x.q)+'”</div></article>';}).join("")
+    : '<div class="empty-mini">除坐镇码本身以外，三角形内暂时没有额外数字需要单独做主性格修正。</div>';
+
+  const probes=(TALK_QUESTIONS[codeValue]&&TALK_QUESTIONS[codeValue].length?TALK_QUESTIONS[codeValue]:[
+    "你遇到事情时，是不是通常会先按自己的方式判断，再决定要不要听别人？",
+    "你越在意的事情，会不会标准越高、想得越深，也越不愿意随便交差？",
+    "压力大的时候，你更容易卡在想太多、要求太高，还是不想让别人看到自己没把握？"
+  ]).slice(0,3);
+
+  return '<div class="foundation-block seat-deep-panel">'
+    +'<div class="card-heading"><div><small>SEAT CODE · FULL CONSULTATION</small><h3>坐镇码 '+esc(codeValue)+' × 主性格 '+main+esc(nickname)+'</h3></div><span>白话恢复 · 现场可直接用</span></div>'
+    +'<div class="formula-note"><b>这里固定保留完整模式：</b>三位位置拆解 → 核心特质 → 看得见的表现 → 卡点 → 事业能力 → 三角形内修正 → 白话 → 追问 → 成长方向。以后不会再把它缩成一个联合码标题。</div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>① 第一位</small><p>'+esc(seatRoleCopy(ds[0],0))+'</p></div>'
+      +'<div><small>② 第二位</small><p>'+esc(seatRoleCopy(ds[1],1))+'</p></div>'
+      +'<div><small>③ 第三位／主性格</small><p>'+esc(seatRoleCopy(ds[2],2))+'</p></div>'
+      +'<div><small>④ 主性格 '+main+' × 起始数 '+start+'</small><p>'+esc("你的长期底色是"+(mainD.title||main+"号")+"；进入新环境或事情刚发生时，又会先启动「"+(startD.core||start)+"」。所以你不是每次一开始就完全像主性格，起始数会决定第一步怎么反应。")+'</p></div>'
+    +'</div>'
+    +'<div class="ai-supplement"><div class="source-tag">整组坐镇码</div><p><b>核心特质：</b>'+esc(core)+'</p><p><b>生活表现：</b>'+esc(visible)+'</p><p><b>需要注意的卡点：</b>'+esc(challenge)+'</p></div>'
+    +'<div class="question-box"><b>事业／工作能力怎么讲：</b><br>“'+esc(work)+'”<br><small>这是能力适配，不是限定职业，也不代表看到号码就保证某种收入结果。</small></div>'
+    +(sp.money?'<div class="question-box"><b>资源／金钱这层要这样讲：</b><br>“'+esc(sp.money)+'”</div>':'')
+    +'<div class="card-heading"><div><small>INNER TRIANGLE MODIFIERS</small><h4>主性格 '+main+' 被三角形内其他数字怎样修正</h4></div><span>不是独立开关</span></div>'
+    +'<div class="v23-detail-grid">'+modifierHtml+'</div>'
+    +'<div class="question-box"><b>Josephine 白话｜可以直接照读：</b><br>“我先不把你拆成一堆数字。坐镇码 '+esc(codeValue)+' 是你比较稳定的一条做事路径：'+esc(baseScript)+' 再看整张三角形，其他数字会修正你怎么使用这个主性格，所以我会继续看你是在哪些场景变得更规划、更商业、更感性或更主动，而不是看到一个数字就直接下结论。”</div>'
+    +probes.map((q,i)=>'<div class="question-box"><b>验证问题 '+(i+1)+'：</b><br>“'+esc(q)+'”</div>').join("")
+    +'<div class="question-box"><b>成长／开解：</b><br>“'+esc(growth)+'”</div>'
+    +'</div>';
+}
+
+function innerCodeDeepPanel(a){
+  const inner=DIGIT_CORE[a.innerCode]||{}, sub=DIGIT_CORE[a.subconsciousCode]||{};
+  return '<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES · ONE PLACE ONLY</small><h3>内心码 '+a.innerCode+' × 潜意识码 '+a.subconsciousCode+'</h3></div><span>不再重复</span></div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>内心真正想要的</small><p>'+esc(inner.core||"")+'。优势：'+esc(inner.gift||"")+'；压力面：'+esc(inner.shadow||"")+'。</p></div>'
+      +'<div><small>还没想就会启动的反应</small><p>'+esc(sub.core||"")+'。优势：'+esc(sub.gift||"")+'；压力面：'+esc(sub.shadow||"")+'。</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“主性格是别人长期比较容易认出来的你；内心码看你里面真正想要什么；潜意识码则看事情突然发生时，你还没来得及想就会先启动哪一种反应。如果这三层不一样，你就很容易出现‘别人以为我是这样，但我里面其实不是’的感觉。”</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“你有没有一种情况：外面看起来很能处理，但真正累的时候，你心里要的东西其实完全不一样？最近一次是什么时候？”</div>'
+    +'</div>';
+}
+
 function originalFamilyPanel(a){
   const n=a.constraintCode,d=CHILDHOOD_MODES[n];
   return '<div class="foundation-block"><div class="card-heading"><div><small>ORIGIN PATTERN</small><h3>制约数 '+n+' · 原生家庭模式</h3></div><span>基础必讲</span></div>'
@@ -771,9 +877,9 @@ function unifiedJointCodes(a){
 }
 
 function phaseOverview(a,name){
-  const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
-  return '<div class="phase-overview"><div class="phase-detail-title"><div><small>'+esc(m.label)+' · '+esc(m.theme)+'</small><h3>'+esc(m.description)+'</h3></div><span>只看结构，不重复联合码</span></div>'
-    +'<div class="phase-code-grid">'+groups.map((g,i)=>'<div><small>'+esc(labels[i])+'</small><strong>'+g+'</strong></div>').join("")+'</div></div>';
+  const m=PHASE_META[name];
+  return '<div class="phase-overview"><div class="phase-detail-title"><div><small>'+esc(m.label)+' · '+esc(m.theme)+'</small><h3>'+esc(m.description)+'</h3></div><span>只讲阶段主题 · 不再重复号码</span></div>'
+    +'<div class="formula-note">这个年龄阶段的因果／过程／结果号码已经在上方“联合码完整解析”讲过，这里只保留阶段重点，现场咨询不再把同一组号码重新念一次。</div></div>';
 }
 
 function mandatoryJointCodes(a){
@@ -1214,7 +1320,7 @@ function strategyTacticPanel(a){
 
 function lifeCoreFrameworkPanel(c,a){
   return '<div class="foundation-block"><div class="card-heading"><div><small>LIFE BLUEPRINT · READING ORDER</small><h3>人生蓝图标准解读顺序</h3></div><span>一项只讲一次</span></div>'
-    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 父母基因／家庭力量 → 3 天赋＋缺失＋挑战 → 4 内心码＋潜意识码 → 5 内外三角综合 → 6 情绪码 → 7 性别力量＋主动／被动＋理性／感性＋远见＋勇谋（系统直接给结论） → 8 联合码（自动去重，只出现一次） → 9 原生家庭／679／黄金20年／三阶段结构。</div>'
+    +'<div class="formula-note">1 坐镇码三位拆解＋主性格＋起始数 → 2 父母基因／家庭力量 → 3 天赋＋缺失＋挑战 → 4 内心码＋潜意识码 → 5 内外三角综合 → 6 情绪码 → 7 性别力量＋主动／被动＋理性／感性＋远见＋勇谋（系统直接给结论） → 8 其余联合码（自动去重，只出现一次） → 9 原生家庭／679／黄金20年／三阶段主题。</div>'
     +'<div class="question-box"><b>咨询原则：</b><br>同一个数字、同一组联合码、同一个内外模式不重复讲。前面已经完整解释过的内容，后面只引用，不重新展开。这样顾客听到的是一条完整故事，不会觉得你在重复同样的料。</div></div>';
 }
 
@@ -1292,26 +1398,16 @@ function childBlueprintPanel(c){
 function lifeBlueprintPanel(c){
   if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
-  const profile=PERSONALITY_LIBRARY[a.mainPersonality];
-  const detail=MAIN_DETAIL[a.mainPersonality];
-  const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
   return '<div class="module-render">'
-    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>去重后的固定顺序</span></div>'
+    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>一项只讲一次 · 白话完整保留</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +lifeCoreFrameworkPanel(c,a)
-    +plainLanguagePanel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN × START × SEAT</small><h3>主性格 '+a.mainPersonality+' × 起始数 '+a.startingThoughtCode+' × 坐镇码 '+a.seatCode+'</h3></div><span>先看这个人是谁</span></div>'
-      +'<div class="year-positive-negative"><div><small>主性格正面</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>主性格压力面</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
-      +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
-      +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
-      +'<div class="joint-stack single-seat">'+jointBlock(a.seatCode,"坐镇码／主性格结构 · 此处只讲一次")+'</div>'
-    +'</div>'
+    +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
     +talentNumbersPanel(a)
     +detailedEnergyPanel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES</small><h3>内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'</h3></div><span>内在驱动</span></div>'
-      +'<div class="question-box"><b>Josephine 连接方式：</b><br>“主性格是核心，内心码看里面真正想要什么，潜意识码看还没来得及想就会启动的反应。三层不一样时，往往就是顾客觉得‘别人看到的我，跟我里面不一样’的地方。”</div></div>'
+    +innerCodeDeepPanel(a)
     +trianglePatternSection(a)
     +emotionCodePanel(a)
     +directBehaviorSynthesisPanel(c,a)
@@ -1319,7 +1415,7 @@ function lifeBlueprintPanel(c){
     +originalFamilyPanel(a)
     +energy679Panel(a)
     +golden20Panel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段结构总览</h3></div><span>联合码不重复展开</span></div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段主题总览</h3></div><span>号码不重复出现</span></div>'
       +phaseOverview(a,"21–40")+phaseOverview(a,"41–60")+phaseOverview(a,"61+")
     +'</div>'
     +'</div>';
