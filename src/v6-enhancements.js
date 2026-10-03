@@ -884,6 +884,93 @@ function genderForcePanel(c,a){
     +'<p class="panel-note">重要：这部分属于AURMOVA课程里的阴阳／性别力量象征框架，不当作科学因果，也不把“男性力量强＝一定更有钱”“父母关系不好＝一定事业／财富不好”当成事实。顾客端必须用验证式语言，不贴“男不男／女不女”的标签。</p></div>';
 }
 
+
+function countGroup(arr,group){
+  const set=new Set(group);
+  return (arr||[]).reduce((sum,n)=>sum+(set.has(Number(n))?1:0),0);
+}
+function codeArray(c){
+  return String(c||"").split("").map(Number).filter(n=>n>=1&&n<=9);
+}
+function familyForceProfile(c){
+  const arr=codeArray(c);
+  const masculine=countGroup(arr,[1,3,5,7,8,9]);
+  const feminine=countGroup(arr,[2,4,6,7,8]);
+  const active=countGroup(arr,[1,3,5,7,9]);
+  const passive=countGroup(arr,[2,4,6,8]);
+  const rational=countGroup(arr,[1,4,6,7]);
+  const emotional=countGroup(arr,[2,3,5,8]);
+  const vision=countGroup(arr,[9]);
+  const power=masculine>feminine?"偏阳／主导":masculine<feminine?"偏阴／承接":"阴阳混合";
+  const action=active>passive?"主动偏强":active<passive?"被动／观察偏强":"主动被动接近";
+  const mind=rational>emotional?"理性偏强":rational<emotional?"感性偏强":"理性感性接近";
+  return {arr,masculine,feminine,active,passive,rational,emotional,vision,power,action,mind};
+}
+function geneInheritedCopy(code,label){
+  const structured=getFlootKnowledge(code);
+  const p=familyForceProfile(code);
+  const gifts=structured?.strengths||p.arr.map(n=>DIGIT_CORE[n]?.gift||DIGIT_CORE[n]?.core).filter(Boolean).join("；")||"这组基因需要结合实际家庭互动验证。";
+  const challenges=structured?.challenges||p.arr.map(n=>DIGIT_CORE[n]?.shadow).filter(Boolean).join("；")||"压力下可能把原本的优势用过头。";
+  return '<div class="gene-inherit-card"><div class="card-heading"><div><small>'+esc(label)+'</small><h4>'+esc(code)+' · '+esc(p.power)+'</h4></div><span>'+esc(p.action)+' · '+esc(p.mind)+'</span></div>'
+    +'<div class="golden-support-grid"><div><small>男性力量</small><b>'+p.masculine+'</b></div><div><small>女性力量</small><b>'+p.feminine+'</b></div><div><small>远见9</small><b>'+p.vision+'</b></div></div>'
+    +'<p><b>拿到的优点：</b>'+esc(gifts)+'</p>'
+    +'<p><b>容易带下来的卡点：</b>'+esc(challenges)+'</p>'
+    +'<p><b>做事底色：</b>'+esc(p.action)+'；'+esc(p.mind)+(p.vision?"；同时带9的远见／大局视角":"")+'。</p></div>';
+}
+function parentGeneBalancePanel(a){
+  const father=familyForceProfile(a.fatherCode);
+  const mother=familyForceProfile(a.motherCode);
+  let family="父母力量较混合";
+  if(father.masculine>father.feminine && mother.masculine<mother.feminine) family="父系较主导 · 母系较柔和";
+  else if(father.masculine<father.feminine && mother.masculine>mother.feminine) family="母系较主导 · 父系较柔和";
+  else if(father.masculine>father.feminine && mother.masculine>mother.feminine) family="父母双方都偏强／主导";
+  else if(father.masculine<father.feminine && mother.masculine<mother.feminine) family="父母双方都偏柔／承接";
+  else if(father.masculine===father.feminine && mother.masculine===mother.feminine) family="父母双方阴阳较混合";
+  const example=(a.fatherCode==="191"&&a.motherCode==="246")
+    ?'<div class="question-box"><b>这张盘的直接白话：</b><br>“父亲基因191明显偏男性力量，比较像主导、决定、先做的人；母亲基因246明显偏女性力量，比较像承接、稳定、顾关系与细节的人。所以这个家庭结构会更像父系主导、母系柔和。接下来我不会只停在‘谁强谁弱’，还会看你自己到底拿到了父亲和母亲哪些优点、哪些压力模式。”</div>'
+    :"";
+  return '<div class="foundation-block"><div class="card-heading"><div><small>PARENT GENE BALANCE</small><h3>父亲基因 × 母亲基因 · 家庭力量结构</h3></div><span>'+esc(family)+'</span></div>'
+    +'<div class="formula-note">这里比较父亲基因与母亲基因里的男性力量／女性力量，再叠加主动被动、理性感性与9的远见。用途不是判定谁“好／坏”，而是看这个家庭比较常见的主导方式、承接方式，以及顾客从父母两边分别拿到了什么。</div>'
+    +'<div class="gene-balance-grid">'+geneInheritedCopy(a.fatherCode,"父亲基因")+geneInheritedCopy(a.motherCode,"母亲基因")+'</div>'
+    +example
+    +'<div class="question-box"><b>Josephine 验证顾客：</b><br>“你小时候家里通常是谁比较会做决定、定规则、推动事情？谁比较会照顾关系、维持稳定、处理细节？这跟我现在看到的父母基因结构像不像？”</div>'
+    +'<div class="question-box"><b>继续追问：</b><br>“你觉得自己比较像爸爸哪一点？又最像妈妈哪一点？有没有一种优点你拿到了，但连同它的压力模式也一起拿过来了？”</div></div>';
+}
+
+function modeProfile(arr){
+  const active=countGroup(arr,[1,3,5,7,9]);
+  const passive=countGroup(arr,[2,4,6,8]);
+  const rational=countGroup(arr,[1,4,6,7]);
+  const emotional=countGroup(arr,[2,3,5,8]);
+  const vision=countGroup(arr,[9]);
+  return {
+    active,passive,rational,emotional,vision,
+    action:active>passive?"主动型":active<passive?"被动／观察型":"主动被动平衡",
+    mind:rational>emotional?"理性主导":rational<emotional?"感性主导":"理性感性平衡"
+  };
+}
+function modeWhite(p){
+  let x="";
+  if(p.active>p.passive && p.rational>p.emotional) x="你的底层比较像“主动＋理性”：会先判断、抓重点，然后推进事情。";
+  else if(p.active>p.passive && p.rational<p.emotional) x="你的底层比较像“主动＋感性”：感觉一来会比较快行动，也容易靠直觉和当下感受推动选择。";
+  else if(p.active<p.passive && p.rational>p.emotional) x="你的底层比较像“观察＋理性”：不会急着出手，通常会先评估、确认条件与风险，再决定要不要动。";
+  else if(p.active<p.passive && p.rational<p.emotional) x="你的底层比较像“观察＋感性”：会先感受环境、人和关系，确认安全与感觉对了才比较愿意行动。";
+  else x="你的主动／被动或理性／感性比较接近，所以你不是固定一种做法，会根据场景切换。";
+  if(p.vision) x+=" 另外你的盘里有9，9我会独立看成远见／大局视角，不硬塞进理性或感性。";
+  return x;
+}
+function personalModePanel(a){
+  const inner=modeProfile(a.innerTriangle);
+  const outer=modeProfile(a.outerTriangle);
+  const diff=(inner.action!==outer.action||inner.mind!==outer.mind);
+  return '<div class="foundation-block"><div class="card-heading"><div><small>PERSONAL MODE</small><h3>主动／被动 × 理性／感性 × 远见</h3></div><span>'+esc(inner.action)+' · '+esc(inner.mind)+'</span></div>'
+    +'<div class="formula-note"><b>最新固定分组：</b>主动＝1、3、5、7、9；被动＝2、4、6、8。理性＝1、4、6、7；感性＝2、3、5、8；9独立看“远见／大局”。人生蓝图先以三角形内判断本能底色，再用三角形外检查现实表现有没有变化。</div>'
+    +'<div class="golden-support-grid"><div><small>主动</small><b>'+inner.active+'</b><span>1／3／5／7／9</span></div><div><small>被动</small><b>'+inner.passive+'</b><span>2／4／6／8</span></div><div><small>理性</small><b>'+inner.rational+'</b><span>1／4／6／7</span></div><div><small>感性</small><b>'+inner.emotional+'</b><span>2／3／5／8</span></div><div><small>远见</small><b>'+inner.vision+'</b><span>9独立读取</span></div></div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(modeWhite(inner))+'”</div>'
+    +(diff?'<div class="ai-supplement"><div class="source-tag">内外反差提醒</div><p>三角形内：'+esc(inner.action)+'／'+esc(inner.mind)+'；三角形外：'+esc(outer.action)+'／'+esc(outer.mind)+'。这代表顾客在真实本能和现实表现之间可能有切换，优先用生活场景验证，不直接说成“戴面具”。</p></div>':'')
+    +'<div class="question-box"><b>验证顾客：</b><br>“你做决定时更像哪一种：先动起来再调整，还是先观察清楚才动？你真正下决定的时候，是比较相信逻辑和条件，还是更看自己的感觉？如果工作和家里不一样，我们就继续看内外三角为什么会切换。”</div></div>';
+}
+
 function strategyTacticPanel(a){
   const c=a.innerEnergy?.counts||{};
   const strategyDigits=[1,3,5,8,9], tacticDigits=[2,4,6,7];
@@ -903,7 +990,7 @@ function strategyTacticPanel(a){
 
 function lifeCoreFrameworkPanel(c,a){
   return '<div class="foundation-block"><div class="card-heading"><div><small>LIFE BLUEPRINT · READING ORDER</small><h3>人生蓝图标准解读顺序</h3></div><span>Josephine 咨询主线</span></div>'
-    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 天赋数字 → 3 缺失数字 → 4 挑战数字 → 5 内心码 → 6 潜意识码 → 7 三角形内能量 → 8 内有外无／内无外有／内外都有 → 9 情绪码 → 10 性别力量 → 11 内外正负面 → 12 联合码 → 13 战略【勇】／战术【谋】。</div>'
+    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 父亲基因×母亲基因／家庭力量结构 → 3 天赋数字 → 4 缺失数字 → 5 挑战数字 → 6 内心码 → 7 潜意识码 → 8 三角形内能量 → 9 内有外无／内无外有／内外都有 → 10 情绪码 → 11 性别力量 → 12 主动／被动＋理性／感性＋远见 → 13 内外正负面 → 14 联合码 → 15 战略【勇】／战术【谋】。</div>'
     +'<div class="question-box"><b>咨询原则：</b><br>先讲“这个人是谁”，再讲“哪里最顺、哪里最容易卡”，最后才用联合码和勇／谋去解释她／他的做事路径。每讲一层都要停下来让顾客用真实经历验证，不一次把全部资料念完。</div></div>';
 }
 
@@ -932,8 +1019,10 @@ function lifeBlueprintPanel(c){
     +outerPolarityPanel(a)
     +emotionCodePanel(a)
     +genderForcePanel(c,a)
+    +personalModePanel(a)
     +strategyTacticPanel(a)
     +mandatoryJointCodes(a)
+    +parentGeneBalancePanel(a)
     +originalFamilyPanel(a)
     +energy679Panel(a)
     +golden20Panel(a)
