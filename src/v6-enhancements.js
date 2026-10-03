@@ -46,11 +46,13 @@ function trianglePatternCard(a,number){
   const outerCount=Number(a.outerEnergy?.counts?.[number]||0);
   const result=getTrianglePattern(number,innerCount,outerCount);
   if(!result) return "";
+  const p=INNER_DIGIT_POLARITY[number]||{};
   return '<article class="triangle-pattern-card">'
     +'<div class="triangle-pattern-number">'+number+'</div>'
     +'<div class="triangle-pattern-main"><div class="triangle-pattern-state">'+esc(result.state)+'</div>'
     +'<p>'+esc(result.description)+'</p>'
-    +'<div class="triangle-pattern-counts"><span>三角形内：'+innerCount+'个</span><span>三角形外：'+outerCount+'个</span><span>'+esc(result.source)+'</span></div></div>'
+    +'<div class="pattern-polarity"><p><b>正面：</b>'+esc(p.positive||"")+'</p><p><b>压力／用过头：</b>'+esc(p.negative||"")+'</p></div>'
+    +'<div class="triangle-pattern-counts"><span>内 '+innerCount+'次</span><span>外 '+outerCount+'次</span></div></div>'
     +'</article>';
 }
 function outerDensityAreas(a,number){
@@ -178,15 +180,15 @@ function digitDensitySection(a){
 }
 
 function trianglePatternSection(a){
-  return '<section id="v11-triangle-patterns">'
-    +'<div class="section-head"><div><p class="eyebrow">TRIANGLE INNER × OUTER</p><h2>三角形内外数字表现</h2></div><span class="source-tag">按你提供的“6种精准表现”资料读取</span></div>'
-    +'<div class="triangle-definition card"><div><b>三角形内</b><span>I · J · K · L · M · N · O</span><p>代表内在性格、真实自我。</p></div><div><b>三角形外</b><span>X · W · S · Q · P · R · V · U · T</span><p>代表外在表现、社交面具。</p></div></div>'
-    +'<div class="formula-note">系统不是把“内、外、内外”当成三种能量，而是先看每一个数字在三角形内／外有没有出现：内缺外有、内有外缺、内外都缺；如果内外都有，再按三角形内出现1次、2次、3次读取对应表现。超过3次时先保留实际次数，不自行杜撰解释。</div>'
-    +'<div class="triangle-pattern-grid">'+[1,2,3,4,5,6,7,8,9].map(n=>trianglePatternCard(a,n)).join("")+'</div>'
-    +digitDensitySection(a)
+  return '<section id="v11-triangle-patterns" class="foundation-block">'
+    +'<div class="section-head"><div><p class="eyebrow">TRIANGLE INNER × OUTER</p><h2>三角形内外模式 · 只讲一次</h2></div><span class="source-tag">综合读取</span></div>'
+    +quickConsultationSection(a)
+    +'<details class="blueprint-expander reference-only"><summary>展开完整1–9内外模式参考（需要时才看）</summary>'
+      +'<div class="triangle-definition card"><div><b>三角形内</b><span>I · J · K · L · M · N · O</span><p>内在性格、比较自然的反应。</p></div><div><b>三角形外</b><span>X · W · S · Q · P · R · V · U · T</span><p>现实表现、环境适应与别人较容易看到的一面。</p></div></div>'
+      +'<div class="triangle-pattern-grid">'+DIGITS.map(n=>trianglePatternCard(a,n)).join("")+'</div>'
+    +'</details>'
     +'</section>';
 }
-
 function jointPositionMeaning(label){
   const x=String(label||"");
   if(x.includes("因果")) return "这个位置先看『为什么会启动』。它更像这段阶段的起点、惯性或背后动机，不是最后结果。";
@@ -744,6 +746,38 @@ function energy679Panel(a){
     +'<p class="panel-note">原拍照页的完整判断条件仍标记为“待找回原页逐条复核”，不会再用旧版简化规则顶替。</p></div>';
 }
 
+function unifiedJointCodes(a){
+  const rows=[
+    ["21–40 因果／父亲基因",a.phases["21–40"].cause],
+    ["21–40 过程1",a.phases["21–40"].process1],
+    ["21–40 过程2",a.phases["21–40"].process2],
+    ["21–40 结果",a.phases["21–40"].result],
+    ["41–60 因果／坐镇码",a.phases["41–60"].cause],
+    ["41–60 过程1",a.phases["41–60"].process1],
+    ["41–60 过程2",a.phases["41–60"].process2],
+    ["41–60 结果",a.phases["41–60"].result],
+    ["61+ 因果／母亲基因",a.phases["61+"].cause],
+    ["61+ 过程1",a.phases["61+"].process1],
+    ["61+ 过程2",a.phases["61+"].process2],
+    ["61+ 结果",a.phases["61+"].result]
+  ].map(([label,arr])=>({label,code:(arr||[]).join("")}));
+  const map=new Map();
+  rows.forEach(r=>{
+    if(!map.has(r.code)) map.set(r.code,{code:r.code,labels:[]});
+    map.get(r.code).labels.push(r.label);
+  });
+  const unique=[...map.values()];
+  return '<div class="foundation-block"><div class="card-heading"><div><small>JOINT CODES · DEDUPED</small><h3>联合码完整解析 · 每组只出现一次</h3></div><span>'+unique.length+'组唯一组合</span></div>'
+    +'<div class="formula-note">同一组联合码如果同时出现在父亲基因、坐镇码或不同年龄阶段，系统只显示一次，并把所有位置合并写在标题里。Josephine讲解时不需要重复讲同一组内容。</div>'
+    +'<div class="joint-stack">'+unique.map(x=>jointBlock(x.code,x.labels.join("｜"))).join("")+'</div></div>';
+}
+
+function phaseOverview(a,name){
+  const v=a.phases[name],m=PHASE_META[name],groups=groupList(v),labels=m.groupLabels;
+  return '<div class="phase-overview"><div class="phase-detail-title"><div><small>'+esc(m.label)+' · '+esc(m.theme)+'</small><h3>'+esc(m.description)+'</h3></div><span>只看结构，不重复联合码</span></div>'
+    +'<div class="phase-code-grid">'+groups.map((g,i)=>'<div><small>'+esc(labels[i])+'</small><strong>'+g+'</strong></div>').join("")+'</div></div>';
+}
+
 function mandatoryJointCodes(a){
   const all=[
     ...Object.values(a.phases["21–40"]),
@@ -972,6 +1006,46 @@ function personalModePanel(a){
     +'<div class="question-box"><b>验证顾客：</b><br>“你做决定时更像哪一种：先动起来再调整，还是先观察清楚才动？你真正下决定的时候，是比较相信逻辑和条件，还是更看自己的感觉？如果工作和家里不一样，我们就继续看内外三角为什么会切换。”</div></div>';
 }
 
+function directBehaviorSynthesisPanel(c,a){
+  const counts=a.innerEnergy?.counts||{};
+  const sum=arr=>arr.reduce((t,n)=>t+Number(counts[n]||0),0);
+  const male=sum([1,3,5,7,8,9]), female=sum([2,4,6,7,8]);
+  const active=sum([1,3,5,7,9]), passive=sum([2,4,6,8]);
+  const rational=sum([1,4,6,7]), emotional=sum([2,3,5,8]);
+  const vision=Number(counts[9]||0);
+  const brave=sum([1,3,5,8,9]), tactic=sum([2,4,6,7]);
+  const g=String(c?.gender||"");
+  const genderTitle=/男/.test(g)
+    ?(male>female?"男性力量明显偏强":male<female?"女性力量在男性盘里更突出":"男性／女性力量接近")
+    :/女/.test(g)
+      ?(female>male?"女性力量明显偏强":female<male?"男性力量在女性盘里更突出":"男性／女性力量接近")
+      :(male>female?"男性力量偏强":male<female?"女性力量偏强":"两组力量接近");
+  const actionTitle=active>passive?"主动型":active<passive?"观察／被动型":"主动与观察平衡";
+  const mindTitle=rational>emotional?"理性主导":rational<emotional?"感性主导":"理性与感性平衡";
+  const braveTitle=brave>tactic?"战略【勇】偏强":brave<tactic?"战术【谋】偏强":"勇谋接近";
+  const genderText=/男/.test(g)
+    ?(male>female?"你做事比较容易走主导、推进、承担和目标路线；7如果明显，会让这种力量里多一点柔和、思考与感受。":male<female?"你在关系、承接、稳定和照顾层面比较明显。事业动力不能只看这项，还要继续结合父亲基因、坐镇码和现实工作经历。":"你身上的主导与承接两种力量都能调用，通常会看场景切换。")
+    :/女/.test(g)
+      ?(female>male?"你比较容易用承接、稳定、关系感和细节来建立力量；7明显时也会带出更刚、更有边界的一面。":female<male?"你身上的目标、主导、推进和事业感比较明显。资源与财富仍要结合母亲基因、现实收入和事业阶段验证。":"你同时有推进和承接的能力，通常不是固定一种风格。")
+      :"你身上的两种力量要结合实际性别与生活场景继续验证。";
+  const actionText=active>passive?"你遇到事情比较容易先动、先推进，再边做边调整。":active<passive?"你更习惯先观察、确认、等条件较清楚后再动。":"你既能主动推进，也会看环境再决定，切换能力比较强。";
+  const mindText=rational>emotional?"你做决定时更依赖逻辑、条件、结构与可控性；感受会有，但通常不会让它直接替你做决定。":rational<emotional?"你做决定时比较看感觉、人、关系和当下体验；直觉很快，但重要决定最好多加一次现实校准。":"你会同时顾逻辑和感受，所以有时优势是看得全面，有时也会因为两边都顾而拖慢决定。";
+  const visionText=vision>=2?"9在内三角重复，远见／大局视角很明显。你容易看趋势、长期和更多可能，但要留意目标太多、想得太远而分散。":vision===1?"内三角有9，你会有一定的大局与长线视角，但它不是压倒性的主轴。":"内三角没有9，远见不是主要自动模式；不代表没有长线能力，只是通常更从眼前条件与实际经验出发。";
+  const braveText=brave>tactic?"你比较像先定方向、敢出手的人；真正要补的是步骤、细节和节奏。":brave<tactic?"你比较像先拆步骤、看风险、谋清楚的人；真正要补的是决定时点和出手速度。":"你既能看方向，也能顾过程。压力大时要留意不要因为两边都想顾而变慢。";
+  const all='“综合三角形内来看，你是'+genderTitle+'，行动上属于'+actionTitle+'，做决定偏'+mindTitle+(vision?('，同时带'+vision+'个9的远见视角'):'')+'，整体又是'+braveTitle+'。换句话说，'+actionText+mindText+visionText+braveText+'”';
+  return '<div class="foundation-block direct-behavior-panel"><div class="card-heading"><div><small>DIRECT SYNTHESIS · INNER TRIANGLE</small><h3>系统已经替你分析好 · 不用自己数</h3></div><span>只看三角形内</span></div>'
+    +'<div class="direct-insight-grid">'
+      +'<article><small>性别力量</small><h4>'+esc(genderTitle)+'</h4><p>'+esc(genderText)+'</p></article>'
+      +'<article><small>主动／被动</small><h4>'+esc(actionTitle)+'</h4><p>'+esc(actionText)+'</p></article>'
+      +'<article><small>理性／感性</small><h4>'+esc(mindTitle)+'</h4><p>'+esc(mindText)+'</p></article>'
+      +'<article><small>远见9</small><h4>'+(vision?('有 · '+vision+'次'):'不突出')+'</h4><p>'+esc(visionText)+'</p></article>'
+      +'<article><small>战略／战术</small><h4>'+esc(braveTitle)+'</h4><p>'+esc(braveText)+'</p></article>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 可以直接照读：</b><br>'+esc(all)+'</div>'
+    +'<details class="reference-only"><summary>查看系统计算依据（平时咨询不用展开）</summary><p>男性力量 '+male+'｜女性力量 '+female+'｜主动 '+active+'｜被动 '+passive+'｜理性 '+rational+'｜感性 '+emotional+'｜9 '+vision+'｜勇 '+brave+'｜谋 '+tactic+'</p></details>'
+    +'</div>';
+}
+
 function strategyTacticPanel(a){
   const c=a.innerEnergy?.counts||{};
   const strategyDigits=[1,3,5,8,9], tacticDigits=[2,4,6,7];
@@ -1073,35 +1147,30 @@ function lifeBlueprintPanel(c){
   const detail=MAIN_DETAIL[a.mainPersonality];
   const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
   return '<div class="module-render">'
-    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>按固定顺序自动解析</span></div>'
+    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>去重后的固定顺序</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +lifeCoreFrameworkPanel(c,a)
     +plainLanguagePanel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN × START × SEAT</small><h3>主性格 '+a.mainPersonality+' × 起始数 '+a.startingThoughtCode+' × 坐镇码 '+a.seatCode+'</h3></div><span>第一层 · 先看这个人是谁</span></div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>MAIN × START × SEAT</small><h3>主性格 '+a.mainPersonality+' × 起始数 '+a.startingThoughtCode+' × 坐镇码 '+a.seatCode+'</h3></div><span>先看这个人是谁</span></div>'
       +'<div class="year-positive-negative"><div><small>主性格正面</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>主性格压力面</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
       +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
       +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
     +'</div>'
-    +'<div class="foundation-block"><div class="card-heading"><div><small>GENE & SEAT</small><h3>父母基因影响 · 坐镇码</h3></div><span>一起验证</span></div><div class="joint-stack">'+jointBlock(a.fatherCode,"父亲基因")+jointBlock(a.motherCode,"母亲基因")+jointBlock(a.seatCode,"坐镇码／主性格结构")+'</div></div>'
+    +parentGeneBalancePanel(a)
     +talentNumbersPanel(a)
     +detailedEnergyPanel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES</small><h3>内心码 '+a.innerCode+' · 潜意识码 '+a.subconsciousCode+'</h3></div><span>内在驱动</span></div>'
-      +'<div class="question-box"><b>Josephine 连接方式：</b><br>“主性格是别人比较容易看到的核心，内心码看你里面真正想要什么，潜意识码看你还没来得及想就会启动的反应。三层对上时会很顺；三层不一样时，就会出现‘别人以为我是这样，但我里面其实不是’的感觉。”</div></div>'
-    +innerPolarityPanel(a)
+      +'<div class="question-box"><b>Josephine 连接方式：</b><br>“主性格是核心，内心码看里面真正想要什么，潜意识码看还没来得及想就会启动的反应。三层不一样时，往往就是顾客觉得‘别人看到的我，跟我里面不一样’的地方。”</div></div>'
     +trianglePatternSection(a)
-    +outerPolarityPanel(a)
     +emotionCodePanel(a)
-    +genderForcePanel(c,a)
-    +personalModePanel(a)
-    +strategyTacticPanel(a)
-    +mandatoryJointCodes(a)
-    +parentGeneBalancePanel(a)
+    +directBehaviorSynthesisPanel(c,a)
+    +unifiedJointCodes(a)
     +originalFamilyPanel(a)
     +energy679Panel(a)
     +golden20Panel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段能量 · 全部表达</h3></div><span>21–40 · 41–60 · 61+</span></div>'
-      +phaseDetails(a,"21–40")+phaseDetails(a,"41–60")+phaseDetails(a,"61+")
+    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段结构总览</h3></div><span>联合码不重复展开</span></div>'
+      +phaseOverview(a,"21–40")+phaseOverview(a,"41–60")+phaseOverview(a,"61+")
     +'</div>'
     +'</div>';
 }
