@@ -136,13 +136,13 @@ function quickConsultationSection(a){
   }).join("");
 
   const focus=pick&&pick.diff>0
-    ? '<div class="consult-opener-card"><div class="source-tag">'+(pick.diff>=3?"首选开场":"当前最明显反差")+'</div><h4>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</h4><blockquote>'+esc(opener)+'</blockquote><p>'+esc(alignment?.body||"先用这句开场，再让顾客用自己的故事来验证。")+'</p><div class="question-box"><b>探针问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick.direction))+'</div></div>'
+    ? '<div class="consult-opener-card"><div class="source-tag">'+(pick.diff>=3?"首选开场":"当前最明显反差")+'</div><h4>数字 '+pick.n+'｜内 '+pick.inner+' 次 · 外 '+pick.outer+' 次</h4><blockquote>'+esc(opener)+'</blockquote><p>'+esc(alignment?.body||"先用这句开场，再让顾客用自己的故事来验证。")+'</p><div class="question-box"><b>你可以这样说：</b><br>“我看到这个数字在你里面和外面的表现差得比较明显，所以我想先从这里问你。它不是好坏，而是可能代表‘真实的你’和‘现实中活出来的你’不完全一样。”</div><div class="question-box"><b>你可以这样问：</b><br>'+esc(contrastProbe(alignment?.mode||pick.direction))+'<br>“这种反差你自己有感觉吗？通常在哪些人／哪些场景最明显？”<br>“你觉得哪一边比较像最放松、最不用顾虑别人的你？”</div></div>'
     : '<div class="empty-mini">这张盘目前没有明显内外反差。开场不要硬找冲突，优先从高密度一致数字、缺失数或顾客主动提出的问题开始。</div>';
 
   return '<div class="quick-consultation">'
-    +'<div class="card-heading"><div><small>30-SECOND SCAN</small><h3>30秒内外计数 · 找最大反差</h3></div><span>先找故事最多的地方</span></div>'
+    +'<div class="card-heading"><div><small>INNER × OUTER CONTRAST</small><h3>内外反差最明显的数字</h3></div><span>咨询切入点 · 不是新算法</span></div>'
     +'<div class="contrast-table"><div class="contrast-head"><b>数字</b><span>内</span><span>外</span><span>差</span><em>优先级</em></div>'+table+'</div>'
-    +'<div class="formula-note">实战优先级：差3个以上＝核心张力点；差2个＝辅助话题；差0–1＝通常先跳过。若有多个并列核心张力点，系统会保留并列，不硬选唯一答案。</div>'
+    +'<div class="formula-note"><b>这不是新的数字码。</b>它只是比较同一个数字在三角形内和外出现次数的差异，帮你快速找“里面的自己”和“现实表现”最不一样的地方。差异明显时适合拿来当咨询切入点；正式解读仍以主性格、起始数、坐镇码、父母基因、缺失／挑战、内外结构与联合码为主。</div>'
     +focus
     +'<div class="consult-flow"><div><small>STEP 1 · 先说一句</small><b>把数字翻译成人话</b><p>用“你其实是___的人，但你习惯了___”切入，不先解释方法论。</p></div><div><small>STEP 2 · 让顾客讲</small><b>追问真实故事</b><p>可以问：从什么时候开始？最早发生在家庭、学校还是工作？后来这个模式有没有一直重复？</p></div><div><small>STEP 3 · 拉回盘</small><b>把故事挂回位置</b><p>再把顾客刚才讲的经历放回父亲基因、母亲基因、主性格、事业朋友、孩子下属或家庭晚年的对应位置验证。</p></div></div>'
     +'<div class="formula-note">原则：先用盘提出“可能的模式”，再让顾客用经历确认或修正。目标不是让顾客被一句话“说中”，而是让她看见自己反复出现的模式。</div>'
@@ -1387,9 +1387,9 @@ function scriptMarkup(c,a,phase){
       +'<p><b>如果顾客观望：</b>不要讲一堆理论，直接给一个小洞察，再问“你听听看像不像你”。</p>'
       +'<p><b>如果判断不出来：</b>“你想直接开始，还是先聊几句热热身？你说了算。”</p>'],
 
-    ["02 最大反差",
+    ["02 内外反差",
       '<h2>先讲一个最值得验证的内外反差</h2>'
-      +(pick?'<p>当前最大差距：<b>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</b></p>':'')
+      +(pick?'<p>内外反差最明显：<b>数字 '+pick.n+'｜内 '+pick.inner+' · 外 '+pick.outer+' · 差 '+pick.diff+'</b></p>':'')
       +'<div class="question-box"><b>开场可以这样说：</b><br>'+esc(opener)+'</div>'
       +'<p>说完后不要马上解释。停一下，让顾客自己回应。重点不是“说中”，而是看顾客的真实经验是否和这个线索对得上。</p>'
       +'<div class="question-box"><b>验证问题：</b><br>'+esc(contrastProbe(alignment?.mode||pick?.direction||"balanced"))+'</div>'
