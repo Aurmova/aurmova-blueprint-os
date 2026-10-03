@@ -1064,9 +1064,9 @@ function strategyTacticPanel(a){
 }
 
 function lifeCoreFrameworkPanel(c,a){
-  return '<div class="foundation-block"><div class="card-heading"><div><small>LIFE BLUEPRINT · READING ORDER</small><h3>人生蓝图标准解读顺序</h3></div><span>Josephine 咨询主线</span></div>'
-    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 父亲基因×母亲基因／家庭力量结构 → 3 天赋数字 → 4 缺失数字 → 5 挑战数字 → 6 内心码 → 7 潜意识码 → 8 三角形内能量 → 9 内有外无／内无外有／内外都有 → 10 情绪码 → 11 性别力量 → 12 主动／被动＋理性／感性＋远见 → 13 内外正负面 → 14 联合码 → 15 战略【勇】／战术【谋】。</div>'
-    +'<div class="question-box"><b>咨询原则：</b><br>先讲“这个人是谁”，再讲“哪里最顺、哪里最容易卡”，最后才用联合码和勇／谋去解释她／他的做事路径。每讲一层都要停下来让顾客用真实经历验证，不一次把全部资料念完。</div></div>';
+  return '<div class="foundation-block"><div class="card-heading"><div><small>LIFE BLUEPRINT · READING ORDER</small><h3>人生蓝图标准解读顺序</h3></div><span>一项只讲一次</span></div>'
+    +'<div class="formula-note">1 主性格＋起始数＋坐镇码 → 2 父母基因／家庭力量 → 3 天赋＋缺失＋挑战 → 4 内心码＋潜意识码 → 5 内外三角综合 → 6 情绪码 → 7 性别力量＋主动／被动＋理性／感性＋远见＋勇谋（系统直接给结论） → 8 联合码（自动去重，只出现一次） → 9 原生家庭／679／黄金20年／三阶段结构。</div>'
+    +'<div class="question-box"><b>咨询原则：</b><br>同一个数字、同一组联合码、同一个内外模式不重复讲。前面已经完整解释过的内容，后面只引用，不重新展开。这样顾客听到的是一条完整故事，不会觉得你在重复同样的料。</div></div>';
 }
 
 
