@@ -925,49 +925,88 @@ function countGroup(arr,group){
 function codeArray(c){
   return String(c||"").split("").map(Number).filter(n=>n>=1&&n<=9);
 }
-function familyForceProfile(c){
-  const arr=codeArray(c);
-  const masculine=countGroup(arr,[1,3,5,7,8,9]);
-  const feminine=countGroup(arr,[2,4,6,7,8]);
-  const active=countGroup(arr,[1,3,5,7,9]);
-  const passive=countGroup(arr,[2,4,6,8]);
-  const rational=countGroup(arr,[1,4,6,7]);
-  const emotional=countGroup(arr,[2,3,5,8]);
-  const vision=countGroup(arr,[9]);
-  const power=masculine>feminine?"偏阳／主导":masculine<feminine?"偏阴／承接":"阴阳混合";
-  const action=active>passive?"主动偏强":active<passive?"被动／观察偏强":"主动被动接近";
-  const mind=rational>emotional?"理性偏强":rational<emotional?"感性偏强":"理性感性接近";
-  return {arr,masculine,feminine,active,passive,rational,emotional,vision,power,action,mind};
+function parentGeneProfile(code,role){
+  const arr=codeArray(code);
+  const yang=countGroup(arr,[1,3,5,9]);
+  const yin=countGroup(arr,[2,4,6]);
+  const shared8=countGroup(arr,[8]);
+  const seven=countGroup(arr,[7]);
+
+  // Parent-gene family power is role-aware:
+  // father + 7 = softer; mother + 7 = stronger/more firm.
+  let score=yang-yin;
+  if(role==="father") score-=seven*0.5;
+  if(role==="mother") score+=seven*0.5;
+
+  const level=score>=1?"strong":score<=-1?"soft":"mixed";
+  let title=level==="strong"?"力量偏强／主导":level==="soft"?"力量偏柔／承接":"力量混合／看场景";
+  let note="";
+  if(seven){
+    note=role==="father"
+      ?"这组父亲基因里有7。按你的体系，男性有7会柔一点，所以即使有主导力，也会多一层思考、感受或退一步观察。"
+      :"这组母亲基因里有7。按你的体系，女性有7会更刚、更有边界，所以遇到原则或责任时会更容易站出来。";
+  }
+  if(shared8){
+    note+=(note?" ":"")+"8同时属于男性／女性力量，不拿来硬判哪一边，而是看成结果感、责任感与掌控感的共同放大。";
+  }
+  return {arr,yang,yin,shared8,seven,score,level,title,note};
 }
-function geneInheritedCopy(code,label){
+
+function geneInheritedCopy(code,label,role){
   const structured=getFlootKnowledge(code);
-  const p=familyForceProfile(code);
-  const gifts=structured?.strengths||p.arr.map(n=>DIGIT_CORE[n]?.gift||DIGIT_CORE[n]?.core).filter(Boolean).join("；")||"这组基因需要结合实际家庭互动验证。";
+  const p=parentGeneProfile(code,role);
+  const gifts=structured?.strengths||p.arr.map(n=>DIGIT_CORE[n]?.gift||DIGIT_CORE[n]?.core).filter(Boolean).join("；")||"这组基因需要结合真实家庭互动验证。";
   const challenges=structured?.challenges||p.arr.map(n=>DIGIT_CORE[n]?.shadow).filter(Boolean).join("；")||"压力下可能把原本的优势用过头。";
-  return '<div class="gene-inherit-card"><div class="card-heading"><div><small>'+esc(label)+'</small><h4>'+esc(code)+' · '+esc(p.power)+'</h4></div><span>'+esc(p.action)+' · '+esc(p.mind)+'</span></div>'
-    +'<div class="golden-support-grid"><div><small>男性力量</small><b>'+p.masculine+'</b></div><div><small>女性力量</small><b>'+p.feminine+'</b></div><div><small>远见9</small><b>'+p.vision+'</b></div></div>'
-    +'<p><b>拿到的优点：</b>'+esc(gifts)+'</p>'
-    +'<p><b>容易带下来的卡点：</b>'+esc(challenges)+'</p>'
-    +'<p><b>做事底色：</b>'+esc(p.action)+'；'+esc(p.mind)+(p.vision?"；同时带9的远见／大局视角":"")+'。</p></div>';
+  const script=structured?.script||"这组父母基因要先看三位数字合在一起形成的行为模式，再回到家庭里验证。";
+  return '<div class="gene-inherit-card"><div class="card-heading"><div><small>'+esc(label)+'</small><h4>'+esc(code)+' · '+esc(p.title)+'</h4></div></div>'
+    +'<p><b>整组基因怎么读：</b>'+esc(script)+'</p>'
+    +'<p><b>比较容易拿到的优点：</b>'+esc(gifts)+'</p>'
+    +'<p><b>容易一起带下来的卡点：</b>'+esc(challenges)+'</p>'
+    +(p.note?'<div class="ai-supplement"><div class="source-tag">力量修正</div><p>'+esc(p.note)+'</p></div>':'')
+    +'</div>';
 }
+
 function parentGeneBalancePanel(a){
-  const father=familyForceProfile(a.fatherCode);
-  const mother=familyForceProfile(a.motherCode);
-  let family="父母力量较混合";
-  if(father.masculine>father.feminine && mother.masculine<mother.feminine) family="父系较主导 · 母系较柔和";
-  else if(father.masculine<father.feminine && mother.masculine>mother.feminine) family="母系较主导 · 父系较柔和";
-  else if(father.masculine>father.feminine && mother.masculine>mother.feminine) family="父母双方都偏强／主导";
-  else if(father.masculine<father.feminine && mother.masculine<mother.feminine) family="父母双方都偏柔／承接";
-  else if(father.masculine===father.feminine && mother.masculine===mother.feminine) family="父母双方阴阳较混合";
-  const example=(a.fatherCode==="191"&&a.motherCode==="246")
-    ?'<div class="question-box"><b>这张盘的直接白话：</b><br>“父亲基因191明显偏男性力量，比较像主导、决定、先做的人；母亲基因246明显偏女性力量，比较像承接、稳定、顾关系与细节的人。所以这个家庭结构会更像父系主导、母系柔和。接下来我不会只停在‘谁强谁弱’，还会看你自己到底拿到了父亲和母亲哪些优点、哪些压力模式。”</div>'
-    :"";
-  return '<div class="foundation-block"><div class="card-heading"><div><small>PARENT GENE BALANCE</small><h3>父亲基因 × 母亲基因 · 家庭力量结构</h3></div><span>'+esc(family)+'</span></div>'
-    +'<div class="formula-note">这里比较父亲基因与母亲基因里的男性力量／女性力量，再叠加主动被动、理性感性与9的远见。用途不是判定谁“好／坏”，而是看这个家庭比较常见的主导方式、承接方式，以及顾客从父母两边分别拿到了什么。</div>'
-    +'<div class="gene-balance-grid">'+geneInheritedCopy(a.fatherCode,"父亲基因")+geneInheritedCopy(a.motherCode,"母亲基因")+'</div>'
-    +example
-    +'<div class="question-box"><b>Josephine 验证顾客：</b><br>“你小时候家里通常是谁比较会做决定、定规则、推动事情？谁比较会照顾关系、维持稳定、处理细节？这跟我现在看到的父母基因结构像不像？”</div>'
-    +'<div class="question-box"><b>继续追问：</b><br>“你觉得自己比较像爸爸哪一点？又最像妈妈哪一点？有没有一种优点你拿到了，但连同它的压力模式也一起拿过来了？”</div></div>';
+  const father=parentGeneProfile(a.fatherCode,"father");
+  const mother=parentGeneProfile(a.motherCode,"mother");
+
+  let family="父母力量结构较混合";
+  let familyCopy="两边都不是单一的强或柔，家庭里谁主导、谁承接会比较看事情和场景。";
+  if(father.level==="strong"&&mother.level==="soft"){
+    family="父系较强 · 母系较柔";
+    familyCopy="父亲这边比较容易承担决定、推进、定方向的角色；母亲这边更容易承接关系、稳定家庭、照顾细节。";
+  }else if(father.level==="soft"&&mother.level==="strong"){
+    family="母系较强 · 父系较柔";
+    familyCopy="母亲这边比较容易承担决定、推动和守原则的角色；父亲这边相对更柔、更会退一步或承接。";
+  }else if(father.level==="strong"&&mother.level==="strong"){
+    family="父母双方都偏强";
+    familyCopy="两边都有主见和推进力，家庭里可能出现双主导。优势是行动快、扛事；卡点是意见不同时容易谁都不想退。";
+  }else if(father.level==="soft"&&mother.level==="soft"){
+    family="父母双方都偏柔";
+    familyCopy="两边都比较重关系、承接和稳定，家庭气氛可能较少硬碰硬；卡点是遇到需要拍板的事情时，容易互相等或把决定拖久。";
+  }else if(father.level==="strong"){
+    family="父系较强 · 母系混合";
+    familyCopy="父亲这边的主导感比较明确；母亲这边则不是单一强或柔，要结合母亲基因整组特质和真实家庭场景来看。";
+  }else if(mother.level==="strong"){
+    family="母系较强 · 父系混合";
+    familyCopy="母亲这边的主导感比较明确；父亲这边则不是单一强或柔，要结合父亲基因整组特质和真实家庭场景来看。";
+  }else if(father.level==="soft"){
+    family="父系较柔 · 母系混合";
+    familyCopy="父亲这边比较偏柔和承接；母亲这边的力量表现较混合，要看实际家庭角色与场景。";
+  }else if(mother.level==="soft"){
+    family="母系较柔 · 父系混合";
+    familyCopy="母亲这边比较偏柔和承接；父亲这边的力量表现较混合，要看实际家庭角色与场景。";
+  }
+
+  const integrated='“我这里不是把爸爸妈妈各自拆成几个男性数字、几个女性数字来念。父亲基因 '+a.fatherCode+' 和母亲基因 '+a.motherCode+' 都要先当成完整的三位联合码来看，再比较两边谁比较主导、谁比较承接。你这张盘呈现的是：'+family+'。'+familyCopy+' 接下来更重要的是看，你自己从爸爸这边拿到了什么优势与压力模式，又从妈妈这边带走了什么。”';
+
+  return '<div class="foundation-block"><div class="card-heading"><div><small>PARENT GENE · WHOLE-CODE READING</small><h3>父亲基因 × 母亲基因 · 家庭力量结构</h3></div><span>'+esc(family)+'</span></div>'
+    +'<div class="formula-note"><b>这里改成整组联合码判读。</b>父亲基因与母亲基因先分别看完整三位码的特质、优点与卡点；男性／女性力量只作为“家庭谁较主导、谁较承接”的辅助判断，不再显示男性2、女性1、远见0这种计数，也不在父母基因这里重复主动／被动、理性／感性。</div>'
+    +'<div class="gene-balance-grid">'+geneInheritedCopy(a.fatherCode,"父亲基因","father")+geneInheritedCopy(a.motherCode,"母亲基因","mother")+'</div>'
+    +'<div class="question-box"><b>Josephine 专业白话｜可以直接照读：</b><br>'+esc(integrated)+'</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“你小时候家里，遇到大事通常是谁拍板？谁比较坚持自己的方式？谁更常负责缓和关系、照顾情绪或收尾？这个结构跟你真实的家庭像不像？”</div>'
+    +'<div class="question-box"><b>继续往遗传模式问：</b><br>“你觉得自己最像爸爸的是哪一种做事方式？最像妈妈的又是哪一种？有没有一种优点你拿到了，但它用过头时也变成了你的压力？”</div>'
+    +'</div>';
 }
 
 function modeProfile(arr){
