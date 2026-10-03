@@ -1,7 +1,7 @@
 import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=48";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
-import { findJointCode } from "./aurmova-knowledge.js?v=28";
+import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
 import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=28";
@@ -13,6 +13,7 @@ const consultationKey=id=>"aurmova.consultation."+id;
 const serviceKey=id=>"aurmova.serviceflow."+id;
 const relationshipKey=id=>"aurmova.relationship."+id;
 const familyKey=id=>"aurmova.family."+id;
+const blueprintAudienceKey=id=>"aurmova.blueprint.audience."+id;
 const loadConsultation=id=>{try{return JSON.parse(localStorage.getItem(consultationKey(id))||"{}")}catch{return{}}};
 const saveConsultation=(id,data)=>localStorage.setItem(consultationKey(id),JSON.stringify(data));
 const loadService=id=>{try{return JSON.parse(localStorage.getItem(serviceKey(id))||"{}")}catch{return{}}};
@@ -994,13 +995,86 @@ function lifeCoreFrameworkPanel(c,a){
     +'<div class="question-box"><b>咨询原则：</b><br>先讲“这个人是谁”，再讲“哪里最顺、哪里最容易卡”，最后才用联合码和勇／谋去解释她／他的做事路径。每讲一层都要停下来让顾客用真实经历验证，不一次把全部资料念完。</div></div>';
 }
 
+
+const CHILD_MODE_PROFILE = {
+  1:{exam:"有目标和竞争感时比较容易进入状态；如果被否定、输给别人或觉得自己做不到，可能会急、顶嘴或直接放弃。考试前适合把目标拆成小关卡，让他看到自己一步一步赢回来。",speech:"说话直接、有主见，想到什么比较容易马上说；压力大时语气可能像命令，不一定是故意没礼貌，而是想快点把事情推进。",pressure:"压力一来容易更想自己做、自己决定，不喜欢被管太多；如果连续失败，会用逞强或不服输保护自信。"},
+  2:{exam:"情绪和环境很影响发挥。关系安心、有人鼓励时会比较稳定；如果怕让父母失望，容易反复检查、犹豫或临场紧张。",speech:"语气通常比较柔，会先看别人反应才决定说多少；不开心时也可能先忍着，不一定当场讲。",pressure:"压力大时容易敏感、委屈、担心别人怎么看自己，可能先配合或退让，过后才难受。"},
+  3:{exam:"有兴趣、画面感、互动感的学习方式比较容易吸收；但容易因为心急、分心或想快点完成而粗心。考试适合短段复习、即时反馈和完成感。",speech:"表达快、活泼、反应直接，容易把情绪写在脸上；兴奋时会讲很多，受批评时也可能马上反应。",pressure:"压力来得快，情绪也来得快；容易烦、急、分心，过一阵又恢复。"},
+  4:{exam:"有固定流程、清楚范围和准备时间时表现最好。遇到陌生题型、临时变化或怕出错时，容易卡住、反复确认。",speech:"说话比较谨慎、讲事实、重对错和细节；不确定时宁可少说，也不喜欢被逼着马上回答。",pressure:"压力大时会更抓规则、细节和控制感，容易焦虑或因为怕错而变慢。"},
+  5:{exam:"对新鲜、有变化、有互动的内容学得快，但重复性高时容易失去耐性。复习适合短冲刺、变化题型和明确完成线。",speech:"说话灵活、反应快、容易跳题，喜欢自由发挥；被限制太多时可能显得不耐烦。",pressure:"压力大时会想换方法、换环境、先逃开不舒服，容易用“我不要了”保护自己。"},
+  6:{exam:"责任感强，通常会想把成绩做好；越在意父母和老师的期待，越可能给自己压力。适合把“考好”拆成过程目标，不只看分数。",speech:"说话会带照顾和提醒，也容易纠正别人；压力大时可能碎念、要求高，或把别人的事也当自己的责任。",pressure:"容易把“我应该做好”放得很重，做不到时自责、操心，甚至替别人一起担心。"},
+  7:{exam:"理解型学习很强，喜欢先弄懂为什么；如果只靠死背会比较抗拒。考试时容易想太多、审题太久或怀疑第一答案。",speech:"不一定话多，但问的问题常常很深；不熟时比较安静，熟悉后会讲很多自己真正有兴趣的内容。",pressure:"压力大时容易退回自己的世界、想很多、不说，外面看起来安静，里面其实一直在分析。"},
+  8:{exam:"目标、成绩、排名和“我要做到”会很有推动力；但越在意输赢，越容易把考试变成压力。适合设结果目标，也要同时设过程目标。",speech:"说话有力量、重点明确，容易像在下结论；紧张时语气会更强，别人可能觉得有压迫感。",pressure:"压力一来会更想控制、解决和赢回来，不喜欢承认自己怕或累。"},
+  9:{exam:"理解整体、联想和创意通常不错，但容易想太多方向、忽略细节或时间管理。考试适合先抓大框架，再用清单收尾。",speech:"说话容易带故事、想法和大方向，常常从一个点联想到很多可能。",pressure:"压力大时容易一下想很多结果、很多可能，或者因为理想太大而不知道先做哪一步。"}
+};
+
+function childAudience(c){
+  return localStorage.getItem(blueprintAudienceKey(c.id))||"adult";
+}
+function childModifierSummary(a){
+  const repeated=(a.innerEnergy?.repeated||[]);
+  const missing=(a.innerEnergy?.missing||[]);
+  const emotion=a.innerEnergy?.counts||{};
+  const inCount=Number(emotion[2]||0)+Number(emotion[7]||0);
+  const outCount=Number(emotion[3]||0)+Number(emotion[8]||0);
+  const e=inCount>outCount?"情绪更容易先往内收":outCount>inCount?"情绪更容易直接表现出来":(inCount+outCount?"内收与外放会看场景切换":"情绪码不是这张盘最突出的主题");
+  return {
+    repeated:repeated.length?("重复较明显："+repeated.join("、")+"。这些数字会把对应天赋和卡点一起放大。"):"没有特别高密度的重复数字。",
+    missing:missing.length?("需要后天练习的领域："+missing.join("、")+"。这不代表不会，而是通常不是最自然的第一反应。"):"没有明显缺失数字。",
+    emotion:e
+  };
+}
+function childBlueprintPanel(c){
+  const a=calculateBlueprint(c.birthday);
+  const n=a.mainPersonality;
+  const child=CHILD?.[n]||CHILD?.[String(n)]||{};
+  const adult=MAIN_DETAIL[n]||{};
+  const mode=CHILD_MODE_PROFILE[n]||{};
+  const mods=childModifierSummary(a);
+  const positive=child.strength||adult.talents||"";
+  const negative=child.watch||adult.watch||"";
+  const traits=(child.keywords||[]).join("、");
+  const talk='“这个孩子的核心不是只看成 '+n+' 号。'+(child.strength||"")+"。如果状态好，这会变成他的优势；但压力一大时，也会出现另一面，所以我们要一起看他在学校、考试、家里和跟人相处时怎么表现。”';
+  return '<div class="module-render child-blueprint-mode">'
+    +'<div class="card-heading"><div><small>CHILD BLUEPRINT MODE</small><h2>小朋友蓝图 · '+esc(c.name)+'</h2></div><span>儿童解读模式</span></div>'
+    +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
+    +'<div class="formula-note"><b>儿童模式会自动换语言：</b>不讲事业、财富、婚姻结果，重点看性格、学习、考试、压力、表达、优势、卡点和家长怎么带。数字只作为观察线索，真实行为优先。</div>'
+    +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
+      +'<div class="child-insight-grid">'
+        +'<div><small>特性</small><p>'+esc(traits||child.strength||"")+'</p></div>'
+        +'<div><small>性格</small><p>'+esc(child.strength||adult.behavior||"")+'</p></div>'
+        +'<div><small>正面</small><p>'+esc(positive)+'</p></div>'
+        +'<div><small>负面</small><p>'+esc(negative)+'</p></div>'
+        +'<div><small>面对压力</small><p>'+esc(mode.pressure||adult.stress||"")+'</p></div>'
+        +'<div><small>考试／学习反应</small><p>'+esc(mode.exam||"要结合孩子真实学习方式验证。")+'</p></div>'
+        +'<div><small>跟人说话的态度</small><p>'+esc(mode.speech||adult.speech||"")+'</p></div>'
+        +'<div><small>优势</small><p>'+esc(child.strength||adult.talents||"")+'</p></div>'
+        +'<div><small>卡点</small><p>'+esc(child.watch||adult.watch||"")+'</p></div>'
+      +'</div>'
+      +'<div class="question-box"><b>Josephine 可以直接跟家长说：</b><br>'+esc(talk)+'</div>'
+    +'</div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>WHOLE CHART MODIFIERS</small><h3>不是只看主数字 · 再看整张盘怎么修正</h3></div><span>重复 · 缺失 · 情绪</span></div>'
+      +'<div class="child-insight-grid"><div><small>重复／天赋放大</small><p>'+esc(mods.repeated)+'</p></div><div><small>缺失／需要练习</small><p>'+esc(mods.missing)+'</p></div><div><small>情绪模式</small><p>'+esc(mods.emotion)+'</p></div></div>'
+      +'<div class="question-box"><b>验证家长：</b><br>“这些里面，哪一项在学校最明显？哪一项只在家里出现？如果学校和家里完全不一样，我们就继续看内外三角和环境影响。”</div>'
+    +'</div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>PARENT GUIDANCE</small><h3>家长怎么带 · 不只告诉他哪里不好</h3></div></div>'
+      +'<div class="question-box"><b>教育方向：</b><br>'+esc(child.guide||"先顺着优势建立信心，再训练较弱的部分。")+'</div>'
+      +'<div class="question-box"><b>可以问家长：</b><br>“他被催的时候是什么反应？”<br>“考试前最常出现的是拖延、紧张、急躁，还是过度检查？”<br>“老师眼里的他，跟你在家里看到的是同一个样子吗？”<br>“他最容易因为什么被批评后马上关掉自己？”</div>'
+      +'<div class="formula-note">如果孩子持续出现明显学习困难、情绪困扰、睡眠／身体症状或发展问题，数字咨询不代替老师、儿科医生、教育心理或心理专业评估。</div>'
+    +'</div>'
+    +'</div>';
+}
+
 function lifeBlueprintPanel(c){
+  if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
   const profile=PERSONALITY_LIBRARY[a.mainPersonality];
   const detail=MAIN_DETAIL[a.mainPersonality];
   const qs=PERSONALITY_QUESTIONS[a.mainPersonality]||[];
   return '<div class="module-render">'
     +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>按固定顺序自动解析</span></div>'
+    +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +lifeCoreFrameworkPanel(c,a)
     +plainLanguagePanel(a)
@@ -1528,7 +1602,8 @@ setTimeout(enhance,0);
 
 document.addEventListener("click",event=>{
   const del=event.target.closest("[data-v6-delete]"); if(del){deleteCustomer(del.dataset.v6Delete);return}
-  const mod=event.target.closest("[data-v6-module]"); if(mod){document.querySelectorAll("[data-v6-module]").forEach(x=>x.classList.toggle("active",x===mod));renderModule(mod.dataset.v6Module,currentCustomer());document.querySelector("#v6-module-panel")?.scrollIntoView({behavior:"smooth",block:"start"});return}
+  const audience=event.target.closest("[data-blueprint-audience]"); if(audience){const c=currentCustomer();if(!c)return;localStorage.setItem(blueprintAudienceKey(c.id),audience.dataset.blueprintAudience||"adult");renderModule("人生蓝图",c);return}
+    const mod=event.target.closest("[data-v6-module]"); if(mod){document.querySelectorAll("[data-v6-module]").forEach(x=>x.classList.toggle("active",x===mod));renderModule(mod.dataset.v6Module,currentCustomer());document.querySelector("#v6-module-panel")?.scrollIntoView({behavior:"smooth",block:"start"});return}
   const ph=event.target.closest("[data-v6-phase]"); if(ph){document.querySelectorAll("[data-v6-phase]").forEach(x=>x.classList.toggle("selected",x===ph));const c=currentCustomer(),a=c&&calculateBlueprint(c.birthday);if(a){const box=document.querySelector("#v6-phase-detail");if(box)box.innerHTML=phaseDetails(a,ph.dataset.v6Phase)}return}
   const st=event.target.closest("[data-v6-script-step]"); if(st){const i=st.dataset.v6ScriptStep;document.querySelectorAll("[data-v6-script-step]").forEach(x=>x.classList.toggle("active",x===st));document.querySelectorAll("[data-v6-script-content]").forEach(x=>x.hidden=x.dataset.v6ScriptContent!==i);refreshConsultationConsole(i);return}
   const saveAnswer=event.target.closest("#v7-save-answer"); if(saveAnswer){
