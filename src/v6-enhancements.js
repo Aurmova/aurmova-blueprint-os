@@ -1034,7 +1034,7 @@ function childBlueprintPanel(c){
   const positive=child.strength||adult.talents||"";
   const negative=child.watch||adult.watch||"";
   const traits=(child.keywords||[]).join("、");
-  const talk='“这个孩子的核心不是只看成 '+n+' 号。'+(child.strength||"")+"。如果状态好，这会变成他的优势；但压力一大时，也会出现另一面，所以我们要一起看他在学校、考试、家里和跟人相处时怎么表现。”';
+  const talk='“这个孩子的核心不是只看成 '+n+' 号。'+(child.strength||"")+'。如果状态好，这会变成他的优势；但压力一大时，也会出现另一面，所以我们要一起看他在学校、考试、家里和跟人相处时怎么表现。”';
   return '<div class="module-render child-blueprint-mode">'
     +'<div class="card-heading"><div><small>CHILD BLUEPRINT MODE</small><h2>小朋友蓝图 · '+esc(c.name)+'</h2></div><span>儿童解读模式</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
