@@ -1626,7 +1626,8 @@ function familyPanel(c){
 function renderModule(key,c){
   const panel=document.querySelector("#v6-module-panel");
   if(!panel||!c) return;
-  if(key==="黄金流年") panel.innerHTML=yearPanel(c);
+  if(key==="儿童蓝图") panel.innerHTML=childBlueprintPanel(c);
+  else if(key==="黄金流年") panel.innerHTML=yearPanel(c);
   else if(key==="合作蓝图") panel.innerHTML=cooperationPanel(c);
   else if(key==="关系蓝图") panel.innerHTML=relationshipPanel(c);
   else if(key==="亲子蓝图") panel.innerHTML=familyPanel(c);
@@ -2015,12 +2016,12 @@ function enhanceWorkspace(){
   const tabs=document.querySelector(".module-tabs");
   if(tabs&&!tabs.dataset.v6){
     tabs.dataset.v6="1";
-    const names=["人生蓝图","黄金流年","关系蓝图","亲子蓝图","合作蓝图"];
+    const names=["人生蓝图","黄金流年","关系蓝图","亲子蓝图","合作蓝图","儿童蓝图"];
     const selectedProjects=(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean);
     const first=selectedProjects[0]||"人生蓝图";
-    const initialModule=/黄金/.test(first)?"黄金流年":/关系/.test(first)?"关系蓝图":/亲子/.test(first)?"亲子蓝图":/合作/.test(first)?"合作蓝图":"人生蓝图";
+    const initialModule=/儿童/.test(first)?"儿童蓝图":/黄金/.test(first)?"黄金流年":/关系/.test(first)?"关系蓝图":/亲子/.test(first)?"亲子蓝图":/合作/.test(first)?"合作蓝图":"人生蓝图";
     [...tabs.querySelectorAll(".module-tab")].forEach((b,i)=>{b.dataset.v6Module=names[i]||"人生蓝图";b.textContent=names[i]||b.textContent;b.classList.toggle("active",(names[i]||"人生蓝图")===initialModule)});
-    const panel=document.createElement("section");panel.id="v6-module-panel";panel.className="card module-info-panel";tabs.after(panel);renderModule(initialModule,c);
+    const panel=document.createElement("section");panel.id="v6-module-panel";panel.className="card module-info-panel";tabs.after(panel);renderModule(initialModule,c);setWorkspaceModuleMode(initialModule);
   }
 
   const structure=document.querySelector(".structure-grid");
@@ -2067,7 +2068,7 @@ setTimeout(enhance,0);
 document.addEventListener("click",event=>{
   const del=event.target.closest("[data-v6-delete]"); if(del){deleteCustomer(del.dataset.v6Delete);return}
   const audience=event.target.closest("[data-blueprint-audience]"); if(audience){const c=currentCustomer();if(!c)return;localStorage.setItem(blueprintAudienceKey(c.id),audience.dataset.blueprintAudience||"adult");renderModule("人生蓝图",c);return}
-    const mod=event.target.closest("[data-v6-module]"); if(mod){document.querySelectorAll("[data-v6-module]").forEach(x=>x.classList.toggle("active",x===mod));renderModule(mod.dataset.v6Module,currentCustomer());document.querySelector("#v6-module-panel")?.scrollIntoView({behavior:"smooth",block:"start"});return}
+    const mod=event.target.closest("[data-v6-module]"); if(mod){document.querySelectorAll("[data-v6-module]").forEach(x=>x.classList.toggle("active",x===mod));renderModule(mod.dataset.v6Module,currentCustomer());setWorkspaceModuleMode(mod.dataset.v6Module);document.querySelector("#v6-module-panel")?.scrollIntoView({behavior:"smooth",block:"start"});return}
   const ph=event.target.closest("[data-v6-phase]"); if(ph){document.querySelectorAll("[data-v6-phase]").forEach(x=>x.classList.toggle("selected",x===ph));const c=currentCustomer(),a=c&&calculateBlueprint(c.birthday);if(a){const box=document.querySelector("#v6-phase-detail");if(box)box.innerHTML=phaseDetails(a,ph.dataset.v6Phase)}return}
   const st=event.target.closest("[data-v6-script-step]"); if(st){const i=st.dataset.v6ScriptStep;document.querySelectorAll("[data-v6-script-step]").forEach(x=>x.classList.toggle("active",x===st));document.querySelectorAll("[data-v6-script-content]").forEach(x=>x.hidden=x.dataset.v6ScriptContent!==i);refreshConsultationConsole(i);return}
   const saveAnswer=event.target.closest("#v7-save-answer"); if(saveAnswer){
