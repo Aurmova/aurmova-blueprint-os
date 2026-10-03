@@ -1,4 +1,4 @@
-import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=32";
+import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=33";
 import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=48";
 import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=32";
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
@@ -46,14 +46,16 @@ function home() {
 }
 
 function newCustomer(selected="") {
+ const isChildBlueprint=selected==="儿童蓝图解析";
+ const childAutoAgeNotice=isChildBlueprint?`<div class="notice"><b>儿童蓝图会自动按生日过滤年龄内容：</b>3–5岁／6–9岁／10–12岁／13–17岁。建立档案后会直接进入对应年龄阶段，不需要手动选择。</div>`:"";
  const years=Array.from({length:100},(_,i)=>new Date().getFullYear()-i).map(y=>`<option>${y}</option>`).join("");
  return `${header("Client Profile","建立顧客檔案","只收集本次諮詢所需資料；生日格式固定為日 / 月 / 年。")}
  <form id="customer-form" class="card form-card"><section class="form-section"><div class="form-section-title"><span class="step">01</span><h2>基本資料</h2></div><div class="fields"><div class="field"><label for="name">姓名 *</label><input id="name" name="name" autocomplete="name" placeholder="輸入顧客姓名" required></div><div class="field"><label for="gender">性別 *</label><select id="gender" name="gender" required><option value="">请选择</option><option>女性</option><option>男性</option></select></div><div class="field" style="grid-column:1/-1"><label>生日 · 日 / 月 / 年 *</label><div class="date-fields"><select name="day" aria-label="日" required><option value="">日</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="month" aria-label="月" required><option value="">月</option>${Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="year" aria-label="年" required><option value="">年</option>${years}</select></div></div>
  <div class="field"><label>出生城市</label><input name="birthCity" placeholder="例如 Johor Bahru"></div>
- <div class="field"><label>职业</label><input name="occupation" placeholder="例如 销售／美容师／家庭主妇"></div>
+ <div class="field"><label>职业／学校年级</label><input name="occupation" placeholder="成人可填职业；儿童可填学校／年级"></div>
  <div class="field"><label>WhatsApp 手机号码</label><input name="whatsapp" inputmode="tel" placeholder="+60 1X-XXXX XXXX"></div>
  <div class="field"><label>本次最想聊的主题</label><select name="consultationTheme"><option value="">未指定</option><option>事业／工作</option><option>感情／关系</option><option>家庭／亲子</option><option>金钱／资源</option><option>自我方向</option><option>综合</option></select></div>
- </div><div class="notice">AURMOVA 统一使用阳历生日计算；不需要出生时间。出生城市仅作为顾客档案资料，不参与目前数字公式。</div></section>
+ </div><div class="notice">AURMOVA 统一使用阳历生日计算；不需要出生时间。出生城市仅作为顾客档案资料，不参与目前数字公式。</div>${childAutoAgeNotice}</section>
  <section class="form-section"><div class="form-section-title"><span class="step">02</span><h2>选择咨询项目 · 可多选</h2></div><div class="radio-grid">${CONSULTATION_TYPES.map((x,i)=>`<label class="radio-card"><input type="checkbox" name="consultationTypes" value="${x}" ${selected===x?'checked':''}><span>0${i+1}　${x}</span></label>`).join("")}</div></section>
  <section class="form-section"><div class="form-section-title"><span class="step">03</span><h2>选择本次咨询重点 · 可多选</h2></div><div class="projects">${FOCUS_OPTIONS.map(x=>`<label class="chip"><input type="checkbox" name="consultationFocus" value="${x}"><span>${x}</span></label>`).join("")}</div><div class="notice">主性格、父母基因、坐镇码、三阶段、81组联合码、缺失数、挑战数、679、原生模式等属于每次咨询的基础解析，不再让你手动勾选。</div></section>
  <div class="notice">建立後，系統只會建立資料骨架，不會執行或推測任何數字心理學計算。完整分析僅保留在 Josephine 私人諮詢區。</div><div class="actions"><button class="btn btn-primary" type="submit">建立私人檔案</button><a class="btn btn-light" href="#home">取消</a></div></form>`;
