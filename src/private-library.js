@@ -1,3 +1,5 @@
+import { getKnowledge } from "./floot-knowledge.js?v=32";
+
 export const RESTORED_PRIVATE_LIBRARY = [
   {
     category:"亲子蓝图／儿童解读",
@@ -412,3 +414,91 @@ export const RESTORED_PRIVATE_LIBRARY = [
     text:"Josephine白话：679这块先不要直接跟顾客说『你有几个6、几个7、几个9，所以一定怎样』。可以先讲：『我这里会看你的资源、关系支持和机会感是怎么连在一起的，但要配合它出现的位置和组合一起看，不能只看次数。』\n679是独立综合模块，Josephine曾拍过原书资料。旧版只按6、7、9出现次数下结论的做法已停用。现有可核对资料另出现一句「我们说679是人生的福禄寿，而且是两个7一个9」，但该句出现在797／977上下文中，数字本身前后不一致，疑似排版或口述笔误，因此不能拿它当作679的完整规则。当前系统保留679入口与已确认的来源线索；真正的判断条件必须等原拍照页找回后逐条恢复，绝不自行补写。"
   }
 ];
+
+const FLOW_YEAR_DETAIL_CONFIG = {
+  1:{
+    page:"73–76",
+    theme:"开始、开创、播种、主动突破",
+    focus:"把新方向真正启动，同时留意太急、太靠自己、还没验证就往前冲。",
+    codes:["191/911","821/281","371/731","461/641","551"]
+  },
+  2:{
+    page:"77–80",
+    theme:"连接、配合、等待、整合资源",
+    focus:"有行动地等待，把合作、沟通、位置和资源接好，不因暂时看不到结果就否定自己。",
+    codes:["112","292/922","382/832","472/742","562/652"]
+  },
+  3:{
+    page:"81–85",
+    theme:"行动、表达、小成果、被看见",
+    focus:"把前面的准备推出去，但机会越多越要聚焦，讲话与决定都不要只求快。",
+    codes:["123/213","393/933","483/843","573/753","663"]
+  },
+  4:{
+    page:"86–89",
+    theme:"稳定、规划、扎根、建立秩序",
+    focus:"把专业、流程、储备与长期基础做稳，同时避免因为怕错、怕变而停住。",
+    codes:["134/314","224","494/944","584/854","674/764"]
+  },
+  5:{
+    page:"90–93",
+    theme:"变化、自由、转折、重新选择",
+    focus:"变化会变多，重点不是为了变而变，而是分清真正值得的调整与只是想逃离不舒服。",
+    codes:["145/415","235/325","595/955","685/865","775"]
+  },
+  6:{
+    page:"94–96",
+    theme:"责任、品质、孕育、承接成果",
+    focus:"把事情照顾成熟、承接责任与资源，但不要把所有人的责任都扛到自己身上。",
+    codes:["156/516","246/426","336","696/966","786/876"]
+  },
+  8:{
+    page:"101–104",
+    theme:"成果、责任、资源、压力放大",
+    focus:"像总成绩单一样看前几年累积的结果；越有成果越要会聚焦、授权、减法与风险管理。",
+    codes:["178/718","268/628","358/538","448","898/988"]
+  },
+  9:{
+    page:"105–107",
+    theme:"收尾、复盘、整理、为下一轮腾空间",
+    focus:"不是悲观结束，而是把旧项目、旧关系、旧习惯整理好，避免贪多和急功近利。",
+    codes:["189/819","279/729","369/639","459/549","999"]
+  }
+};
+
+function firstKnownCode(group){
+  const parts=String(group).split("/");
+  for(const p of parts){
+    const k=getKnowledge(p);
+    if(k) return {code:p,k};
+  }
+  return {code:parts[0],k:{}};
+}
+
+function flowYearDetailEntry(year,group){
+  const cfg=FLOW_YEAR_DETAIL_CONFIG[year];
+  const found=firstKnownCode(group);
+  const k=found.k||{};
+  const title=k.title||"组合模式";
+  const logic=k.logic||"这组联合码需要结合三位数字顺序、实际位置和顾客真实经历一起判断。";
+  const strengths=k.strengths||"把这组数字用在合适位置时，通常会形成对应的能力优势。";
+  const challenges=k.challenges||"压力大或使用过度时，容易把原本的优势推到负面。";
+  const script=k.script||"这组数字我不会只看一个标签，我会结合今年的主题和你真实发生的事情一起判断。";
+  const growth=k.growth||"先用现实事件验证，再决定要强化什么、收住什么。";
+  return {
+    category:"黄金流年原书｜流年"+year,
+    title:"流年"+year+" × "+group+"｜原书页"+cfg.page,
+    keywords:"流年"+year+" "+group.replaceAll("/"," ")+" 原书 联合码 白话 优势 卡点 追问 开解",
+    source:"Josephine 原书拍照｜联合码页"+cfg.page+"；AURMOVA 81组结构化资料联动",
+    text:"【流年"+year+"主题】"+cfg.theme+"。\n\n【原书对应组合】"+group+"。这组属于流年"+year+"的固定联合码之一。\n\n【组合底色】"+title+"。"+logic+"\n\n【放在流年"+year+"怎么讲】"+cfg.focus+" 这时再叠加"+group+"本身的模式，不把联合码从年度节奏里拆开单讲。\n\n【正面／优势】"+strengths+"\n\n【负面／卡点】"+challenges+"\n\n【Josephine白话】『"+script+" 放到你今年的流年里，我会特别看这件事是不是正在"+cfg.theme+"这个阶段被放大。数字先给方向，最后还是要用你真实发生的事情来确认。』\n\n【咨询追问】『今年有没有一件事情，很明显把这组模式带出来？』／『这件事发生时，你最先做的是继续往前、先观察、先顾关系，还是先控制风险？』／『如果今年只调整一个地方，你最想减少哪一种重复卡点？』\n\n【开解方向】"+growth+"\n\n【AURMOVA规则】原书若涉及财富、贵人、婚姻、健康、投资等确定性说法，顾客版统一转换成资源、关系边界、现实风险与可执行选择，不作必然预测。"
+  };
+}
+
+for(const [y,cfg] of Object.entries(FLOW_YEAR_DETAIL_CONFIG)){
+  for(const group of cfg.codes){
+    const title="流年"+y+" × "+group+"｜原书页"+cfg.page;
+    if(!RESTORED_PRIVATE_LIBRARY.some(x=>x.title===title)){
+      RESTORED_PRIVATE_LIBRARY.push(flowYearDetailEntry(Number(y),group));
+    }
+  }
+}
