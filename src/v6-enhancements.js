@@ -1007,40 +1007,152 @@ function personalModePanel(a){
 function directBehaviorSynthesisPanel(c,a){
   const counts=a.innerEnergy?.counts||{};
   const sum=arr=>arr.reduce((t,n)=>t+Number(counts[n]||0),0);
-  const male=sum([1,3,5,7,8,9]), female=sum([2,4,6,7,8]);
-  const active=sum([1,3,5,7,9]), passive=sum([2,4,6,8]);
-  const rational=sum([1,4,6,7]), emotional=sum([2,3,5,8]);
+  const inSet=(n,arr)=>arr.includes(Number(n));
+
+  // Josephine fixed grouping — read ONLY from the inner triangle.
+  const MALE=[1,3,5,7,8,9], FEMALE=[2,4,6,7,8];
+  const BRAVE=[1,3,5,8,9], TACTIC=[2,4,6,7];
+  const ACTIVE=[1,3,5,7,9], PASSIVE=[2,4,6,8];
+  const RATIONAL=[1,4,6,7], EMOTIONAL=[2,3,5,8];
+
+  const male=sum(MALE), female=sum(FEMALE);
+  const brave=sum(BRAVE), tactic=sum(TACTIC);
+  const active=sum(ACTIVE), passive=sum(PASSIVE);
+  const rational=sum(RATIONAL), emotional=sum(EMOTIONAL);
   const vision=Number(counts[9]||0);
-  const brave=sum([1,3,5,8,9]), tactic=sum([2,4,6,7]);
+  const seven=Number(counts[7]||0);
+
+  const main=Number(a.mainPersonality||0);
+  const inner=Number(a.innerCode||0);
+  const coreActive=(inSet(main,ACTIVE)?1:0)+(inSet(inner,ACTIVE)?1:0);
+  const corePassive=(inSet(main,PASSIVE)?1:0)+(inSet(inner,PASSIVE)?1:0);
+  const coreRational=(inSet(main,RATIONAL)?1:0)+(inSet(inner,RATIONAL)?1:0);
+  const coreEmotional=(inSet(main,EMOTIONAL)?1:0)+(inSet(inner,EMOTIONAL)?1:0);
+
   const g=String(c?.gender||"");
-  const genderTitle=/男/.test(g)
-    ?(male>female?"男性力量明显偏强":male<female?"女性力量在男性盘里更突出":"男性／女性力量接近")
-    :/女/.test(g)
-      ?(female>male?"女性力量明显偏强":female<male?"男性力量在女性盘里更突出":"男性／女性力量接近")
-      :(male>female?"男性力量偏强":male<female?"女性力量偏强":"两组力量接近");
-  const actionTitle=active>passive?"主动型":active<passive?"观察／被动型":"主动与观察平衡";
-  const mindTitle=rational>emotional?"理性主导":rational<emotional?"感性主导":"理性与感性平衡";
+  const isMale=/男/.test(g), isFemale=/女/.test(g);
+
+  const genderTitle=isMale
+    ?(male>female?"男性力量偏强":male<female?"女性力量偏强":"男性／女性力量接近")
+    :isFemale
+      ?(male>female?"男性力量在女性盘里偏强":male<female?"女性力量偏强":"男性／女性力量接近")
+      :(male>female?"男性力量偏强":male<female?"女性力量偏强":"男性／女性力量接近");
+
+  let genderText="";
+  if(isMale){
+    genderText=male>female
+      ?"这张男性盘的推进、主导、目标和独立感比较明显。"
+      :male<female
+        ?"这张男性盘在承接、关系感、稳定与照顾层面更突出，做事不一定靠强攻。"
+        :"这张男性盘的推进与承接力量比较接近，会明显看场景切换。";
+    if(seven) genderText+=" 同时内三角有7，按你的体系，男性的力量会多一点柔和、思考和感受，不会只是硬推。";
+  }else if(isFemale){
+    genderText=male>female
+      ?"这张女性盘的男性力量偏强，所以在做事时比较容易出现目标感、主导性、推进力和事业行动感。"
+      :male<female
+        ?"这张女性盘的女性力量更明显，比较容易从关系、承接、稳定、照顾和细节中建立力量。"
+        :"这张女性盘的两组力量比较接近，既能推进，也能承接。";
+    if(seven) genderText+=" 同时内三角有7，按你的体系，女性会多一点刚、边界感和独立判断。";
+  }else{
+    genderText=male>female
+      ?"整体更偏主导、推进、目标和独立路线。"
+      :male<female
+        ?"整体更偏承接、关系、稳定和细节路线。"
+        :"推进与承接两组力量比较接近。";
+  }
+
+  const actionBase=active>passive?"主动型":active<passive?"被动／观察型":"主动与被动接近";
+  let actionTitle=actionBase, actionText="";
+  if(active>passive){
+    if(corePassive===2){
+      actionTitle="整体主动，但核心会转被动";
+      actionText="从三角形内整体看，你是主动型，遇到事情通常愿意推进、处理、做决定；但你的主性格 "+main+" 和内心码 "+inner+" 都落在被动组，所以到了关系压力、需要确认安全感、怕做错或怕影响别人时，你会突然慢下来，先观察、先等、先确认。也就是说，你不是没有行动力，而是『外在能推进，核心遇到顾虑时会收回来』。";
+    }else if(corePassive===1){
+      actionTitle="主动为主，核心带观察";
+      actionText="整体底盘偏主动，但主性格／内心码里有一层被动能量，所以你不是盲目往前冲；越重要的事，越可能先看人、看风险或确认安全感，再决定怎么动。";
+    }else{
+      actionText="整体行动能量偏主动，遇到事情比较容易先推进、先处理，再边做边调整。";
+    }
+  }else if(active<passive){
+    if(coreActive===2){
+      actionTitle="整体偏观察，但核心会主动出手";
+      actionText="整体更习惯先看、先确认，但主性格 "+main+" 和内心码 "+inner+" 都带主动能量；一旦碰到自己真正重视的事、底线或目标，你会突然变得很明确，甚至主动接管局面。";
+    }else if(coreActive===1){
+      actionTitle="观察为主，关键时会主动";
+      actionText="你平时比较会先观察和确认，但核心并不是完全被动；当事情与你真正重视的目标有关时，你还是会出手。";
+    }else{
+      actionText="你比较习惯先观察、先确认、等条件清楚后才动，行动不是慢，而是需要心里有把握。";
+    }
+  }else{
+    actionText="主动和观察两种能力都在，通常会看场景切换：熟悉或有把握时主动，不确定或关系风险高时会先观察。";
+  }
+
+  const mindBase=rational>emotional?"理性主导":rational<emotional?"感性主导":"理性与感性接近";
+  let mindTitle=mindBase, mindText="";
+  if(emotional>rational){
+    if(coreRational===2){
+      mindTitle="整体感性，核心有很强理性校准";
+      mindText="三角形内整体明显偏感性，你会先感受到人、气氛、关系和自己的感觉；但主性格 "+main+" 与内心码 "+inner+" 又带理性组，所以真正做重要决定时，你会再把感受拿回来检查逻辑、规则和安全性。";
+    }else if(coreRational===1){
+      mindTitle="感性主导，带理性校准";
+      mindText="整体偏感性，你通常先有感觉，再去思考对不对；不过核心里有一层理性，会让你在重要决定前多做一次现实检查。";
+    }else{
+      mindText="你做决定比较看感觉、人、关系和当下体验。优势是感受快、共情强；要留意不要把当下情绪直接当成最终答案。";
+    }
+  }else if(rational>emotional){
+    if(coreEmotional===2){
+      mindTitle="整体理性，但核心很有感觉";
+      mindText="整体判断偏理性，习惯看条件、逻辑和可控性；但主性格 "+main+" 与内心码 "+inner+" 都有感性成分，所以关系和真正重要的人仍会明显影响你的判断。";
+    }else if(coreEmotional===1){
+      mindTitle="理性主导，内里仍会被感受触动";
+      mindText="整体偏理性，但核心不是没有感觉。碰到亲密关系、价值感或自己很在乎的人时，感受仍然会进入你的决定。";
+    }else{
+      mindText="你做决定更依赖逻辑、条件、结构与可控性，通常不会让一时情绪直接替你下决定。";
+    }
+  }else{
+    mindText="理性和感性都能调用，所以你通常看得很全面；卡点是两边都想顾时，容易想久一点才决定。";
+  }
+
   const braveTitle=brave>tactic?"战略【勇】偏强":brave<tactic?"战术【谋】偏强":"勇谋接近";
-  const genderText=/男/.test(g)
-    ?(male>female?"你做事比较容易走主导、推进、承担和目标路线；7如果明显，会让这种力量里多一点柔和、思考与感受。":male<female?"你在关系、承接、稳定和照顾层面比较明显。事业动力不能只看这项，还要继续结合父亲基因、坐镇码和现实工作经历。":"你身上的主导与承接两种力量都能调用，通常会看场景切换。")
-    :/女/.test(g)
-      ?(female>male?"你比较容易用承接、稳定、关系感和细节来建立力量；7明显时也会带出更刚、更有边界的一面。":female<male?"你身上的目标、主导、推进和事业感比较明显。资源与财富仍要结合母亲基因、现实收入和事业阶段验证。":"你同时有推进和承接的能力，通常不是固定一种风格。")
-      :"你身上的两种力量要结合实际性别与生活场景继续验证。";
-  const actionText=active>passive?"你遇到事情比较容易先动、先推进，再边做边调整。":active<passive?"你更习惯先观察、确认、等条件较清楚后再动。":"你既能主动推进，也会看环境再决定，切换能力比较强。";
-  const mindText=rational>emotional?"你做决定时更依赖逻辑、条件、结构与可控性；感受会有，但通常不会让它直接替你做决定。":rational<emotional?"你做决定时比较看感觉、人、关系和当下体验；直觉很快，但重要决定最好多加一次现实校准。":"你会同时顾逻辑和感受，所以有时优势是看得全面，有时也会因为两边都顾而拖慢决定。";
-  const visionText=vision>=2?"9在内三角重复，远见／大局视角很明显。你容易看趋势、长期和更多可能，但要留意目标太多、想得太远而分散。":vision===1?"内三角有9，你会有一定的大局与长线视角，但它不是压倒性的主轴。":"内三角没有9，远见不是主要自动模式；不代表没有长线能力，只是通常更从眼前条件与实际经验出发。";
-  const braveText=brave>tactic?"你比较像先定方向、敢出手的人；真正要补的是步骤、细节和节奏。":brave<tactic?"你比较像先拆步骤、看风险、谋清楚的人；真正要补的是决定时点和出手速度。":"你既能看方向，也能顾过程。压力大时要留意不要因为两边都想顾而变慢。";
-  const all='“综合三角形内来看，你是'+genderTitle+'，行动上属于'+actionTitle+'，做决定偏'+mindTitle+(vision?('，同时带'+vision+'个9的远见视角'):'')+'，整体又是'+braveTitle+'。换句话说，'+actionText+mindText+visionText+braveText+'”';
-  return '<div class="foundation-block direct-behavior-panel"><div class="card-heading"><div><small>DIRECT SYNTHESIS · INNER TRIANGLE</small><h3>系统已经替你分析好 · 不用自己数</h3></div><span>只看三角形内</span></div>'
+  let braveText=brave>tactic
+    ?"整体比较像先抓方向、敢决定、敢推进的人。"
+    :brave<tactic
+      ?"整体比较像先拆步骤、看风险、想清楚怎么做的人。"
+      :"方向感和执行规划都比较接近，能看大局也能顾过程。";
+  if(brave>tactic && corePassive===2) braveText+=" 但因为主性格与内心码都偏被动，你不是每一次都马上出手；越涉及关系、安全感或怕做错时，『谋』会先出来。";
+  if(tactic>brave && coreActive===2) braveText+=" 不过核心主动性不弱，真的认定目标后，行动速度会明显加快。";
+
+  const visionTitle=vision>=2?"远见明显":vision===1?"有远见视角":"远见9不突出";
+  const visionText=vision>=2
+    ?"9在内三角重复，比较容易自然看趋势、长期和更大的可能性；要留意不要因为想得太远而分散当下执行。"
+    :vision===1
+      ?"内三角有9，所以会有一定的大局、趋势与长线视角，但它不是整张盘唯一主轴。"
+      :"内三角没有9，所以远见不是最自动的第一反应；这不代表没有长线能力，而是通常更从眼前条件和实际经验开始判断。";
+
+  const integrated='“我先帮你把这几组综合起来看。你的三角形内，'+genderTitle+'；做事方式是'+actionTitle+'；思考与决定偏'+mindTitle+'；整体是'+braveTitle+'；'+visionTitle+'。'+genderText+' '+actionText+' '+mindText+' '+braveText+' '+visionText+'”';
+
+  const probe1=active>passive&&corePassive===2
+    ?"“你是不是平常看起来很能做、也愿意推进，但一碰到关系、怕做错、怕影响别人时，就会突然慢下来，甚至先等别人反应？”"
+    :"“你遇到一件重要的事，通常是马上推进，还是会先观察到心里比较有把握才动？”";
+  const probe2=emotional>rational
+    ?"“你做决定的时候，是不是常常先有一个感觉，然后才开始找理由、条件或规则来确认这个感觉能不能执行？”"
+    :"“你做重要决定时，会不会先把条件、风险和逻辑想清楚，之后才允许自己去看感受？”";
+
+  return '<div class="foundation-block direct-behavior-panel"><div class="card-heading"><div><small>DIRECT SYNTHESIS · INNER TRIANGLE</small><h3>三角形内综合模式 · 系统直接替你判读</h3></div><span>不需要Josephine自己再数</span></div>'
     +'<div class="direct-insight-grid">'
       +'<article><small>性别力量</small><h4>'+esc(genderTitle)+'</h4><p>'+esc(genderText)+'</p></article>'
       +'<article><small>主动／被动</small><h4>'+esc(actionTitle)+'</h4><p>'+esc(actionText)+'</p></article>'
       +'<article><small>理性／感性</small><h4>'+esc(mindTitle)+'</h4><p>'+esc(mindText)+'</p></article>'
-      +'<article><small>远见9</small><h4>'+(vision?('有 · '+vision+'次'):'不突出')+'</h4><p>'+esc(visionText)+'</p></article>'
       +'<article><small>战略／战术</small><h4>'+esc(braveTitle)+'</h4><p>'+esc(braveText)+'</p></article>'
+      +'<article><small>远见9</small><h4>'+esc(visionTitle)+'</h4><p>'+esc(visionText)+'</p></article>'
     +'</div>'
-    +'<div class="question-box"><b>Josephine 可以直接照读：</b><br>'+esc(all)+'</div>'
-    +'<details class="reference-only"><summary>查看系统计算依据（平时咨询不用展开）</summary><p>男性力量 '+male+'｜女性力量 '+female+'｜主动 '+active+'｜被动 '+passive+'｜理性 '+rational+'｜感性 '+emotional+'｜9 '+vision+'｜勇 '+brave+'｜谋 '+tactic+'</p></details>'
+    +'<div class="question-box"><b>Josephine 专业白话｜可以直接照读：</b><br>'+esc(integrated)+'</div>'
+    +'<div class="answer-branches"><div><b>验证顾客 1</b><p>'+esc(probe1)+'</p></div><div><b>验证顾客 2</b><p>'+esc(probe2)+'</p></div></div>'
+    +'<div class="formula-note"><b>系统判断顺序：</b>先用三角形内全部数字看整体倾向，再用主性格 '+main+' ＋ 内心码 '+inner+' 做“核心修正”。所以不会再出现“整体算主动，就硬说这个人永远主动”的情况。</div>'
+    +'<details class="reference-only"><summary>查看系统计算依据（现场咨询默认不展开）</summary>'
+      +'<p>男性力量 '+male+'｜女性力量 '+female+'｜主动 '+active+'｜被动 '+passive+'｜理性 '+rational+'｜感性 '+emotional+'｜战略【勇】 '+brave+'｜战术【谋】 '+tactic+'｜9 '+vision+'</p>'
+      +'<p>主性格 '+main+'｜内心码 '+inner+'｜核心主动命中 '+coreActive+'｜核心被动命中 '+corePassive+'｜核心理性命中 '+coreRational+'｜核心感性命中 '+coreEmotional+'</p>'
+    +'</details>'
     +'</div>';
 }
 
