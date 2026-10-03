@@ -1337,6 +1337,153 @@ const CHILD_MODE_PROFILE = {
   9:{exam:"理解整体、联想和创意通常不错，但容易想太多方向、忽略细节或时间管理。考试适合先抓大框架，再用清单收尾。",speech:"说话容易带故事、想法和大方向，常常从一个点联想到很多可能。",pressure:"压力大时容易一下想很多结果、很多可能，或者因为理想太大而不知道先做哪一步。"}
 };
 
+
+function childDigitLayer(n,role){
+  const d=DIGIT_CORE[n]||{}, m=CHILD_MODE_PROFILE[n]||{}, detail=MAIN_DETAIL[n]||{};
+  if(role==="cause"){
+    return {
+      title:n+"号｜因／为什么会这样反应",
+      text:"孩子遇到事情时，内在比较容易先从「"+(d.core||"")+"」启动。也就是说，事情还没真正展开，他已经会先在意："+(detail.reaction||d.core||"")+"。",
+      home:"在家里常见：当规则、期待或关系碰到这一点时，反应会特别明显。",
+      school:"在学校／学习上可观察："+(m.exam||"先看真实学习反应。")
+    };
+  }
+  if(role==="process"){
+    return {
+      title:n+"号｜过程／他怎么处理",
+      text:"事情发生后，他比较容易用「"+(d.core||"")+"」来处理。顺的时候会变成"+(d.gift||"优势")+"；压力大时则可能走向"+(d.shadow||"过度反应")+"。",
+      home:"家长要看的不是“他听不听话”，而是他正在用什么方式让自己重新有安全感／掌控感。",
+      school:"在学习和考试压力里："+(m.pressure||detail.stress||"需要结合真实场景观察。")
+    };
+  }
+  return {
+    title:n+"号｜结果／别人最后看到的样子",
+    text:"处理到最后，外面比较容易看到「"+(d.core||"")+"」这一面。这个数字如果同时是主性格，就会成为比较稳定的长期底色。",
+    home:"家长最容易把这一层当成“他的性格”，但其实前面还有因和过程。",
+    school:"说话／表达上："+(m.speech||detail.speech||"需要结合真实沟通场景验证。")
+  };
+}
+
+const CHILD_SEAT_OVERRIDES={
+  "461":{
+    name:"规则感＋责任感＋自主意识",
+    summary:"461的小朋友常常不是一开始就强势。4让他先想“这样对不对、会不会出错、有没有规则”；6让他在过程中想把事情做好、顾责任、顾标准；最后落到1，所以外面看到的往往是一个很有主见、想自己决定、说话直接的孩子。",
+    speech:"说话最后会带1号的直接和结论感，尤其当他已经想清楚时，会觉得“我知道了，我自己来”。但因为过程有6，他也可能很爱提醒、纠正或告诉别人“应该怎样做”。如果内心码再落到2，就会出现一个反差：嘴上很硬、很有主见，里面其实很在意别人有没有不开心、有没有理解他。",
+    learning:"学习上，4需要清楚规则和结构，6会让他想把事情做好，1则希望自己掌握方法。最适合的是：先给框架，再让他自己完成；最容易卡的是家长一直纠正、一直替他决定，让1号觉得被控制。",
+    pressure:"压力大时可能变成“4怕错＋6觉得自己应该做好＋1不想输”。表现出来就是固执、顶嘴、急着证明自己，或者明明很紧张却说“我会，我自己来”。",
+    parent:"带461小朋友，不要只跟1号硬碰硬。先把规则讲清楚（4），再肯定他的认真和责任感（6），最后给他两个可选择的方案，让1有自主权。"
+  }
+};
+
+function childSeatCodeDeepPanel(a){
+  const c=String(a.seatCode||"");
+  const ds=jointCodeDigits(c);
+  const cause=childDigitLayer(ds[0],"cause"), process=childDigitLayer(ds[1],"process"), result=childDigitLayer(ds[2],"result");
+  const main=Number(a.mainPersonality||ds[2]||0);
+  const inner=Number(a.innerCode||0);
+  const sub=Number(a.subconsciousCode||0);
+  const mainD=MAIN_DETAIL[main]||{}, mainM=CHILD_MODE_PROFILE[main]||{}, innerD=DIGIT_CORE[inner]||{}, innerM=CHILD_MODE_PROFILE[inner]||{}, subD=DIGIT_CORE[sub]||{}, subM=CHILD_MODE_PROFILE[sub]||{};
+  const ov=CHILD_SEAT_OVERRIDES[c]||{};
+  const summary=ov.summary||("这组"+c+"可以直接按『"+ds[0]+"是因 → "+ds[1]+"是过程 → "+ds[2]+"是结果／主性格』来读。孩子不是突然变成"+main+"号，而是前面两层一路把反应推到最后，形成你最常看到的"+main+"号表现。");
+  const speech=ov.speech||("说话方式主要会被结果位／主性格"+main+"带出来："+(mainM.speech||mainD.speech||"")+"；但内心码"+inner+"会让他说完以后在里面再经历一层「"+(innerD.core||"")+"」，潜意识"+sub+"又会在突发情况下自动启动「"+(subD.core||"")+"」。所以不要只听他说出来的那一句，要看他说之前在担心什么、说完后又怎么消化。");
+  const learning=ov.learning||("学习上先看因位"+ds[0]+"需要什么条件，再看过程位"+ds[1]+"怎样处理压力，最后看主性格"+main+"怎样把结果表现出来。"+(mainM.exam||""));
+  const pressure=ov.pressure||("压力下，因位可能先出现"+(DIGIT_CORE[ds[0]]?.shadow||"不安")+"，过程位可能走到"+(DIGIT_CORE[ds[1]]?.shadow||"用力过度")+"，最后由主性格"+main+"表现成："+(mainM.pressure||mainD.stress||"需要结合真实场景验证。"));
+  const parent=ov.parent||("家长要做的是先满足因位需要的安全条件，再帮助过程位换一种更省力的处理方式，最后给主性格"+main+"保留健康表达空间。不是压掉他的性格，而是教他怎么把同一组能量用得更成熟。");
+
+  let innerText="";
+  if(inner){
+    innerText="内心码 "+inner+" 不等于外面看到的他。里面真正比较在意的是「"+(innerD.core||"")+"」。顺的时候是"+(innerD.gift||"")+"；不安时会"+(innerD.shadow||"")+"。"+
+      (innerM.pressure?("所以当他嘴上说没事时，里面可能其实会"+innerM.pressure):"");
+  }
+  let subText="";
+  if(sub){
+    subText="潜意识码 "+sub+" 是事情突然发生、还没来得及想时最容易先启动的反应。这里是「"+(subD.core||"")+"」；顺的时候会"+(subD.gift||"")+"，压力下可能"+(subD.shadow||"")+"。"+
+      (subM.speech?("这也会影响他当下的语气："+subM.speech):"");
+  }
+
+  return '<div class="foundation-block child-seat-deep">'
+    +'<div class="card-heading"><div><small>CHILD SEAT CODE · 因 → 过程 → 结果</small><h3>儿童坐镇码 '+esc(c)+' × 主性格 '+main+'</h3></div><span>'+esc(ov.name||"儿童组合模式")+'</span></div>'
+    +'<div class="formula-note"><b>儿童版联合码不是成人版换几个字。</b>这里固定看：为什么这样反应 → 他怎么处理 → 最后大人看到什么；再叠加主性格、内心码、潜意识码，最后才形成这个孩子完整的行为模式。</div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>① 因</small><h4>'+esc(cause.title)+'</h4><p>'+esc(cause.text)+'</p><p>'+esc(cause.school)+'</p></div>'
+      +'<div><small>② 过程</small><h4>'+esc(process.title)+'</h4><p>'+esc(process.text)+'</p><p>'+esc(process.school)+'</p></div>'
+      +'<div><small>③ 结果／主性格</small><h4>'+esc(result.title)+'</h4><p>'+esc(result.text)+'</p><p>'+esc(result.school)+'</p></div>'
+      +'<div><small>④ 整组模式</small><h4>'+esc(c)+'怎么连起来</h4><p>'+esc(summary)+'</p></div>'
+    +'</div>'
+    +'<div class="child-insight-grid">'
+      +'<div><small>主性格 '+main+' 会把他变成什么样</small><p>'+esc((mainD.behavior||"")+' '+(mainD.reaction||""))+'</p></div>'
+      +'<div><small>说话方式</small><p>'+esc(speech)+'</p></div>'
+      +'<div><small>内心码 '+inner+'</small><p>'+esc(innerText)+'</p></div>'
+      +'<div><small>潜意识码 '+sub+'</small><p>'+esc(subText)+'</p></div>'
+      +'<div><small>学习／考试</small><p>'+esc(learning)+'</p></div>'
+      +'<div><small>面对压力</small><p>'+esc(pressure)+'</p></div>'
+      +'<div><small>家长怎么带</small><p>'+esc(parent)+'</p></div>'
+      +'<div><small>优势怎么发挥</small><p>'+esc("不要只纠正结果位"+main+"的行为。先把"+ds[0]+"的需要看见，再教"+ds[1]+"更好的处理方法，"+main+"的优势才会真正出来。")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 可以直接跟家长说：</b><br>“我不会只告诉你他是'+main+'号。这个孩子是'+ds[0]+'先启动、'+ds[1]+'负责处理，最后才表现成'+main+'。所以你看到的强势、敏感、慢、急，很多时候只是最后一层。我们要找的是他前面为什么会变成这样。”</div>'
+    +'<div class="answer-branches"><div><b>可以问家长 1</b><p>“他一被纠正的时候，是先紧张、先解释、先顶嘴，还是先不说话？我想看的是他‘第一秒’怎么反应。”</p></div><div><b>可以问家长 2</b><p>“他在学校和在家说话是一样的吗？跟老师、同学、爸爸妈妈分别会不会像不同的人？”</p></div><div><b>可以问家长 3</b><p>“考试前最容易出现的是怕错、拖延、急躁、想自己来，还是一直需要你确认？”</p></div></div>'
+    +'</div>';
+}
+
+function childJointPositionMeaning(label){
+  const x=String(label||"");
+  if(x.includes("父亲")) return "放在父亲基因时，不讲成人事业，优先观察孩子怎样理解权威、规则、爸爸／男性照顾者，以及被要求时的反应。";
+  if(x.includes("母亲")) return "放在母亲基因时，优先观察孩子怎样接收照顾、安全感、情绪回应，以及和妈妈／主要照顾者之间的互动。";
+  if(x.includes("坐镇")||x.includes("主性格")) return "放在坐镇／主性格位置时，是孩子最常重复的核心行为链：为什么这样反应 → 怎么处理 → 最后表现成什么。";
+  if(x.includes("21–40")||x.includes("41–60")||x.includes("61")) return "这组在儿童咨询里不拿来预测成年事业／财富，只作为成长后的结构参考；现场仍然先用孩子现在的学习、表达、关系和压力反应验证。";
+  return "儿童版只拿来观察学习、表达、家庭、同伴、规则和压力反应，不套成人财富／婚姻／事业结论。";
+}
+
+function childJointBlock(c,label){
+  const ds=jointCodeDigits(c);
+  if(ds.length!==3) return "";
+  const first=childDigitLayer(ds[0],"cause"), second=childDigitLayer(ds[1],"process"), third=childDigitLayer(ds[2],"result");
+  const s=getFlootKnowledge(c)||{};
+  const adultCore=s.logic||"";
+  const strengths=ds.map(n=>DIGIT_CORE[n]?.gift).filter(Boolean).join("＋");
+  const shadows=ds.map(n=>DIGIT_CORE[n]?.shadow).filter(Boolean).join("；");
+  const speech=CHILD_MODE_PROFILE[ds[2]]?.speech||"";
+  const exam=[CHILD_MODE_PROFILE[ds[0]]?.exam,CHILD_MODE_PROFILE[ds[1]]?.exam,CHILD_MODE_PROFILE[ds[2]]?.exam].filter(Boolean).join(" ");
+  const parentGuide="先处理"+ds[0]+"的触发点，再教"+ds[1]+"更健康的处理方式，最后给"+ds[2]+"一个可以表达但有边界的出口。";
+  return '<details class="joint-entry child-joint-entry"><summary><span><b>'+esc(c)+'</b> · '+esc(label)+'<small style="display:block;font-weight:400;margin-top:4px;opacity:.72">儿童白话：'+ds[0]+'是因 → '+ds[1]+'是过程 → '+ds[2]+'是结果</small></span><span>儿童版</span></summary>'
+    +'<div class="joint-body"><div class="source-tag">儿童联合码｜不套成人事业财富婚姻</div>'
+      +'<div class="notion-consult-grid"><div><small>因</small><p>'+esc(first.text)+'</p></div><div><small>过程</small><p>'+esc(second.text)+'</p></div><div><small>结果</small><p>'+esc(third.text)+'</p></div><div><small>这个位置</small><p>'+esc(childJointPositionMeaning(label))+'</p></div></div>'
+      +(adultCore?'<div class="formula-note"><b>原组合逻辑只保留结构参考：</b>'+esc(adultCore)+'<br>儿童咨询不会直接沿用其中的成人财富／事业／关系结论。</div>':'')
+      +'<div class="child-insight-grid"><div><small>正面潜力</small><p>'+esc(strengths)+'</p></div><div><small>压力卡点</small><p>'+esc(shadows)+'</p></div><div><small>说话表现</small><p>'+esc(speech)+'</p></div><div><small>学习／考试</small><p>'+esc(exam)+'</p></div></div>'
+      +'<div class="question-box"><b>Josephine 儿童白话：</b><br>“这组'+esc(c)+'我不会用成人方式去讲。对孩子来说，我先看'+ds[0]+'为什么被触发，再看'+ds[1]+'怎么处理，最后才看到'+ds[2]+'表现出来。真正要帮他的，不是把最后那个行为压掉，而是从前面两步开始调整。”</div>'
+      +'<div class="question-box"><b>家长开解方向：</b><br>“'+esc(parentGuide)+'”</div>'
+    +'</div></details>';
+}
+
+function childUnifiedJointCodes(a){
+  const rows=[
+    ["父亲基因",a.fatherCode],
+    ["母亲基因",a.motherCode],
+    ["坐镇码／主性格",a.seatCode],
+    ["21–40 因果",code(a.phases?.["21–40"]?.cause||[])],
+    ["21–40 过程1",code(a.phases?.["21–40"]?.process1||[])],
+    ["21–40 过程2",code(a.phases?.["21–40"]?.process2||[])],
+    ["21–40 结果",code(a.phases?.["21–40"]?.result||[])],
+    ["41–60 因果",code(a.phases?.["41–60"]?.cause||[])],
+    ["41–60 过程1",code(a.phases?.["41–60"]?.process1||[])],
+    ["41–60 过程2",code(a.phases?.["41–60"]?.process2||[])],
+    ["41–60 结果",code(a.phases?.["41–60"]?.result||[])],
+    ["61+ 因果",code(a.phases?.["61+"]?.cause||[])],
+    ["61+ 过程1",code(a.phases?.["61+"]?.process1||[])],
+    ["61+ 过程2",code(a.phases?.["61+"]?.process2||[])],
+    ["61+ 结果",code(a.phases?.["61+"]?.result||[])]
+  ].filter(x=>x[1]);
+  const map=new Map();
+  rows.forEach(([label,cv])=>{
+    if(!map.has(cv)) map.set(cv,{code:cv,labels:[]});
+    map.get(cv).labels.push(label);
+  });
+  const unique=[...map.values()].filter(x=>x.code!==String(a.seatCode)); // seat already deeply explained above
+  return '<div class="foundation-block"><div class="card-heading"><div><small>CHILD JOINT CODES · DEDUPED</small><h3>儿童联合码完整解析 · 每组只出现一次</h3></div><span>学习 · 表达 · 压力 · 家庭</span></div>'
+    +'<div class="formula-note">坐镇码已经在上面完整讲过，这里不重复。其他联合码如果号码一样，也只出现一次，把所有位置合并在标题。儿童版不会出现“发财、桃花、高管、婚姻结果”这类成人话术。</div>'
+    +'<div class="joint-stack">'+(unique.length?unique.map(x=>childJointBlock(x.code,x.labels.join("｜"))).join(""):'<div class="empty-mini">其余联合码已在前面出现，不需要重复。</div>')+'</div></div>';
+}
+
 function childAudience(c){
   return localStorage.getItem(blueprintAudienceKey(c.id))||"adult";
 }
@@ -1363,33 +1510,35 @@ function childBlueprintPanel(c){
   const positive=child.strength||adult.talents||"";
   const negative=child.watch||adult.watch||"";
   const traits=(child.keywords||[]).join("、");
-  const talk='“这个孩子的核心不是只看成 '+n+' 号。'+(child.strength||"")+'。如果状态好，这会变成他的优势；但压力一大时，也会出现另一面，所以我们要一起看他在学校、考试、家里和跟人相处时怎么表现。”';
+  const talk='“这个孩子我不会只看成 '+n+' 号。我会先看坐镇码为什么启动、怎么处理、最后怎样表现，再叠加内心码和潜意识码。这样你会知道：你现在看到的是他的本性、压力反应，还是为了适应环境长出来的做法。”';
   return '<div class="module-render child-blueprint-mode">'
-    +'<div class="card-heading"><div><small>CHILD BLUEPRINT MODE</small><h2>小朋友蓝图 · '+esc(c.name)+'</h2></div><span>儿童解读模式</span></div>'
+    +'<div class="card-heading"><div><small>CHILD BLUEPRINT MODE</small><h2>小朋友蓝图 · '+esc(c.name)+'</h2></div><span>联合码儿童化 · 深度版</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
-    +'<div class="formula-note"><b>儿童模式会自动换语言：</b>不讲事业、财富、婚姻结果，重点看性格、学习、考试、压力、表达、优势、卡点和家长怎么带。数字只作为观察线索，真实行为优先。</div>'
+    +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
+    +childSeatCodeDeepPanel(a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
       +'<div class="child-insight-grid">'
         +'<div><small>特性</small><p>'+esc(traits||child.strength||"")+'</p></div>'
-        +'<div><small>性格</small><p>'+esc(child.strength||adult.behavior||"")+'</p></div>'
+        +'<div><small>性格底色</small><p>'+esc(child.strength||adult.behavior||"")+'</p></div>'
         +'<div><small>正面</small><p>'+esc(positive)+'</p></div>'
-        +'<div><small>负面</small><p>'+esc(negative)+'</p></div>'
+        +'<div><small>负面／用过头</small><p>'+esc(negative)+'</p></div>'
         +'<div><small>面对压力</small><p>'+esc(mode.pressure||adult.stress||"")+'</p></div>'
         +'<div><small>考试／学习反应</small><p>'+esc(mode.exam||"要结合孩子真实学习方式验证。")+'</p></div>'
         +'<div><small>跟人说话的态度</small><p>'+esc(mode.speech||adult.speech||"")+'</p></div>'
-        +'<div><small>优势</small><p>'+esc(child.strength||adult.talents||"")+'</p></div>'
-        +'<div><small>卡点</small><p>'+esc(child.watch||adult.watch||"")+'</p></div>'
+        +'<div><small>核心优势</small><p>'+esc(child.strength||adult.talents||"")+'</p></div>'
+        +'<div><small>主要卡点</small><p>'+esc(child.watch||adult.watch||"")+'</p></div>'
       +'</div>'
       +'<div class="question-box"><b>Josephine 可以直接跟家长说：</b><br>'+esc(talk)+'</div>'
     +'</div>'
-    +'<div class="foundation-block"><div class="card-heading"><div><small>WHOLE CHART MODIFIERS</small><h3>不是只看主数字 · 再看整张盘怎么修正</h3></div><span>重复 · 缺失 · 情绪</span></div>'
+    +'<div class="foundation-block"><div class="card-heading"><div><small>WHOLE CHART MODIFIERS</small><h3>整张盘怎样修正这个孩子</h3></div><span>重复 · 缺失 · 情绪</span></div>'
       +'<div class="child-insight-grid"><div><small>重复／天赋放大</small><p>'+esc(mods.repeated)+'</p></div><div><small>缺失／需要练习</small><p>'+esc(mods.missing)+'</p></div><div><small>情绪模式</small><p>'+esc(mods.emotion)+'</p></div></div>'
       +'<div class="question-box"><b>验证家长：</b><br>“这些里面，哪一项在学校最明显？哪一项只在家里出现？如果学校和家里完全不一样，我们就继续看内外三角和环境影响。”</div>'
     +'</div>'
-    +'<div class="foundation-block"><div class="card-heading"><div><small>PARENT GUIDANCE</small><h3>家长怎么带 · 不只告诉他哪里不好</h3></div></div>'
+    +childUnifiedJointCodes(a)
+    +'<div class="foundation-block"><div class="card-heading"><div><small>PARENT GUIDANCE</small><h3>家长怎么带 · 从原因开始，不只纠正结果</h3></div></div>'
       +'<div class="question-box"><b>教育方向：</b><br>'+esc(child.guide||"先顺着优势建立信心，再训练较弱的部分。")+'</div>'
-      +'<div class="question-box"><b>可以问家长：</b><br>“他被催的时候是什么反应？”<br>“考试前最常出现的是拖延、紧张、急躁，还是过度检查？”<br>“老师眼里的他，跟你在家里看到的是同一个样子吗？”<br>“他最容易因为什么被批评后马上关掉自己？”</div>'
+      +'<div class="question-box"><b>可以问家长：</b><br>“他被催的时候第一秒是什么反应？”<br>“考试前最常出现的是拖延、紧张、急躁，还是过度检查？”<br>“老师眼里的他，跟你在家里看到的是同一个样子吗？”<br>“他说完很硬的话以后，会不会其实很在意别人有没有生气？”<br>“他最容易因为什么被批评后马上关掉自己？”</div>'
       +'<div class="formula-note">如果孩子持续出现明显学习困难、情绪困扰、睡眠／身体症状或发展问题，数字咨询不代替老师、儿科医生、教育心理或心理专业评估。</div>'
     +'</div>'
     +'</div>';
