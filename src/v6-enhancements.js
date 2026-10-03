@@ -747,29 +747,27 @@ function energy679Panel(a){
 }
 
 function unifiedJointCodes(a){
+  const alreadyExplained=new Set([a.fatherCode,a.motherCode,a.seatCode]);
   const rows=[
-    ["21–40 因果／父亲基因",a.phases["21–40"].cause],
     ["21–40 过程1",a.phases["21–40"].process1],
     ["21–40 过程2",a.phases["21–40"].process2],
     ["21–40 结果",a.phases["21–40"].result],
-    ["41–60 因果／坐镇码",a.phases["41–60"].cause],
     ["41–60 过程1",a.phases["41–60"].process1],
     ["41–60 过程2",a.phases["41–60"].process2],
     ["41–60 结果",a.phases["41–60"].result],
-    ["61+ 因果／母亲基因",a.phases["61+"].cause],
     ["61+ 过程1",a.phases["61+"].process1],
     ["61+ 过程2",a.phases["61+"].process2],
     ["61+ 结果",a.phases["61+"].result]
-  ].map(([label,arr])=>({label,code:(arr||[]).join("")}));
+  ].map(([label,arr])=>({label,code:(arr||[]).join("")})).filter(x=>!alreadyExplained.has(x.code));
   const map=new Map();
   rows.forEach(r=>{
     if(!map.has(r.code)) map.set(r.code,{code:r.code,labels:[]});
     map.get(r.code).labels.push(r.label);
   });
   const unique=[...map.values()];
-  return '<div class="foundation-block"><div class="card-heading"><div><small>JOINT CODES · DEDUPED</small><h3>联合码完整解析 · 每组只出现一次</h3></div><span>'+unique.length+'组唯一组合</span></div>'
-    +'<div class="formula-note">同一组联合码如果同时出现在父亲基因、坐镇码或不同年龄阶段，系统只显示一次，并把所有位置合并写在标题里。Josephine讲解时不需要重复讲同一组内容。</div>'
-    +'<div class="joint-stack">'+unique.map(x=>jointBlock(x.code,x.labels.join("｜"))).join("")+'</div></div>';
+  return '<div class="foundation-block"><div class="card-heading"><div><small>JOINT CODES · DEDUPED</small><h3>联合码完整解析 · 每组只出现一次</h3></div><span>'+unique.length+'组待展开</span></div>'
+    +'<div class="formula-note"><b>去重规则：</b>父亲基因、母亲基因、坐镇码已经在前面各自的正式位置讲过，所以这里不再重复。其余过程／结果联合码如果号码相同，也只出现一次，并把所有位置合并到标题。</div>'
+    +'<div class="joint-stack">'+(unique.length?unique.map(x=>jointBlock(x.code,x.labels.join("｜"))).join(""):'<div class="empty-mini">其余阶段码都已在前面出现，不需要重复展开。</div>')+'</div></div>';
 }
 
 function phaseOverview(a,name){
@@ -1156,6 +1154,7 @@ function lifeBlueprintPanel(c){
       +'<div class="year-positive-negative"><div><small>主性格正面</small><p>'+esc((profile?.positive||[]).join("；"))+'</p></div><div><small>主性格压力面</small><p>'+esc((profile?.negative||[]).join("；"))+'</p></div></div>'
       +(detail?'<div class="origin-grid"><div><span>思考／行为</span><p>'+esc(detail.thinking||"")+' '+esc(detail.behavior||"")+'</p></div><div><span>说话／压力</span><p>'+esc(detail.speech||"")+' '+esc(detail.stress||"")+'</p></div><div><span>情感需求</span><p>'+esc(detail.emotion||"")+'</p></div><div><span>核心天赋</span><p>'+esc(detail.talents||"")+'</p></div></div>':'')
       +'<div class="question-box"><b>'+a.mainPersonality+'号人专属提问：</b><br>'+qs.map((q,i)=>(i+1)+"）"+esc(q)).join("<br>")+'</div>'
+      +'<div class="joint-stack single-seat">'+jointBlock(a.seatCode,"坐镇码／主性格结构 · 此处只讲一次")+'</div>'
     +'</div>'
     +parentGeneBalancePanel(a)
     +talentNumbersPanel(a)
