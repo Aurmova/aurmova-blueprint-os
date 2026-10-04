@@ -1623,6 +1623,23 @@ function childBlueprintPanel(c){
     +'</div>';
 }
 
+
+function consultationStartPanel(c,a){
+  const age=ageFromBirthday(c.birthday), phase=phaseForAge(age), meta=PHASE_META[phase]||{};
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>LIVE CONSULTATION · START HERE</small><h3>咨询从这里直接开始 · 不是全部解读完才问</h3></div><span>'+age+'岁 · '+esc(meta.label||phase)+'</span></div>'
+    +'<div class="question-box"><b>开场可以直接照读：</b><br>“'+esc(c.name||"顾客")+'，今天我不会一开始就丢很多数字给你。我会先听你现在最想解决什么，再用你的盘去找相关模式。数字只是给我观察方向，如果跟你的真实经历不一样，我们就以你的经历为准。”</div>'
+    +'<div class="question-box"><b>第一题直接问：</b><br>“你今天最想解决的是工作／事业、关系、钱、家庭，还是自己的方向？”</div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>顾客说「工作」</small><p>“好，那我先看你做决定、行动、责任和当前年龄阶段，找出真正卡在哪一层。”</p></div>'
+      +'<div><small>顾客说「关系」</small><p>“好，我先看你怎么顾关系、怎么表达需要，再看原生模式和内外反差。”</p></div>'
+      +'<div><small>顾客说「钱」</small><p>“好，我不会只看一个财运数字，我会把赚钱方式、选择、边界、资源管理和当前阶段一起看。”</p></div>'
+      +'<div><small>顾客说「不知道」</small><p>“没关系，那我先给你一个最明显的观察，你听听看像不像，再从你的故事进去。”</p></div>'
+    +'</div>'
+    +'<div class="formula-note"><b>固定节奏：</b>先问 → 顾客回答 → 接住原话 → 连回数字／位置 → 问最近一个真实例子 → 才给建议。不要把所有解释念完才让顾客讲话。</div>'
+    +'</div>';
+}
+
 function lifeBlueprintPanel(c){
   if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
