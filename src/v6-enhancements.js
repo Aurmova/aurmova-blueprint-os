@@ -1640,6 +1640,51 @@ function consultationStartPanel(c,a){
     +'</div>';
 }
 
+
+function currentPhaseConsultationPanel(c,a){
+  const age=ageFromBirthday(c.birthday), phase=phaseForAge(age), meta=PHASE_META[phase]||{}, v=a.phases[phase]||{};
+  const codes=[code(v.cause||[]),code(v.process1||[]),code(v.process2||[]),code(v.result||[])];
+  const ks=codes.map(cv=>getFlootKnowledge(cv)||{});
+  const all=codes.join("");
+  const has=n=>all.includes(String(n));
+  const stageLine=codes.map((cv,i)=>{
+    const label=["因／为什么会启动","过程一／事情怎样展开","过程二／另一条展开线","结果／长期容易走到"][i];
+    const k=ks[i]||{};
+    return '<div><small>'+label+'</small><strong>'+esc(cv)+'</strong><p>'+esc(k.script||k.logic||"结合这个位置与真实经历验证。")+'</p></div>';
+  }).join("");
+  const career=(has(3)||has(5)||has(8)||has(1))
+    ?"这一阶段比较值得验证推进、变化、成果和自主决定有没有同时变多。能力越强，越要分清什么值得做，什么只是因为你做得到就接下来。"
+    :"这一阶段更值得看稳定、协调、专业深度与长期累积，不一定要用很快的扩张证明自己。";
+  const relation=(has(2)||has(6)||has(7))
+    ?"关系、合作、照顾与判断边界会明显参与决定。重点不是有没有人缘，而是会不会因为顾关系把自己的条件讲得太晚。"
+    :"关系不是这一阶段唯一主轴，仍要用真实合作和亲密关系验证。";
+  const wealth=(has(4)||has(6)||has(8))
+    ?"财富更值得看制度、责任、资源和结果；越往后越不能只靠人情与临场处理。"
+    :"财富先看机会怎样进来、怎样选择与执行，再补制度和长期管理。";
+  const responsibility=(has(6)||has(8))
+    ?"这一阶段比较容易进入“别人越来越把事情交给你”的状态。课题是责任边界，不是证明自己能扛多少。"
+    :"责任压力未必是主轴，但仍要看有没有把不属于自己的事情接进来。";
+  const network=(has(2)||has(3)||has(7)||has(9))
+    ?"人脉、沟通、识人或机会连接值得重点验证。重点不是认识越多人越好，而是哪些关系真的能互相支持。"
+    :"人脉不是自动优势时，更适合经营少量稳定关系，而不是追求数量。";
+  const inner="当前阶段要和主性格"+a.mainPersonality+"、内心码"+a.innerCode+"、潜意识"+a.subconsciousCode+"一起读：外面的阶段要求与里面真正需要不一致时，体感通常会更累。";
+  const aspects=[
+    ["事业／工作",career,"这几年你的工作是越来越被交付责任，还是仍然主要靠临场救火？"],
+    ["关系／合作",relation,"合作开始时，你会不会先顾气氛，做到后面才谈条件或边界？"],
+    ["财富／资源",wealth,"现在你的钱更卡在机会不够、选择太多，还是制度和管理跟不上？"],
+    ["责任",responsibility,"有没有越来越多事情因为你做得到，最后就自然变成你负责？"],
+    ["人际／朋友",network,"你现在的人际是越多越好，还是圈子变小但更精准？"],
+    ["内在状态",inner,"外面要求你做的，和你里面真正想要的，是同一个方向吗？"]
+  ];
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>CURRENT LIFE PHASE · AUTO AGE</small><h3>当前阶段｜'+age+'岁｜'+esc(meta.label||phase)+'｜'+esc(meta.theme||"")+'</h3></div><span>只展开当前阶段</span></div>'
+    +'<div class="formula-note"><b>系统已自动判断年龄：</b>不会再只是告诉你“这个阶段看事业／孩子／家庭”。下面直接用这个顾客当前阶段的四组码做咨询：'+esc(codes.join(" → "))+'。</div>'
+    +'<div class="phase-code-grid">'+stageLine+'</div>'
+    +'<div class="v23-detail-grid">'+aspects.map(x=>'<article><h4>'+x[0]+'</h4><p>'+esc(x[1])+'</p><div class="question-box"><b>验证顾客：</b><br>“'+esc(x[2])+'”</div><div class="question-box"><b>顾客确认后：</b><br>“好，那这就是你当前阶段正在放大的现实课题。我们不讲命定结果，直接看现在要调整哪一个选择、边界或习惯。”</div></article>').join("")+'</div>'
+    +'<details class="blueprint-expander reference-only"><summary>查看其他两个年龄阶段（未来参考，不是当前主场）</summary>'+Object.keys(a.phases).filter(p=>p!==phase).map(p=>phaseDetails(a,p)).join("")+'</details>'
+    +'</div>';
+}
+
 function lifeBlueprintPanel(c){
   if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
