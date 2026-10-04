@@ -851,17 +851,43 @@ function seatCodeDeepPanel(a){
     +'</div>';
 }
 function innerCodeDeepPanel(a){
-  const inner=DIGIT_CORE[a.innerCode]||{}, sub=DIGIT_CORE[a.subconsciousCode]||{};
-  return '<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES · ONE PLACE ONLY</small><h3>内心码 '+a.innerCode+' × 潜意识码 '+a.subconsciousCode+'</h3></div><span>不再重复</span></div>'
-    +'<div class="notion-consult-grid">'
-      +'<div><small>内心真正想要的</small><p>'+esc(inner.core||"")+'。优势：'+esc(inner.gift||"")+'；压力面：'+esc(inner.shadow||"")+'。</p></div>'
-      +'<div><small>还没想就会启动的反应</small><p>'+esc(sub.core||"")+'。优势：'+esc(sub.gift||"")+'；压力面：'+esc(sub.shadow||"")+'。</p></div>'
-    +'</div>'
-    +'<div class="question-box"><b>Josephine 白话：</b><br>“主性格是别人长期比较容易认出来的你；内心码看你里面真正想要什么；潜意识码则看事情突然发生时，你还没来得及想就会先启动哪一种反应。如果这三层不一样，你就很容易出现‘别人以为我是这样，但我里面其实不是’的感觉。”</div>'
-    +'<div class="question-box"><b>验证顾客：</b><br>“你有没有一种情况：外面看起来很能处理，但真正累的时候，你心里要的东西其实完全不一样？最近一次是什么时候？”</div>'
+  const main=Number(a.mainPersonality||0), inner=Number(a.innerCode||0), sub=Number(a.subconsciousCode||0);
+  const md=MAIN_DETAIL[main]||{}, id=DIGIT_CORE[inner]||{}, sd=DIGIT_CORE[sub]||{};
+  const special={
+    "2-4-1":{
+      thinking:"你会先考虑别人怎么想、关系会不会受影响；但心里面其实很需要事情清楚、稳定、有秩序。真正到时间很急时，你又会突然自己拍板。",
+      action:"平时会配合环境，不喜欢一开始就硬碰硬；真正行动前希望有把握、有结构。可是现场真的没人处理时，你反而会站出来接手。",
+      speech:"平时讲话会铺垫、顾感受；越重要的事越想把细节确认清楚。被逼急以后，最后一句可能突然很直接。",
+      stress:"压力常是2先担心关系，4再担心出错；累积到一定程度以后，1会出来硬撑、自己决定，甚至不想再解释。",
+      need:"你里面真正需要的是稳定、确定、可预测，但外面很多人先看到的是你会配合、会顾人。",
+      contrast:"所以你很容易出现：别人以为你很好说话，其实你心里面有自己的秩序和底线；只是通常不会第一秒讲出来。"
+    }
+  }[main+"-"+inner+"-"+sub];
+
+  const x=special||{
+    thinking:(md.thinking||"")+" 内心又需要「"+(id.core||inner)+"」；事情突然发生时，会先启动「"+(sd.core||sub)+"」。",
+    action:(md.behavior||"")+" 真正愿意行动前会受内心「"+(id.core||inner)+"」影响；紧急时潜意识「"+(sd.core||sub)+"」会抢先出来。",
+    speech:(md.speech||"")+" 越在意的事情，越会被内心对「"+(id.core||inner)+"」的需要修正；被逼急时会出现"+(sd.core||sub)+"式第一反应。",
+    stress:(md.stress||"")+" 同时要留意内心的"+(id.shadow||"压力")+"与潜意识的"+(sd.shadow||"自动反应")+"叠在一起。",
+    need:"外面较容易看到主性格"+main+"；里面真正想要的是「"+(id.core||inner)+"」，突发时先启动的是「"+(sd.core||sub)+"」。",
+    contrast:"三层不一样时，不代表矛盾，而是平时、内心和突发情境分别由不同层接管。"
+  };
+
+  const cards=[
+    ["思考模式",x.thinking,"你会不会平时先想很多人和关系，但最后真正到决定点时又会自己拍板？","那你不是没有决定力，而是前面先处理关系／安全感，到了决定点才把自己的判断放出来。"],
+    ["行动模式",x.action,"你平时不一定最先抢着做，但现场真的没人处理时，是不是最后又会由你站出来？","那你的行动不是慢，而是平常需要确认；一旦情境逼到行动点，自动反应会启动。"],
+    ["说话／沟通模式",x.speech,"你有没有试过前面解释很久、很温和，最后突然一句很直接，讲完自己又觉得是不是太重？","那不是突然变成另一个人，而是前面几层已经撑太久，最后自动反应接管。"],
+    ["面对压力",x.stress,"你很累的时候，会不会前面一直顾别人，后来突然变成“算了，我自己来”？","所以压力管理不是只叫自己放松，而是更早看见什么时候已经开始委屈、焦虑或硬撑。"]
+  ];
+
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>MAIN × INNER × SUBCONSCIOUS</small><h3>主性格 '+main+' × 内心码 '+inner+' × 潜意识 '+sub+'｜整合成真实行为</h3></div><span>思考 · 行动 · 说话 · 压力</span></div>'
+    +'<div class="formula-note"><b>判断顺序：</b>主性格＝长期底色；内心码＝里面真正需要；潜意识＝事情突然发生时最先自动启动。三层同向会加强，方向不同就会出现明显反差。</div>'
+    +'<div class="notion-consult-grid"><div><small>内在真正需要</small><p>'+esc(x.need)+'</p></div><div><small>外面看起来 vs 里面真实感受</small><p>'+esc(x.contrast)+'</p></div></div>'
+    +'<div class="v23-detail-grid">'+cards.map(r=>'<article><h4>'+r[0]+'</h4><p>'+esc(r[1])+'</p><div class="question-box"><b>验证顾客：</b><br>“'+esc(r[2])+'”</div><div class="question-box"><b>顾客说「有」以后：</b><br>“'+esc(r[3])+'”</div></article>').join("")+'</div>'
+    +'<div class="answer-branches"><div><b>顾客说「很像」</b><p>“好，那这层先当成被你的真实经历验证到了。最近一次最明显是什么时候？”</p></div><div><b>顾客说「有一点」</b><p>“哪一个场景像、哪一个场景不像？工作和家里会不会刚好不一样？”</p></div><div><b>顾客说「完全不像」</b><p>“好，那我们不硬套，这层先放下，以你的真实经验为准。”</p></div><div><b>顾客说「不知道」</b><p>“那我们直接找最近一个真实场景，不问抽象的。”</p></div></div>'
     +'</div>';
 }
-
 function originalFamilyPanel(a){
   const n=a.constraintCode,d=CHILDHOOD_MODES[n];
   return '<div class="foundation-block"><div class="card-heading"><div><small>ORIGIN PATTERN</small><h3>制约数 '+n+' · 原生家庭模式</h3></div><span>基础必讲</span></div>'
@@ -1130,46 +1156,44 @@ function geneInheritedCopy(code,label,role){
 function parentGeneBalancePanel(a){
   const father=parentGeneProfile(a.fatherCode,"father");
   const mother=parentGeneProfile(a.motherCode,"mother");
+  const fk=getFlootKnowledge(a.fatherCode)||{};
+  const mk=getFlootKnowledge(a.motherCode)||{};
 
   let family="父母力量结构较混合";
-  let familyCopy="两边都不是单一的强或柔，家庭里谁主导、谁承接会比较看事情和场景。";
+  let familyCopy="两边都不是单一的强或柔，家庭里谁主导、谁承接要看真实场景。";
   if(father.level==="strong"&&mother.level==="soft"){
     family="父系较强 · 母系较柔";
-    familyCopy="父亲这边比较容易承担决定、推进、定方向的角色；母亲这边更容易承接关系、稳定家庭、照顾细节。";
+    familyCopy="父亲这边比较容易承担决定、推进、定方向；母亲这边更容易承接关系、稳定家庭、照顾细节。";
   }else if(father.level==="soft"&&mother.level==="strong"){
     family="母系较强 · 父系较柔";
-    familyCopy="母亲这边比较容易承担决定、推动和守原则的角色；父亲这边相对更柔、更会退一步或承接。";
+    familyCopy="母亲这边比较容易承担决定、推动和守原则；父亲这边相对更柔、更会退一步或承接。";
   }else if(father.level==="strong"&&mother.level==="strong"){
     family="父母双方都偏强";
-    familyCopy="两边都有主见和推进力，家庭里可能出现双主导。优势是行动快、扛事；卡点是意见不同时容易谁都不想退。";
+    familyCopy="两边都有主见和推进力，家庭里可能出现双主导；优势是行动快，卡点是意见不同时谁都不想退。";
   }else if(father.level==="soft"&&mother.level==="soft"){
     family="父母双方都偏柔";
-    familyCopy="两边都比较重关系、承接和稳定，家庭气氛可能较少硬碰硬；卡点是遇到需要拍板的事情时，容易互相等或把决定拖久。";
-  }else if(father.level==="strong"){
-    family="父系较强 · 母系混合";
-    familyCopy="父亲这边的主导感比较明确；母亲这边则不是单一强或柔，要结合母亲基因整组特质和真实家庭场景来看。";
-  }else if(mother.level==="strong"){
-    family="母系较强 · 父系混合";
-    familyCopy="母亲这边的主导感比较明确；父亲这边则不是单一强或柔，要结合父亲基因整组特质和真实家庭场景来看。";
-  }else if(father.level==="soft"){
-    family="父系较柔 · 母系混合";
-    familyCopy="父亲这边比较偏柔和承接；母亲这边的力量表现较混合，要看实际家庭角色与场景。";
-  }else if(mother.level==="soft"){
-    family="母系较柔 · 父系混合";
-    familyCopy="母亲这边比较偏柔和承接；父亲这边的力量表现较混合，要看实际家庭角色与场景。";
+    familyCopy="两边都比较重关系、承接和稳定；卡点是遇到需要拍板的事情时，容易互相等或把决定拖久。";
   }
 
-  const integrated='“我这里不是把爸爸妈妈各自拆成几个男性数字、几个女性数字来念。父亲基因 '+a.fatherCode+' 和母亲基因 '+a.motherCode+' 都要先当成完整的三位联合码来看，再比较两边谁比较主导、谁比较承接。你这张盘呈现的是：'+family+'。'+familyCopy+' 接下来更重要的是看，你自己从爸爸这边拿到了什么优势与压力模式，又从妈妈这边带走了什么。”';
+  const integrated='“父亲基因 '+a.fatherCode+' 和母亲基因 '+a.motherCode+' 都要先当成完整三位联合码来看。数字只是给我一个观察入口，真正要确认的是：小时候家里谁负责什么、你后来拿走了哪一套做事方式。你这张盘目前比较像：'+family+'。'+familyCopy+'”';
 
-  return '<div class="foundation-block"><div class="card-heading"><div><small>PARENT GENE · WHOLE-CODE READING</small><h3>父亲基因 × 母亲基因 · 家庭力量结构</h3></div><span>'+esc(family)+'</span></div>'
-    +'<div class="formula-note"><b>这里改成整组联合码判读。</b>父亲基因与母亲基因先分别看完整三位码的特质、优点与卡点；男性／女性力量只作为“家庭谁较主导、谁较承接”的辅助判断，不再显示男性2、女性1、远见0这种计数，也不在父母基因这里重复主动／被动、理性／感性。</div>'
-    +'<div class="gene-balance-grid">'+geneInheritedCopy(a.fatherCode,"父亲基因","father")+geneInheritedCopy(a.motherCode,"母亲基因","mother")+'</div>'
-    +'<div class="question-box"><b>Josephine 专业白话｜可以直接照读：</b><br>'+esc(integrated)+'</div>'
-    +'<div class="question-box"><b>验证顾客：</b><br>“你小时候家里，遇到大事通常是谁拍板？谁比较坚持自己的方式？谁更常负责缓和关系、照顾情绪或收尾？这个结构跟你真实的家庭像不像？”</div>'
-    +'<div class="question-box"><b>继续往遗传模式问：</b><br>“你觉得自己最像爸爸的是哪一种做事方式？最像妈妈的又是哪一种？有没有一种优点你拿到了，但它用过头时也变成了你的压力？”</div>'
+  return '<div class="foundation-block"><div class="card-heading"><div><small>PARENT GENE · LIVE DIALOGUE</small><h3>父亲基因 × 母亲基因 · 问完以后怎么接</h3></div><span>'+esc(family)+'</span></div>'
+    +'<div class="gene-balance-grid">'
+      +'<div class="gene-inherit-card"><h4>父亲基因 '+a.fatherCode+'</h4><p><b>核心：</b>'+esc(fk.script||fk.logic||"先用真实父系／权威经验验证。")+'</p><p><b>优势：</b>'+esc(fk.strengths||"结合完整联合码与现实经历。")+'</p><p><b>卡点：</b>'+esc(fk.challenges||"压力下可能把原本优势用过头。")+'</p></div>'
+      +'<div class="gene-inherit-card"><h4>母亲基因 '+a.motherCode+'</h4><p><b>核心：</b>'+esc(mk.script||mk.logic||"先用真实母系／照顾经验验证。")+'</p><p><b>优势：</b>'+esc(mk.strengths||"结合完整联合码与现实经历。")+'</p><p><b>卡点：</b>'+esc(mk.challenges||"压力下可能把原本优势用过头。")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 白话｜先这样说：</b><br>'+esc(integrated)+'</div>'
+    +'<div class="question-box"><b>先这样问顾客：</b><br>“你小时候家里遇到大事，通常是谁拍板？谁比较坚持自己的方式？谁比较常负责缓和关系、照顾情绪或收尾？”</div>'
+    +'<div class="answer-branches">'
+      +'<div><b>顾客说「爸爸比较明显」</b><p>“好，那父亲这条先被现实验证到了。接下来我不只看爸爸，我要看你有没有把这套做事方式带走。你现在遇到问题，会不会也很快进入同样的处理模式？”</p></div>'
+      +'<div><b>顾客说「妈妈比较明显」</b><p>“好，那我们以真实家庭为准。数字给的是家庭模式，不代表现实角色一定严格由爸爸本人演。接下来我看的是：这套模式有没有变成你的习惯？”</p></div>'
+      +'<div><b>顾客说「两边都有」</b><p>“那就不要再分谁比较像。我们看你什么时候用爸爸这套、什么时候用妈妈这套：工作出问题时你像谁？关系有冲突时又像谁？”</p></div>'
+      +'<div><b>顾客说「不像／不知道」</b><p>“没关系，我们换成生活画面。你小时候犯错时谁先讲话？买贵的东西、搬家、选学校或处理亲戚问题时，通常谁出来处理？”</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>再往遗传模式这样接：</b><br>“好，现在我们不再停在爸爸妈妈身上。我想看的是，这套模式后来有没有变成你自己的习惯。最近一次你用同样方式处理事情，是什么时候？”</div>'
+    +'<div class="formula-note"><b>固定承接公式：</b>接住顾客原话 → 确认哪条家庭模式被验证 → 拉回顾客自己 → 问最近一次真实例子 → 才给开解。不要问完家庭故事就直接换下一张卡。</div>'
     +'</div>';
 }
-
 function modeProfile(arr){
   const active=countGroup(arr,[1,3,5,7,9]);
   const passive=countGroup(arr,[2,4,6,8]);
