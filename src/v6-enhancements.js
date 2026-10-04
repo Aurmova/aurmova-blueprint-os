@@ -1685,6 +1685,51 @@ function currentPhaseConsultationPanel(c,a){
     +'</div>';
 }
 
+
+function wealthWholeChartPanel(c,a){
+  const age=ageFromBirthday(c.birthday), phase=phaseForAge(age), v=a.phases[phase]||{};
+  const resultCode=code(v.result||[]);
+  const father=getFlootKnowledge(a.fatherCode)||{}, mother=getFlootKnowledge(a.motherCode)||{};
+  const challenges=a.innerEnergy?.repeated||[], missing=a.innerEnergy?.missing||[];
+  const mainD=MAIN_DETAIL[a.mainPersonality]||{}, innerD=DIGIT_CORE[a.innerCode]||{}, subD=DIGIT_CORE[a.subconsciousCode]||{};
+  const flowYear=activeFlowYear(new Date()), snap=calculateGoldenYearSnapshot(c.birthday,flowYear), flow=snap?.personal||{};
+  const challengeText=challenges.length?challenges.map(n=>(ENERGY_LIBRARY[n]?.name||n)).join("、"):"没有明显重复挑战数";
+  const missingText=missing.length?missing.map(n=>(ENERGY_LIBRARY[n]?.name||n)).join("、"):"没有明显缺失数";
+  const earning="主性格"+a.mainPersonality+"的优势是"+(mainD.talents||"把自然能力转成价值")+"。再看父亲基因"+a.fatherCode+"与母亲基因"+a.motherCode+"，比较适合从沟通、服务、专业、解决问题、资源与合作中找“别人愿意为什么付钱”，而不是只找一个所谓财运数字。";
+  const leakage=challenges.length
+    ?"真正要防的不是“漏财数字”，而是惯用能力用过头："+challengeText+"。它会先表现成关系优先、选择过多、责任过重或控制过强等行为，再影响定价、合作和资源分配。"
+    :"目前没有明显重复挑战数，财富卡点更要从缺失能力与现实习惯验证。";
+  const decision="内心码"+a.innerCode+"代表真正想要「"+(innerD.core||"")+"」；潜意识"+a.subconsciousCode+"在突发时先启动「"+(subD.core||"")+"」。所以花钱、投资或合作决定不能只看嘴上说什么，要看当时是在追求安全、关系、自由，还是想马上解决问题。";
+  const cooperation="父亲基因"+a.fatherCode+"："+(father.script||father.logic||"看处理问题与权威经验")+"；母亲基因"+a.motherCode+"："+(mother.script||mother.logic||"看照顾、方向与资源经验")+"。财富合作要验证有没有把家庭里学来的责任、沟通或主导方式带进客户与伙伴关系。";
+  let habit="";
+  if(missing.includes(4)) habit+="先建立固定记录、预算与复盘；";
+  if(missing.includes(8)) habit+="合作前先写清权责、报价与交付；";
+  if(missing.includes(7)) habit+="重大决定多做一次研究与风险检查；";
+  if(missing.includes(9)) habit+="每季度做一次长期方向复盘；";
+  if(!habit) habit="保留一个固定财务习惯，并用真实数据复盘。";
+  const full="你的财富模式我不会只看你是"+a.mainPersonality+"号。先看你怎样创造价值，再看你为什么会接机会、怎样做决定、会不会把关系和责任放到条件前面。你现在是"+age+"岁，当前阶段结果码是"+resultCode+"；今年流年主题是"+(flow.number||"")+" "+(flow.title||"")+"。所以我们看的是能力怎么变成收入、收入怎么被管理、合作怎样不消耗，而不是保证哪一年一定发财。";
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>WEALTH CONSULTATION · WHOLE CHART</small><h3>财富模式｜整张盘综合，不再只看主性格</h3></div><span>不作收益保证</span></div>'
+    +'<div class="formula-note"><b>分析顺序：</b>主性格／坐镇码 → 内心与潜意识 → 父母基因 → 挑战／缺失 → 当前年龄阶段 → 当前流年 → 最后回到现实收入、职业、报价、消费与合作验证。679不参与自动财富结论。</div>'
+    +'<div class="v23-detail-grid">'
+      +'<article><h4>赚钱方式／优势</h4><p>'+esc(earning)+'</p></article>'
+      +'<article><h4>容易卡财的行为</h4><p>'+esc(leakage)+'</p><small>当前挑战：'+esc(challengeText)+'</small></article>'
+      +'<article><h4>做决定／花钱模式</h4><p>'+esc(decision)+'</p></article>'
+      +'<article><h4>合作／客户／资源模式</h4><p>'+esc(cooperation)+'</p></article>'
+      +'<article><h4>当前阶段</h4><p>'+esc(age+"岁 · "+phase+" · 结果码 "+resultCode+"。今年流年 "+(flow.number||"")+" "+(flow.title||"")+"。")+'</p></article>'
+      +'<article><h4>财富习惯建议</h4><p>'+esc(habit)+'</p><small>当前缺失：'+esc(missingText)+'</small></article>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine完整白话｜可以直接照读：</b><br>“'+esc(full)+'”</div>'
+    +'<div class="answer-branches">'
+      +'<div><b>验证1｜机会</b><p>“你现在赚钱最大的卡点，是机会不够，还是机会来了以后很难筛？”</p></div>'
+      +'<div><b>验证2｜条件</b><p>“合作开始时，你会不会不好意思谈太细，做到后面才觉得条件不公平？”</p></div>'
+      +'<div><b>验证3｜花钱</b><p>“你花钱最容易花在人情、家人、品质、自由体验，还是突然想换方向？”</p></div>'
+      +'<div><b>验证4｜系统</b><p>“你现在有没有一个固定方法知道每个月的钱到底流去哪里？”</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>顾客回答后这样接：</b><br>“好，那现在我们已经知道你的财富问题属于哪一层了。不是继续找更多‘财运’，而是把这个行为模式改成制度、边界或筛选标准。先改一个最影响钱的动作，比再看十个数字更有用。”</div>'
+    +'</div>';
+}
+
 function lifeBlueprintPanel(c){
   if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
