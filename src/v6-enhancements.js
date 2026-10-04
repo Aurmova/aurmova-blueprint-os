@@ -754,28 +754,74 @@ function mainModifierCopy(main,n){
   const m=MAIN_DETAIL[main]||{}, d=DIGIT_CORE[n]||{};
   const key=String(main)+"-"+String(n);
   const special={
+    "2-1":{
+      title:"2号主性格＋内三角1｜关系感里有自己的主见",
+      text:"2会先顾关系、看别人感受；1会在真正需要决定时把自主和主见拉出来。所以不是没主见，而是主见通常不会第一秒出现。",
+      money:"谈合作或金钱时，前面可能先顾关系，最后才自己拍板。要练的是更早说出条件与想法。",
+      q:"重大事情到最后，你是不是常常还是会自己决定？",
+      after:"那就说明2负责先顾关系，1负责最后定方向。以后可以更早一点把自己的想法说出来，不用等到最后才突然很确定。"
+    },
+    "2-2":{
+      title:"2号主性格＋内三角2｜同号强化",
+      text:"主性格本来就是2，内三角里的2又重复，所以顾人、看关系、听气氛很容易变成自动能力。优势是协调和同理；用过头时容易先处理别人，再处理自己。",
+      money:"关系感会直接进入合作、报价和资源决定。要特别留意因为不好意思而太晚谈条件。",
+      q:"你有没有明明不太愿意，却因为怕别人失望，最后还是答应？",
+      after:"你的问题不是没有主见，而是关系感太快进入决定。接下来练的是先确认自己愿不愿意，再决定怎么顾别人。"
+    },
+    "2-3":{
+      title:"2号主性格＋内三角3｜温和里有表达与行动",
+      text:"你不是完全被动的2号。熟悉、安全的时候，3会让你讲话快、反应快，也会马上处理事情。",
+      money:"适合把沟通、表达、内容、销售或临场处理转成价值；但要避免因为太快而答应过多。",
+      q:"你是不是面对陌生人比较收，但跟熟人或熟悉工作时其实很会讲、也很快处理？",
+      after:"所以以后不能简单把你定义成内向或被动。你需要先有安全感，安全以后3就会出来。"
+    },
+    "2-5":{
+      title:"2号主性格＋内三角5｜关系与自由同时存在",
+      text:"你会顾关系，但里面的5又很需要选择权、空间和自己的方向。容易出现一边怕别人不开心，一边又很怕自己被困住。",
+      money:"选择多时要先定筛选标准，不要为了关系一直配合，也不要因为压太久突然换方向。",
+      q:"你会不会一开始先配合，配合久了以后突然很想推开、换方向或离开？",
+      after:"真正要练的不是一直忍，也不是忍到最后突然走掉，而是前面就把自己的选择和界线讲出来。"
+    },
+    "2-6":{
+      title:"2号主性格＋内三角6｜容易把关系变成责任",
+      text:"2会先理解人，6会进一步想把事情做好、照顾、补位。所以别人只是来讲问题，最后很容易变成你在负责。",
+      money:"财富和资源上要分清支持与承担。不是每个关系都要用钱、时间或责任去证明。",
+      q:"别人来跟你讲问题，讲着讲着最后事情会不会变成你在处理？",
+      after:"你有照顾人的能力，但以后要分清：听别人讲是支持，替别人处理是承担，两件事不一样。"
+    },
     "7-4":{
       title:"7号主性格＋内三角4｜深度被结构托住",
-      text:"7本来就会分析、研究、想透，4再进来，会把这种深度变得更有规划、秩序和收尾能力。好的一面是研究不只停在脑里，更容易做成流程、计划和长期积累；压力面是7的多想叠加4的怕错，容易变成反复检查、迟迟不决定。",
+      text:"7本来就会分析、研究、想透，4再进来，会把这种深度变得更有规划、秩序和收尾能力。压力面是7的多想叠加4的怕错，容易反复检查、迟迟不决定。",
       money:"这会增加预算、规则和规划意识，但不等于“有4就一定会理财”。是否真的能把钱留住，仍要看实际习惯、其他数字与现实选择。",
-      q:"你是不是越重要的事情越想先规划清楚，甚至有时因为怕错而迟迟不开始？"
+      q:"你是不是越重要的事情越想先规划清楚，甚至有时因为怕错而迟迟不开始？",
+      after:"那重点不是再想更多，而是设一个决定期限，让规划真正服务行动。"
     },
     "7-8":{
       title:"7号主性格＋内三角8｜洞察开始往成果与资源走",
-      text:"7负责看深、判断与专业，8把注意力拉到成果、责任、资源和规模。好的时候，会从“我看懂了”进一步走到“我要怎样把这个判断做成结果”；压力大时则可能一边想很多、一边又逼自己要有成绩，形成内耗＋高压。",
-      money:"在事业和资源上，这组更容易关注“专业怎样转成价值、资源怎样放大”，但不代表数字本身保证赚钱。真正结果仍取决于能力、市场、执行和风险管理。",
-      q:"你会不会对自己有一种要求：不只要懂，还希望最后真的做出成绩、证明这个判断有价值？"
+      text:"7负责看深、判断与专业，8把注意力拉到成果、责任、资源和规模。好的时候会从“我看懂了”进一步走到“我要怎样做成结果”；压力大时可能一边想很多、一边又逼自己要有成绩。",
+      money:"在事业和资源上，这组更容易关注专业怎样转成价值、资源怎样放大，但不代表数字本身保证赚钱。",
+      q:"你会不会对自己有一种要求：不只要懂，还希望最后真的做出成绩、证明这个判断有价值？",
+      after:"这组真正的成长是把专业变结果，但别让结果压力反过来压住判断。"
     }
   };
   if(special[key]) return special[key];
+  if(Number(main)===Number(n)){
+    return {
+      title:main+"号主性格＋内三角"+n+"｜同号强化",
+      text:"你的主性格本来就是"+main+"号，内三角又再次出现"+n+"，所以「"+(d.core||"这股能量")+"」会更容易变成惯用能力。优势是"+(d.gift||"更熟练")+"；用过头时要留意"+(d.shadow||"过度反应")+"。",
+      money:"资源与事业仍要看整张盘和现实经历，不因为同号强化就直接断定收入结果。",
+      q:"你会不会觉得这一类反应不是偶尔，而是很多场景都会自动出现？",
+      after:"那这就是同号强化。重点不是压掉它，而是看什么时候它从优势开始变成用过头。"
+    };
+  }
   return {
     title:main+"号主性格＋内三角"+n+"｜"+(d.core||"补充能量"),
     text:"主性格"+main+"的底色仍然是「"+(m.title||"")+"」，但内三角里的"+n+"会提供「"+(d.gift||d.core||"")+"」这一层能力。它不是把你变成"+n+"号人，而是在特定场景里修正你的做事方式。",
     money:"资源与事业要看整张盘和现实经历，不能只因为出现"+n+"就直接断定收入、理财或职业结果。",
-    q:"你有没有发现，虽然你核心还是"+main+"号，但碰到某些事情时会明显用到"+n+"号这种「"+(d.core||"")+"」的方式？"
+    q:"你有没有发现，虽然你核心还是"+main+"号，但碰到某些事情时会明显用到"+n+"号这种「"+(d.core||"")+"」的方式？",
+    after:"如果顾客确认，就把它当作主性格的修正层；如果不像，就以顾客真实经历为准，不硬套。"
   };
 }
-
 function seatCodeDeepPanel(a){
   const codeValue=String(a.seatCode||"");
   const ds=jointCodeDigits(codeValue);
@@ -784,47 +830,26 @@ function seatCodeDeepPanel(a){
   const start=Number(a.startingThoughtCode||0);
   const mainD=MAIN_DETAIL[main]||{};
   const startD=DIGIT_CORE[start]||{};
-  const sp=SEAT_SPECIAL[codeValue]||{};
   const counts=a.innerEnergy?.counts||{};
-  const seatSet=new Set(ds);
-  const modifiers=DIGITS.filter(n=>Number(counts[n]||0)>0 && !seatSet.has(n));
-  const core=sp.core||structured.logic||("这组坐镇码把"+ds.map(n=>(DIGIT_CORE[n]?.core||n)).join("、")+"串在一起，重点不是单看每个数字，而是看三位数字怎样形成长期行为路径。");
-  const visible=sp.visible||structured.strengths||("顺的时候，比较容易把"+ds.map(n=>(DIGIT_CORE[n]?.gift||DIGIT_CORE[n]?.core||n)).join("、")+"一起用出来。");
-  const challenge=structured.challenges||"压力下容易把优势用过头，需要回到真实生活场景验证。";
-  const growth=structured.growth||"保留原本优势，同时给最容易过度的那一层加上边界、节奏与现实验证。";
-  const work=sp.work||ds.map(n=>DIGIT_CORE[n]?.work).filter(Boolean).join("；");
-  const baseScript=structured.script||("你这组"+codeValue+"不是一个单独标签，而是一条做事路径。前面决定你怎么启动，中间决定你怎么推进，最后的"+main+"才是最稳定的性格底色。");
-  const nickname=sp.nickname?(" · "+sp.nickname):"";
-  const modifierHtml=modifiers.length
-    ? modifiers.map(n=>{const x=mainModifierCopy(main,n);return '<article><small>三角形内修正数字 '+n+'</small><h4>'+esc(x.title)+'</h4><p>'+esc(x.text)+'</p><p><b>事业／资源提醒：</b>'+esc(x.money)+'</p><div class="question-box"><b>可问顾客：</b><br>“'+esc(x.q)+'”</div></article>';}).join("")
-    : '<div class="empty-mini">除坐镇码本身以外，三角形内暂时没有额外数字需要单独做主性格修正。</div>';
-
-  const probes=(TALK_QUESTIONS[codeValue]&&TALK_QUESTIONS[codeValue].length?TALK_QUESTIONS[codeValue]:[
-    "你遇到事情时，是不是通常会先按自己的方式判断，再决定要不要听别人？",
-    "你越在意的事情，会不会标准越高、想得越深，也越不愿意随便交差？",
-    "压力大的时候，你更容易卡在想太多、要求太高，还是不想让别人看到自己没把握？"
-  ]).slice(0,3);
-
+  const present=DIGITS.filter(n=>Number(counts[n]||0)>0);
+  const modifierHtml=present.map(n=>{
+    const x=mainModifierCopy(main,n);
+    return '<article><small>'+(n===main?'主性格同号强化':'三角形内修正数字')+' '+n+' · '+Number(counts[n]||0)+'次</small><h4>'+esc(x.title)+'</h4><p>'+esc(x.text)+'</p><p><b>事业／资源提醒：</b>'+esc(x.money)+'</p><div class="question-box"><b>验证顾客：</b><br>“'+esc(x.q)+'”</div><div class="question-box"><b>顾客说「有」以后：</b><br>“'+esc(x.after)+'”</div></article>';
+  }).join("");
   return '<div class="foundation-block seat-deep-panel">'
-    +'<div class="card-heading"><div><small>SEAT CODE · FULL CONSULTATION</small><h3>坐镇码 '+esc(codeValue)+' × 主性格 '+main+esc(nickname)+'</h3></div><span>白话恢复 · 现场可直接用</span></div>'
-    +'<div class="formula-note"><b>这里固定保留完整模式：</b>三位位置拆解 → 核心特质 → 看得见的表现 → 卡点 → 事业能力 → 三角形内修正 → 白话 → 追问 → 成长方向。以后不会再把它缩成一个联合码标题。</div>'
+    +'<div class="card-heading"><div><small>SEAT CODE · FULL CONSULTATION</small><h3>坐镇码 '+esc(codeValue)+' × 主性格 '+main+'</h3></div><span>内三角全部数字都分析</span></div>'
+    +'<div class="formula-note"><b>已修正：</b>坐镇码负责讲三位组合路径；“主性格被内三角怎样修正”则要看内三角实际出现的所有数字。不会再因为数字已经在坐镇码里出现，就把2、5、6这类数字过滤掉。</div>'
     +'<div class="notion-consult-grid">'
       +'<div><small>① 第一位</small><p>'+esc(seatRoleCopy(ds[0],0))+'</p></div>'
       +'<div><small>② 第二位</small><p>'+esc(seatRoleCopy(ds[1],1))+'</p></div>'
       +'<div><small>③ 第三位／主性格</small><p>'+esc(seatRoleCopy(ds[2],2))+'</p></div>'
-      +'<div><small>④ 主性格 '+main+' × 起始数 '+start+'</small><p>'+esc("你的长期底色是"+(mainD.title||main+"号")+"；进入新环境或事情刚发生时，又会先启动「"+(startD.core||start)+"」。所以你不是每次一开始就完全像主性格，起始数会决定第一步怎么反应。")+'</p></div>'
+      +'<div><small>④ 主性格 '+main+' × 起始数 '+start+'</small><p>'+esc("你的长期底色是"+(mainD.title||main+"号")+"；进入新环境或事情刚发生时，又会先启动「"+(startD.core||start)+"」。")+'</p></div>'
     +'</div>'
-    +'<div class="ai-supplement"><div class="source-tag">整组坐镇码</div><p><b>核心特质：</b>'+esc(core)+'</p><p><b>生活表现：</b>'+esc(visible)+'</p><p><b>需要注意的卡点：</b>'+esc(challenge)+'</p></div>'
-    +'<div class="question-box"><b>事业／工作能力怎么讲：</b><br>“'+esc(work)+'”<br><small>这是能力适配，不是限定职业，也不代表看到号码就保证某种收入结果。</small></div>'
-    +(sp.money?'<div class="question-box"><b>资源／金钱这层要这样讲：</b><br>“'+esc(sp.money)+'”</div>':'')
-    +'<div class="card-heading"><div><small>INNER TRIANGLE MODIFIERS</small><h4>主性格 '+main+' 被三角形内其他数字怎样修正</h4></div><span>不是独立开关</span></div>'
+    +'<div class="question-box"><b>整组坐镇码白话：</b><br>“'+esc(structured.script||structured.logic||"这组三位数字要连起来看：前面看怎么启动，中间看怎么推进，最后看长期主性格。")+'”</div>'
+    +'<div class="card-heading"><div><small>INNER TRIANGLE MODIFIERS</small><h4>主性格 '+main+' 被内三角所有出现数字怎样修正</h4></div><span>'+present.join(" · ")+'</span></div>'
     +'<div class="v23-detail-grid">'+modifierHtml+'</div>'
-    +'<div class="question-box"><b>Josephine 白话｜可以直接照读：</b><br>“我先不把你拆成一堆数字。坐镇码 '+esc(codeValue)+' 是你比较稳定的一条做事路径：'+esc(baseScript)+' 再看整张三角形，其他数字会修正你怎么使用这个主性格，所以我会继续看你是在哪些场景变得更规划、更商业、更感性或更主动，而不是看到一个数字就直接下结论。”</div>'
-    +probes.map((q,i)=>'<div class="question-box"><b>验证问题 '+(i+1)+'：</b><br>“'+esc(q)+'”</div>').join("")
-    +'<div class="question-box"><b>成长／开解：</b><br>“'+esc(growth)+'”</div>'
     +'</div>';
 }
-
 function innerCodeDeepPanel(a){
   const inner=DIGIT_CORE[a.innerCode]||{}, sub=DIGIT_CORE[a.subconsciousCode]||{};
   return '<div class="foundation-block"><div class="card-heading"><div><small>INNER CODES · ONE PLACE ONLY</small><h3>内心码 '+a.innerCode+' × 潜意识码 '+a.subconsciousCode+'</h3></div><span>不再重复</span></div>'
