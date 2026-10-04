@@ -1734,28 +1734,21 @@ function lifeBlueprintPanel(c){
   if(childAudience(c)==="child") return childBlueprintPanel(c);
   const a=calculateBlueprint(c.birthday);
   return '<div class="module-render">'
-    +'<div class="card-heading"><div><small>LIFE BLUEPRINT</small><h2>人生蓝图 · Josephine 标准咨询版</h2></div><span>一项只讲一次 · 白话完整保留</span></div>'
+    +'<div class="card-heading"><div><small>LIFE BLUEPRINT · LIVE CONSULTATION</small><h2>人生蓝图 · Josephine 现场咨询版</h2></div><span>先问 · 再验证 · 再接话</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
+    +consultationStartPanel(c,a)
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
-    +lifeCoreFrameworkPanel(c,a)
     +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
-    +talentNumbersPanel(a)
+    +trianglePatternSection(a)
+    +originalFamilyPanel(a)
     +detailedEnergyPanel(a)
     +innerCodeDeepPanel(a)
-    +trianglePatternSection(a)
-    +emotionCodePanel(a)
-    +directBehaviorSynthesisPanel(c,a)
-    +unifiedJointCodes(a)
-    +originalFamilyPanel(a)
-    +energy679Panel(a)
-    +golden20Panel(a)
-    +'<div class="foundation-block"><div class="card-heading"><div><small>THREE PHASES</small><h3>三阶段主题总览</h3></div><span>号码不重复出现</span></div>'
-      +phaseOverview(a,"21–40")+phaseOverview(a,"41–60")+phaseOverview(a,"61+")
-    +'</div>'
+    +currentPhaseConsultationPanel(c,a)
+    +wealthWholeChartPanel(c,a)
+    +'<div class="formula-note"><b>这一版已清理：</b>不再显示重复的“天赋数字／重复能量”；679不再出现在正式咨询主线；三阶段不再只念主题，而是自动展开顾客当前年龄阶段；每个重点都跟“怎么说 → 怎么问 → 顾客答了怎么接”连在一起。</div>'
     +'</div>';
 }
-
 function miniBlueprint(person){
   if(!person?.birthday) return '<div class="empty-mini">填写生日后生成蓝图。</div>';
   const a=calculateBlueprint(person.birthday); if(!a)return '<div class="empty-mini">生日格式请用 日/月/年。</div>';
