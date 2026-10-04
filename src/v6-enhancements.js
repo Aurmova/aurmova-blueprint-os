@@ -2100,7 +2100,7 @@ function scriptMarkup(c,a,phase){
 
     ["01 开场破冰",
       '<h2>先让顾客知道：这里不是考试，也不是命运宣判</h2>'
-      +'<div class="question-box">你好，我是 Josephine，做心理数字学咨询。今天大概40–60分钟，我会先看你的盘，再帮你看见一些你可能已经感受到、但还没有整理清楚的模式。你不需要懂这套理论，也不用记任何数字；如果我说的和你的真实感受不一样，你随时告诉我——你的经历比这张盘更重要。</div>'
+      +'<div class="question-box">你好，我是 Josephine，做心理数字学咨询。今天大概40–60分钟，我会先看你的盘，再帮你看见一些你可能已经感受到、但还没有整理清楚的模式。你不需要懂这套理论，也不用记任何数字；如果我说的和你的真实感受不一样，你随时告诉我——你的经历比这张盘更重要。</div><div class="question-box"><b>第一题现在就问：</b><br>“你今天最想解决的是工作／事业、关系、钱、家庭，还是自己的方向？”</div><p><b>顾客回答后：</b>不要马上继续念盘。先接住她的主题，再只挑与这个主题最相关的2–3个模块验证。</p>'
       +'<p><b>如果顾客紧张：</b>“第一次做这种咨询有一点紧张很正常。今天就是聊天，我会带着你走。”</p>'
       +'<p><b>如果顾客观望：</b>不要讲一堆理论，直接给一个小洞察，再问“你听听看像不像你”。</p>'
       +'<p><b>如果判断不出来：</b>“你想直接开始，还是先聊几句热热身？你说了算。”</p>'],
@@ -2186,6 +2186,10 @@ function enhanceWorkspace(){
   if(!c) return;
   const a=calculateBlueprint(c.birthday),age=ageFromBirthday(c.birthday),phase=phaseForAge(age);
   if(!a) return;
+
+  document.querySelector(".wealth-card")?.style.setProperty("display","none");
+  document.querySelector(".reading-grid")?.style.setProperty("display","none");
+  document.querySelector(".phases")?.style.setProperty("display","none");
 
   const quick=document.querySelector(".quick-actions");
   if(quick&&!quick.querySelector("[data-v6-delete]")){
