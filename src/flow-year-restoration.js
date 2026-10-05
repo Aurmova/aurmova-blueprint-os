@@ -5,7 +5,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 
 function addFlowNotes(){
   const root=document.querySelector(".golden-year-v22");
-  if(!root) return;
+  if(!root || root.classList.contains("child-year-v22")) return;
   const input=document.querySelector("#v6-year-target");
   if(input && !input.dataset.aurmovaBoundaryChecked){
     input.dataset.aurmovaBoundaryChecked="1";
@@ -130,7 +130,7 @@ function advancedFlowHtml(c,year){
 function addAdvancedFlowReading(){
   const c=currentCustomer();
   const root=document.querySelector(".golden-year-v22");
-  if(!c||!root)return;
+  if(!c||!root||root.classList.contains("child-year-v22"))return;
   root.querySelectorAll(".golden-year-sheet").forEach(sheet=>{
     const small=sheet.querySelector(".golden-year-sheet-head small");
     const m=(small?.textContent||"").match(/(\d{4})/);
