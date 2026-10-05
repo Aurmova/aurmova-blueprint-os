@@ -820,6 +820,7 @@ function childFlowSafetyBoundary(){
 function childYearSnapshotCard(c,year,label){
   const snap=calculateGoldenYearSnapshot(c.birthday,year);
   if(!snap)return "";
+  const a=calculateBlueprint(c.birthday);
   const age=childFlowAgeAtYear(c.birthday,year);
   const band=childFlowAgeBand(age);
   const n=Number(snap.personal.number);
@@ -835,6 +836,7 @@ function childYearSnapshotCard(c,year,label){
     +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>孩子自身：因 → 两个过程 → 结果</p></div><div><small>外部环境4组</small><b>'+esc(environmentCodes)+'</b><p>学校／老师／朋友／家庭安排：因 → 两个过程 → 结果</p></div></div>'
     +'<div class="question-box"><b>Josephine 第一段直接对父母讲：</b><br>“今年我不会用大人的事业、客户、赚钱或职场责任来解释。这个 '+n+' 放在孩子身上，我主要看：'+esc(t.focus)+' 我们先用最近三个月真实发生的事情来确认。”</div>'
     +'<div class="question-box"><b>第一题问父母：</b><br>“'+esc(t.parent)+'”</div>'
+    +childOriginFlowBridge(c,a,year,n)
     +'<div class="question-box"><b>父母说「有」：</b><br>“好，那这个方向今年值得继续看。先不要急着给孩子贴标签，我想再确认：最近一次具体发生什么？这是偶尔，还是已经重复很多次？只在家，还是学校／朋友那里也会？”</div>'
     +'<div class="question-box"><b>父母说「没有／不像」：</b><br>“没关系，我们不硬套。先换一个场景看——学校、家庭、朋友或兴趣活动有没有；如果都没有，这一项先放着，继续看下一组。”</div>'
     +'<div class="question-box"><b>年龄适合时直接问孩子：</b><br>“'+esc(childQ)+'”</div>'
@@ -1797,6 +1799,156 @@ function childUnifiedJointCodes(a){
     +'<div class="joint-stack">'+(unique.length?unique.map(x=>childJointBlock(x.code,x.labels.join("｜"))).join(""):'<div class="empty-mini">其余联合码已在前面出现，不需要重复。</div>')+'</div></div>';
 }
 
+
+const CHILD_ORIGIN_GUIDE={
+  1:{
+    observe:"重点观察孩子遇到权威、被要求照做、被替他决定时，是怎样保护自己的自主感。",
+    parentQ:"当你直接说“照我说的做”时，他通常是马上顶回来、坚持自己来，还是先做但明显很不开心？",
+    childQ:"如果大人一直帮你决定，你心里最不喜欢的是什么？",
+    school:"学校可看：被老师纠正、分组听指令、轮流、输赢和需要求助时的反应。",
+    home:"家里可看：穿什么、收东西、功课顺序、谁说了算、要不要自己做。",
+    misread:"家长容易只看到“顶嘴／不听话”，但更值得先确认是不是自主感被压得太快。",
+    repair:"给有限选择，再让孩子承担选择后的责任；也要明确告诉他“会求助不等于没能力”。"
+  },
+  2:{
+    observe:"重点观察孩子会不会很快扫描别人情绪，再用乖、配合、道歉或让步换关系安全。",
+    parentQ:"家里有人不开心时，他会不会马上安静、讨好、道歉，甚至明明不是他的事也想去处理？",
+    childQ:"别人不开心的时候，你会不会很快觉得是不是自己做错了什么？",
+    school:"学校可看：朋友不理他、同桌冲突、老师语气变化、被排除或需要说“不”时。",
+    home:"家里可看：父母情绪、兄弟姐妹争执、怕让大人失望、答应不想做的事。",
+    misread:"家长容易说“太敏感／太黏／没主见”，但要先看孩子是不是把关系安全放在自己需要前面。",
+    repair:"先让孩子知道“别人有情绪不等于你做错”；练习说需要、说不要、说“我想一下再答应”。"
+  },
+  3:{
+    observe:"重点观察孩子是否通过说话、表现、搞气氛、作品或成绩来确认“我有没有被看见”。",
+    parentQ:"他被忽略、被打断或被批评时，会不会马上讲更多、做更多、转移话题，或很快情绪上来？",
+    childQ:"你很想给别人看一个作品，可是大家没注意到时，你会怎么想？",
+    school:"学校可看：举手、表演、作品展示、被批评表达方式、同学有没有回应。",
+    home:"家里可看：一直分享、逗大家开心、被打断、兄弟姐妹抢注意力。",
+    misread:"家长容易只看成“爱表现／话很多／三分钟热度”，但要先确认孩子是不是在找被看见和被肯定。",
+    repair:"肯定要具体，不只夸“你好棒”；也允许孩子难过、生气，不要求他一直活泼开心。"
+  },
+  4:{
+    observe:"重点观察孩子怎样从规则、对错、顺序和可预测感建立安全，以及变化时是否容易紧张或卡住。",
+    parentQ:"计划临时改变、功课做错、东西找不到或步骤被打乱时，他会不会明显更焦虑、固执或反复确认？",
+    childQ:"做错题或计划突然变的时候，你最怕的是什么？",
+    school:"学校可看：考试检查、作业格式、老师换规则、临时活动、怕答错。",
+    home:"家里可看：固定流程、收纳、时间表、临时出门、家长突然改要求。",
+    misread:"家长容易说“很固执／很龟毛／太慢”，但要先看是不是确定感不足。",
+    repair:"规则说清楚，同时固定留一点可变空间；把错误定义成“可以修改”，不是“你不够好”。"
+  },
+  5:{
+    observe:"重点观察孩子在自由、选择和限制之间怎么找平衡，以及被管太紧或选择太多时会怎样。",
+    parentQ:"他最近会不会很快想换活动、换方法，或一被限制就明显抗拒、讨价还价？",
+    childQ:"什么规则最容易让你觉得“为什么一定要这样”？",
+    school:"学校可看：重复练习、坐定、兴趣转换、选择活动、规则限制。",
+    home:"家里可看：屏幕时间、兴趣班、出门安排、功课方法、想换东西。",
+    misread:"家长容易直接说“没定性／坐不住／不坚持”，但要先分辨是需要变化，还是一困难就逃开。",
+    repair:"给选择，但选择前讲清边界与后果；自由和完成要同时练。"
+  },
+  6:{
+    observe:"重点观察孩子会不会把被爱、被肯定与“我要懂事、负责、照顾别人、做好”绑在一起。",
+    parentQ:"家里有人累或不开心时，他会不会主动照顾、帮忙，或者一做不好就很怕你失望？",
+    childQ:"你做错事情时，你最怕的是被骂，还是怕大人觉得你不够好？",
+    school:"学校可看：当班干部、照顾同学、老师交代责任、怕做不好、过度帮人。",
+    home:"家里可看：照顾弟妹、帮父母、家务、成绩、被称赞“懂事”。",
+    misread:"家长容易觉得“这么懂事很好”，但要确认孩子有没有把太多不属于自己的责任背起来。",
+    repair:"清楚告诉孩子：你不需要靠负责所有事情才值得被爱；帮忙是选择，不是身份。"
+  },
+  7:{
+    observe:"重点观察孩子是否先观察、自己想、晚一点才说，以及安静背后是整理还是已经卡在内耗。",
+    parentQ:"发生事情以后，他是不是常常当下说没事，过一阵子才讲，或很多事情自己在心里想？",
+    childQ:"不开心时，你比较想马上讲，还是先自己静一下再说？",
+    school:"学校可看：遇到不会的问题、被误会、团体讨论、被点名回答、需要求助。",
+    home:"家里可看：冲突后沉默、关门独处、问很多为什么、延迟表达。",
+    misread:"家长容易说“冷淡／慢／想太多”，但要先分辨孩子是不是需要整理时间和安全出口。",
+    repair:"允许先静，但要约定之后回来谈；用“你想现在说还是晚一点说”代替逼问。"
+  },
+  8:{
+    observe:"重点观察孩子怎样面对成绩、输赢、比较、能力和权威，以及结果不好时会不会把价值感一起跌下去。",
+    parentQ:"成绩、比赛、游戏输赢或被比较后，他的情绪会不会特别明显，甚至急着证明自己？",
+    childQ:"如果这次没有做到你想要的结果，你会不会觉得自己就不够厉害？",
+    school:"学校可看：考试排名、比赛、被选中、当领导、被老师评价能力。",
+    home:"家里可看：家长比较、目标、奖惩、输游戏、兄弟姐妹竞争。",
+    misread:"家长容易只看成“好胜／强势／爱控制”，但要先看孩子是不是把结果当成自己值不值得肯定。",
+    repair:"称赞策略、坚持、修正和合作；让失败后仍然能安全地回顾，而不是马上比较。"
+  },
+  9:{
+    observe:"重点观察孩子会不会很早顾大局、照顾很多人、想很多可能，也容易忽略自己的小需要或难收尾。",
+    parentQ:"他会不会常常替别人想、舍不得拒绝、想做很多事，最后反而不知道先完成哪一个？",
+    childQ:"你会不会常常先想大家开不开心，最后才想到自己想要什么？",
+    school:"学校可看：帮助同学、团队活动、很多兴趣、计划太大、收尾。",
+    home:"家里可看：懂事、顾全大家、舍不得、很多愿望同时开始。",
+    misread:"家长容易只看成“想太多／太理想／不实际”，但要先看孩子是不是长期把自己放到最后。",
+    repair:"先练习说一个自己的需要；每个阶段只选一个最重要的事情完成。"
+  }
+};
+
+function childOriginAgeGuide(c){
+  const age=ageFromBirthday(c.birthday);
+  if(age<=5) return {age,band:"3–5岁",order:"先问家长，再用很短的具体问题问孩子；不要要求孩子解释复杂原因。"};
+  if(age<=9) return {age,band:"6–9岁",order:"家长提供事实场景，孩子补充感受；问题要具体到学校、朋友和家里发生的事情。"};
+  if(age<=12) return {age,band:"10–12岁",order:"孩子本人已经可以直接回答更多感受与想法；家长负责补充频率与不同场景。"};
+  return {age,band:"13–17岁",order:"优先让青少年本人说，再请家长补充观察；避免在孩子面前用标签替他下定义。"};
+}
+
+function childOriginConstraintPanel(c,a){
+  const n=Number(a.constraintCode||0);
+  const mode=CHILDHOOD_MODES[n]||{};
+  const g=CHILD_ORIGIN_GUIDE[n]||{};
+  const age=childOriginAgeGuide(c);
+  return '<div class="foundation-block child-origin-panel">'
+    +'<div class="card-heading"><div><small>CHILDHOOD PATTERN × CONSTRAINT</small><h3>正在形成中的童年模式 × 制约数字 '+n+'</h3></div><span>'+esc(age.age)+'岁 · '+esc(age.band)+'</span></div>'
+    +'<div class="formula-note"><b>这两个要分开看：</b>童年模式看“孩子在什么家庭／学校互动里反复遇到什么”；制约数字看“这些情境下，孩子比较容易形成什么自动保护反应”。孩子现在还在成长，所以这里不讲成固定人格，也不拿来预测长大一定怎样。</div>'
+    +'<div class="child-insight-grid">'
+      +'<div><small>童年模式｜环境怎么进入</small><p>'+esc(mode.pattern||"需要用家庭与学校真实经历验证。")+'</p></div>'
+      +'<div><small>孩子真正需要</small><p>'+esc(mode.need||"先确认孩子在这个情境里真正需要什么。")+'</p></div>'
+      +'<div><small>制约数字｜当前观察主题</small><p>'+esc(CONSTRAINT_NOTES[n]||g.observe||"这项只作为观察方向，不单靠数字定性。")+'</p></div>'
+      +'<div><small>家长容易误会成</small><p>'+esc(g.misread||"不要只看最后行为，要回到触发点。")+'</p></div>'
+      +'<div><small>家里可以观察</small><p>'+esc(g.home||"看最近一周真实互动。")+'</p></div>'
+      +'<div><small>学校／同伴可以观察</small><p>'+esc(g.school||"看老师、同学和学习场景。")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 对家长可以直接说：</b><br>“我现在看到的制约数字是 '+n+'。它不是说孩子已经被定型，而是提醒我们：在某些压力或关系情境里，他可能比较容易发展出这一套保护自己的方式。我们先不要判断对不对，先找最近真实发生的例子。”</div>'
+    +'<div class="question-box"><b>先问家长：</b><br>“'+esc(g.parentQ||"最近什么场景最容易让孩子一下变得很不像平时？")+'”</div>'
+    +'<div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(g.childQ||"最近哪件事最容易让你不舒服？")+'”</div>'
+    +'<div class="answer-branches">'
+      +'<div><b>家长说「很像」</b><p>“好，那我们先不急着改孩子。我想知道最近一次是什么时候、谁在场、前面发生了什么、你们大人当时怎么回应？”</p></div>'
+      +'<div><b>家长说「有一点」</b><p>“那我们分场景看：在家像，学校不像，还是刚好相反？不同环境会帮助我们判断这是性格底色还是情境反应。”</p></div>'
+      +'<div><b>家长说「不像」</b><p>“没关系，这一层先放下。数字只是观察入口，不需要为了对上数字去找证据。”</p></div>'
+      +'<div><b>孩子与家长说法不同</b><p>“我会两边都保留。家长看到的是行为，孩子说的是里面的感受，我们先找同一件事情逐步还原，不急着决定谁对。”</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>家长怎么带：</b><br>“'+esc(g.repair||mode.guide||"从触发点和需要开始调整，不只压最后行为。")+'”</div>'
+    +'<div class="formula-note"><b>咨询顺序：</b>'+esc(age.order)+' 建议家长连续3–7天只记录：发生场景 → 孩子第一反应 → 大人回应 → 孩子多久恢复。下一次再用真实记录验证。</div>'
+    +'</div>';
+}
+
+function childOriginFlowBridge(c,a,year,flowNumber){
+  const n=Number(a.constraintCode||0);
+  const mode=CHILDHOOD_MODES[n]||{};
+  const g=CHILD_ORIGIN_GUIDE[n]||{};
+  const y=CHILD_FLOW_YEAR_GUIDE[Number(flowNumber)]||{};
+  const same=Number(flowNumber)===n;
+  const headline=same
+    ?"今年流年数字与制约数字同号｜优先验证，不等于一定出问题"
+    :"今年流年是外层情境，制约数字是压力下旧反应｜两层一起验证";
+  const bridge=same
+    ?"今年流年 "+flowNumber+" 和制约数字 "+n+" 重合，所以AURMOVA儿童咨询会把这一主题列为高优先级观察。意思只是“今年的情境可能更常碰到这套旧反应”，不是说一定发生坏事。"
+    :"今年流年 "+flowNumber+" 主要看“"+(y.title||"今年主题")+"”；制约数字 "+n+" 则看孩子压力下比较容易启动的旧保护方式。两者不是硬加成，只在真实事件里相遇时才连起来讲。";
+  return '<div class="foundation-block child-origin-flow-bridge">'
+    +'<div class="card-heading"><div><small>FLOW YEAR × CHILDHOOD PATTERN</small><h3>'+esc(headline)+'</h3></div><span>流年 '+flowNumber+' × 制约 '+n+'</span></div>'
+    +'<div class="formula-note">'+esc(bridge)+'</div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>今年外层主题</small><p>'+esc(y.focus||"用今年学校、家庭、朋友与学习变化验证。")+'</p></div>'
+      +'<div><small>底层童年模式</small><p>'+esc(mode.pattern||"用长期互动模式验证。")+'</p></div>'
+      +'<div><small>孩子真正需要</small><p>'+esc(mode.need||"先找需要，不只纠正行为。")+'</p></div>'
+      +'<div><small>家长今年最重要</small><p>'+esc(g.repair||mode.guide||"不要压结果，先处理触发点。")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>问父母：</b><br>“今年出现「'+esc(y.title||"这个流年主题")+'」相关事情时，孩子有没有更容易回到这种反应：'+esc(g.observe||CONSTRAINT_NOTES[n]||"原来的保护模式")+'？”</div>'
+    +'<div class="question-box"><b>如果父母说有：</b><br>“好，那我会把它看成今年的情境碰到了孩子原本比较敏感的点。我们接下来不只看数字，要找最近一次：什么先发生、孩子怎么反应、你怎么回应、最后怎样结束。”</div>'
+    +'<div class="question-box"><b>如果父母说没有：</b><br>“那就不连接。流年讲流年的主题，制约讲长期模式，不需要每一年都硬把两层绑在一起。”</div>'
+    +'</div>';
+}
+
 function childAudience(c){
   return localStorage.getItem(blueprintAudienceKey(c.id))||"adult";
 }
@@ -1827,9 +1979,10 @@ function childBlueprintPanel(c){
   return '<div class="module-render child-blueprint-mode">'
     +'<div class="card-heading"><div><small>CHILD BLUEPRINT MODE</small><h2>小朋友蓝图 · '+esc(c.name)+'</h2></div><span>联合码儿童化 · 深度版</span></div>'
     +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
-    +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
+    +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → <b>童年模式 → 制约数字</b> → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
     +childSeatCodeDeepPanel(a)
+    +childOriginConstraintPanel(c,a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
       +'<div class="child-insight-grid">'
         +'<div><small>特性</small><p>'+esc(traits||child.strength||"")+'</p></div>'
