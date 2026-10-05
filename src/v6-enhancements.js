@@ -2143,26 +2143,225 @@ function miniBlueprint(person){
     +'<div class="mini-blueprint-meta"><span>主性格 <b>'+a.mainPersonality+'</b></span><span>坐镇码 <b>'+a.seatCode+'</b></span><span>父亲 <b>'+a.fatherCode+'</b></span><span>母亲 <b>'+a.motherCode+'</b></span></div></div>';
 }
 
-function relationshipCross(a,b){
-  const shared=DIGITS.filter(n=>a.innerEnergy.present.includes(n)&&b.innerEnergy.present.includes(n));
-  const tensionA=DIGITS.filter(n=>(a.innerEnergy.counts[n]||0)>=2&&b.innerEnergy.missing.includes(n));
-  const tensionB=DIGITS.filter(n=>(b.innerEnergy.counts[n]||0)>=2&&a.innerEnergy.missing.includes(n));
-  return '<div class="relationship-cross"><div><small>共同容易理解的数字</small><b>'+(shared.length?shared.join(" · "):"暂无明显重合")+'</b></div><div><small>A强／B缺</small><b>'+(tensionA.length?tensionA.join(" · "):"无")+'</b></div><div><small>B强／A缺</small><b>'+(tensionB.length?tensionB.join(" · "):"无")+'</b></div></div>'
-    +'<div class="formula-note">这里是双方蓝图的交叉观察线索，不用单一合数替关系下结论。重点继续结合两人的负面模式、制约数、原生家庭和真实互动验证。</div>';
-}
 
-function relationshipPanel(c){
-  const r=loadRelationship(c.id),a=calculateBlueprint(c.birthday),b=r.birthday?calculateBlueprint(r.birthday):null;
-  return '<div class="module-render"><div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT</small><h2>关系蓝图 · 双方资料</h2></div><span>两张蓝图交叉看</span></div>'
-    +blueprintSheet(c,a,"关系蓝图 · "+c.name)
-    +plainLanguagePanel(a)
-    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并生成双方蓝图</button></div>'
-    +'<div class="two-blueprints"><div><h3>'+esc(c.name)+' · 当事人</h3>'+miniBlueprint({birthday:c.birthday})+'</div><div><h3>'+esc(r.name||"对方")+'</h3>'+miniBlueprint(r)+'</div></div>'
-    +(b?relationshipCross(a,b):'<div class="empty-mini">填写对方资料后，系统会把双方主性格、内心码、制约数、原生模式、缺失／过强与共同数字放在一起比较。</div>')
-    +(b?'<details class="blueprint-expander"><summary>展开双方完整蓝图</summary>'+blueprintSheet(c,a,c.name+' · 关系蓝图个人盘')+blueprintSheet({name:r.name||"对方",birthday:r.birthday},b,(r.name||"对方")+' · 关系蓝图个人盘')+'</details>':'')
+const RELATION_TRANSLATION={
+  1:{pace:"直接、快决定",gift:"主见、行动、保护关系的方向感",need:"尊重、自主、被信任",trigger:"被控制、被否定、被当成没能力",stress:"越有压力越想自己决定或把事情扛起来",misread:"强势／不听人说",swap:"“我有一个想法，但我想先听你怎么看。”",space:"需要保留自主权，同时要学习把决定变成讨论。"},
+  2:{pace:"先感受、再表达",gift:"同理、协调、感受关系变化",need:"回应、理解、关系稳定",trigger:"冷淡、没回应、语气突然变硬",stress:"容易先顾关系、反复确认，或委屈后才表达",misread:"想太多／不直接",swap:"“我不是要你马上解决，我想先确认你有没有听懂我的感受。”",space:"需要连接感，但也要练习界线，不用靠迁就换安全。"},
+  3:{pace:"表达快、反应快",gift:"带动气氛、表达、行动和创意",need:"被听见、被看见、被认可",trigger:"被打断、被否定表达、被说太多",stress:"情绪与语言速度会一起变快，可能先说后整理",misread:"急／讲话太冲",swap:"“我现在有很多话，我先讲最重要的一件。”",space:"需要表达出口，也需要练习听完对方再继续。"},
+  4:{pace:"先确认规则和细节",gift:"稳定、规划、把生活落地",need:"确定、清楚、可预测",trigger:"临时改变、模糊、说了不算",stress:"容易反复确认、抓细节或想把流程控制好",misread:"固执／太计较",swap:"“我需要先把时间、责任和做法讲清楚，我才比较安心。”",space:"需要稳定安排，也要保留一点弹性。"},
+  5:{pace:"重选择和变化",gift:"弹性、探索、为关系带来新鲜感",need:"空间、选择权、自由感",trigger:"被限制、被追问、被安排得太满",stress:"容易想离开现场、换方法或突然改方向",misread:"没定性／不想负责",swap:"“我需要一点空间整理，但我会在___点回来继续谈。”",space:"空间需求高，但暂停必须约定回来，不等于失联。"},
+  6:{pace:"先看责任与照顾",gift:"愿意承担、照顾、把生活品质做好",need:"被珍惜、被分担、付出有回应",trigger:"别人不负责、自己的付出被当成理所当然",stress:"容易接手、操心、要求更高，最后觉得只有自己在做",misread:"爱管／要求太多",swap:"“这件事我愿意负责哪一部分？你愿意负责哪一部分？”",space:"需要可靠感，也要避免把爱变成包办。"},
+  7:{pace:"先想、慢一点回应",gift:"观察、分析、看深层原因",need:"空间、信任、被理解思考节奏",trigger:"被逼问、被要求马上回答、私人空间被侵入",stress:"容易沉默、退开、自己消化，想清楚才愿意说",misread:"冷淡／不想沟通",swap:"“我需要一点时间整理，但我不是不谈，我们___点再回来。”",space:"需要独处与整理时间，但要让对方知道什么时候会回来。"},
+  8:{pace:"结果导向、想解决",gift:"担当、推进、处理现实问题",need:"尊重、可靠、事情有结果",trigger:"拖延、失控、重复讨论却没有决定",stress:"越有压力越想控制进度、马上解决或自己接管",misread:"强势／只讲结果",swap:"“你现在要我先听你，还是我们一起找解决方法？”",space:"需要推进感，也要留出情绪被听见的时间。"},
+  9:{pace:"看整体、顾大局",gift:"包容、共情、为关系看长远",need:"价值被理解、付出被看见、关系有意义",trigger:"被说不实际、付出没回应、长期失望",stress:"容易过度付出、想很多可能，或把自己的小需要放后面",misread:"想太多／太理想",swap:"“我先讲我自己真正需要的一件事，不先替所有人想。”",space:"需要意义和连接，也要把自己的需要放回关系里。"}
+};
+
+function relationProfile(a,name){
+  const main=Number(a.mainPersonality||0),inner=Number(a.innerCode||0),sub=Number(a.subconsciousCode||0),constraint=Number(a.constraintCode||0);
+  return {
+    name,
+    main,inner,sub,constraint,
+    style:RELATION_TRANSLATION[main]||{},
+    innerStyle:RELATION_TRANSLATION[inner]||{},
+    subStyle:RELATION_TRANSLATION[sub]||{},
+    constraintMode:CHILDHOOD_MODES[constraint]||{},
+    mainDetail:MAIN_DETAIL[main]||{},
+    seat:getFlootKnowledge(a.seatCode)||{},
+    a
+  };
+}
+function relationSharedData(a,b){
+  return {
+    shared:DIGITS.filter(n=>a.innerEnergy.present.includes(n)&&b.innerEnergy.present.includes(n)),
+    aStrongBMissing:DIGITS.filter(n=>(a.innerEnergy.counts[n]||0)>=2&&b.innerEnergy.missing.includes(n)),
+    bStrongAMissing:DIGITS.filter(n=>(b.innerEnergy.counts[n]||0)>=2&&a.innerEnergy.missing.includes(n))
+  };
+}
+function relationStressClass(p){
+  const t=(p.style.stress||"")+" "+(p.mainDetail.stress||"")+" "+(p.constraintMode.adult||"");
+  if(/沉默|退|独处|不说|距离|自己消化|慢/.test(t)) return "withdraw";
+  if(/讨好|委屈|怕冲突|顾别人|配合|照顾/.test(t)) return "appease";
+  if(/控制|接管|强势|马上|急|解决|证明|硬撑/.test(t)) return "pursue";
+  return "mixed";
+}
+function relationConflictCycle(pa,pb){
+  const a=relationStressClass(pa),b=relationStressClass(pb);
+  if((a==="pursue"&&b==="withdraw")||(a==="withdraw"&&b==="pursue")){
+    const pursuer=a==="pursue"?pa:pb, withdrawer=a==="withdraw"?pa:pb;
+    return {
+      title:"追—退循环",
+      text:pursuer.name+"压力上来时比较想把事情讲清楚、推进或解决；"+withdrawer.name+"压力上来时更需要先退开整理。于是一个越追，另一个越退；另一个越退，前者越觉得没有回应。",
+      q:"你们吵架时，是不是一个比较想当下讲清楚，另一个比较需要先静下来？",
+      yes:"那你们的问题不一定是谁不会沟通，而是节奏没有对上。以后暂停可以，但要约定几点回来；想马上解决的一方，也先确认对方现在能不能谈。",
+      no:"好，那追—退先不成立。你们更像两个一起爆、两个一起不说，还是表面结束了、过后才翻旧账？"
+    };
+  }
+  if(a==="pursue"&&b==="pursue") return {
+    title:"双推进／双强循环",
+    text:pa.name+"和"+pb.name+"压力上来时都比较想快速推动、解释或拿回控制。好处是问题不会拖太久；风险是两个人都想让对方先听懂自己，声音和力度会越升越高。",
+    q:"你们一吵起来，会不会两个人都很想当下讲清楚，结果越讲越快、越讲越硬？",
+    yes:"那要练的不是谁先赢，而是一次只处理一个问题；任何一方发现音量和速度升级，就先停10–20分钟再回来。",
+    no:"好，那双强先放下，我们改看谁会先让、谁会把话留到后面。"
+  };
+  if((a==="withdraw"||a==="appease")&&(b==="withdraw"||b==="appease")) return {
+    title:"延迟／累积循环",
+    text:"你们两个压力上来时都不一定马上把真实需要讲出来，关系表面可能很平静，但不舒服容易累积到后来才一次出来。",
+    q:"你们是不是很少当场大吵，但同一件事会隔一阵子又再出现，或最后变成翻旧账？",
+    yes:"那你们最需要的是把“小不舒服”提前讲，不要等到已经累积成大问题。每周固定一次20分钟，只讲最近一件没说完的事。",
+    no:"好，那我们继续从最近一次真实冲突，看谁先做了什么、另一方怎么接。"
+  };
+  return {
+    title:"交错型冲突循环",
+    text:"你们在不同问题上可能会交换角色：有时"+pa.name+"追、"+pb.name+"退；换到另一类事情又反过来。重点不是给你们贴固定类型，而是找“什么主题会让谁先被触发”。",
+    q:"你们有没有发现，钱、家人、孩子、时间安排这些不同主题，谁先急、谁先退会不一样？",
+    yes:"那就按主题建立规则，不用期待所有冲突都用同一种方法解决。",
+    no:"好，那我们直接用最近一次真实事件来还原，不硬分类型。"
+  };
+}
+function relationDigitResources(nums){
+  if(!nums.length)return "暂无明显共同数字";
+  return nums.map(n=>{
+    const d=DIGIT_CORE[n]||{},r=RELATION_TRANSLATION[n]||{};
+    return n+"＝"+(d.core||r.gift||"共同能量");
+  }).join(" · ");
+}
+function relationshipCommunicationCard(from,to,label){
+  const fromSpeech=from.mainDetail.speech||from.style.pace||"按自己的方式表达";
+  const toNeed=to.mainDetail.emotion||to.innerStyle.need||to.style.need||"被理解";
+  const trigger=to.style.trigger||"对方没有回应";
+  const swap=from.style.swap||"先说需求，再说解决方法。";
+  return '<article><small>'+esc(label)+'</small><h4>'+esc(from.name)+' → '+esc(to.name)+'</h4>'
+    +'<p><b>'+esc(from.name)+'平常怎样讲：</b>'+esc(fromSpeech)+'</p>'
+    +'<p><b>'+esc(to.name)+'比较需要怎样接收：</b>'+esc(toNeed)+'</p>'
+    +'<p><b>最容易误会的位置：</b>如果'+esc(from.name)+'在压力下变成“'+esc(from.style.stress||"反应更强")+'”，刚好碰到'+esc(to.name)+'对“'+esc(trigger)+'”比较敏感，原意和接收到的意思就可能不一样。</p>'
+    +'<div class="question-box"><b>问'+esc(from.name)+'：</b><br>“你讲这句话时，真正想让对方知道的是感受、要求，还是解决方法？”</div>'
+    +'<div class="question-box"><b>问'+esc(to.name)+'：</b><br>“对方这样讲话时，你第一秒最容易听成什么？”</div>'
+    +'<div class="question-box"><b>换一句：</b><br>“'+esc(swap)+'”</div>'
+    +'</article>';
+}
+function relationshipThemeCard(title,summary,evidence,qA,qB,action){
+  return '<article><h4>'+esc(title)+'</h4><p>'+esc(summary)+'</p><small>'+esc(evidence)+'</small>'
+    +'<div class="question-box"><b>问A：</b><br>“'+esc(qA)+'”</div>'
+    +'<div class="question-box"><b>问B：</b><br>“'+esc(qB)+'”</div>'
+    +'<div class="question-box"><b>两人答案一致时：</b><br>“好，这就不是谁的问题，而是你们两个一起形成的循环。我们直接改互动规则。”</div>'
+    +'<div class="question-box"><b>两人答案不一致时：</b><br>“先不要争谁记得比较对。我们找最近一次同一件事，按发生顺序还原：谁先说什么、另一方怎么听、接着怎么回应。”</div>'
+    +'<p><b>关系练习：</b>'+esc(action)+'</p></article>';
+}
+function relationshipFlowPanel(c,r,a,b){
+  const year=activeFlowYear(new Date());
+  const sa=calculateGoldenYearSnapshot(c.birthday,year), sb=calculateGoldenYearSnapshot(r.birthday,year);
+  if(!sa||!sb)return "";
+  const same=Number(sa.personal.number)===Number(sb.personal.number);
+  const text=same
+    ?"你们今年个人流年都走到 "+sa.personal.number+"「"+sa.personal.title+"」。同一个主题可能更容易被两个人同时放大；好处是比较能理解彼此，风险是同一种压力反应也会一起变强。"
+    :c.name+"今年偏向 "+sa.personal.number+"「"+sa.personal.title+"」，"+(r.name||"对方")+"偏向 "+sb.personal.number+"「"+sb.personal.title+"」。两个人今年关注点不同，不代表关系不好，而是需要更清楚讲“我现在最需要什么”。";
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>RELATIONSHIP FLOW YEAR</small><h3>'+year+' · 两个人今年怎样一起走</h3></div><span>'+sa.personal.number+' × '+sb.personal.number+'</span></div>'
+    +'<p>'+esc(text)+'</p>'
+    +'<div class="question-box"><b>问两个人：</b><br>“今年你们最常为了哪一类事情节奏对不上：时间、钱、家人／孩子、工作压力、亲密感，还是空间？”</div>'
+    +'<div class="question-box"><b>回答后这样接：</b><br>“好，那我们不分别念你今年怎样、他今年怎样。我直接看这两个年度主题碰到你们原本的关系循环时，哪一个互动最容易被放大，再定今年的共同规则。”</div>'
+    +'<div class="formula-note">关系流年不预测分手、出轨或离婚；这里只用来观察今年哪些互动主题更值得提前沟通。</div>'
     +'</div>';
 }
 
+function relationshipCross(a,b,ctx={}){
+  const aName=ctx.aName||"A", bName=ctx.bName||"B";
+  const pa=relationProfile(a,aName), pb=relationProfile(b,bName);
+  const x=relationSharedData(a,b), cycle=relationConflictCycle(pa,pb);
+  const aSeat=pa.seat, bSeat=pb.seat;
+  const sameMain=pa.main===pb.main;
+  const core=sameMain
+    ?"你们主性格同为"+pa.main+"，相处节奏比较容易互相理解，但同一种优点和盲点也会一起被放大。"
+    :aName+"的核心节奏偏「"+(pa.style.pace||pa.mainDetail.behavior||pa.main)+"」，"+bName+"偏「"+(pb.style.pace||pb.mainDetail.behavior||pb.main)+"」。吸引点往往也来自这个差异：一个提供对方没有那么自然的那一面；压力时同一个差异也最容易变成误会。";
+  const need=aName+"内心更需要「"+(pa.innerStyle.need||DIGIT_CORE[pa.inner]?.core||pa.inner)+"」；"+bName+"更需要「"+(pb.innerStyle.need||DIGIT_CORE[pb.inner]?.core||pb.inner)+"」。关系里真正要确认的是：彼此给出去的关心，是否刚好是对方接得到的方式。";
+  const boundary=aName+"比较需要："+(pa.style.space||"清楚表达自己的需要")+"；"+bName+"比较需要："+(pb.style.space||"清楚表达自己的需要")+"。如果一方把空间理解成冷淡、另一方把连接理解成控制，就会反复触发。";
+  const responsibility=aName+"童年／制约"+pa.constraint+"较容易留下的关系反应是："+(pa.constraintMode.adult||CONSTRAINT_NOTES[pa.constraint]||"需要真实经历验证")+"；"+bName+"童年／制约"+pb.constraint+"较容易留下："+(pb.constraintMode.adult||CONSTRAINT_NOTES[pb.constraint]||"需要真实经历验证")+"。亲密关系最容易把这些旧反应重新叫出来。";
+  const decision=aName+"坐镇码 "+a.seatCode+" 的现实处理路径："+(aSeat.script||aSeat.logic||"按自身三位联合码处理现实问题")+"；"+bName+"坐镇码 "+b.seatCode+"："+(bSeat.script||bSeat.logic||"按自身三位联合码处理现实问题")+"。因此钱、旅行、家务、孩子或重大决定要看“你们怎样决定”，不是只看谁对。";
+
+  return '<div class="relationship-system">'
+    +'<div class="foundation-block">'
+      +'<div class="card-heading"><div><small>RELATIONSHIP SYSTEM</small><h3>'+esc(aName)+' × '+esc(bName)+'｜两个人在一起后的关系模式</h3></div><span>不是两份个人报告</span></div>'
+      +'<div class="formula-note"><b>读取顺序：</b>主性格看相处节奏 → 内心码看真正需要 → 潜意识看第一反应 → 制约数／童年模式看雷区 → 重复／缺失看共振与互补 → 双方既有联合码看钱、责任、表达与现实决策。</div>'
+      +'<div class="question-box"><b>Josephine 开场：</b><br>“今天我不会先讲你是什么人、他是什么人。我直接看你们两个放在一起以后，为什么会互相吸引、为什么同一类事情会一直吵、谁说什么对方最容易误会，以及你们可以怎么换一种相处方式。”</div>'
+      +'<div class="question-box"><b>第一题先问两个人：</b><br>“你们今天最想解决的是沟通、吵架／冷战、钱、家人／孩子、信任、亲密感，还是彼此空间？”</div>'
+      +'<div class="notion-consult-grid">'
+        +'<div><small>关系核心</small><p>'+esc(core)+'</p></div>'
+        +'<div><small>内在需要</small><p>'+esc(need)+'</p></div>'
+        +'<div><small>共同数字／修复资源</small><p>'+esc(relationDigitResources(x.shared))+'</p></div>'
+        +'<div><small>最需要验证的落差</small><p>A强/B缺：'+esc(x.aStrongBMissing.join(" · ")||"无")+'｜B强/A缺：'+esc(x.bStrongAMissing.join(" · ")||"无")+'</p></div>'
+      +'</div>'
+    +'</div>'
+
+    +'<div class="foundation-block">'
+      +'<div class="card-heading"><div><small>TWO-WAY COMMUNICATION</small><h3>双向说话地图｜不是一句“沟通不同”</h3></div><span>A→B · B→A</span></div>'
+      +'<div class="v23-detail-grid">'
+        +relationshipCommunicationCard(pa,pb,"A 对 B")
+        +relationshipCommunicationCard(pb,pa,"B 对 A")
+      +'</div>'
+      +'<div class="question-box"><b>两个人都确认有时：</b><br>“那我们现在改的不是性格，而是翻译方式。讲话的人练习把真正需求讲短一点；听的人先复述一句‘你现在最在意的是___，对吗？’再回应。”</div>'
+    +'</div>'
+
+    +'<div class="foundation-block">'
+      +'<div class="card-heading"><div><small>CONFLICT CYCLE</small><h3>'+esc(cycle.title)+'｜冲突是怎样一圈一圈升级</h3></div><span>先改循环，不判谁对</span></div>'
+      +'<p>'+esc(cycle.text)+'</p>'
+      +'<div class="question-box"><b>验证两个人：</b><br>“'+esc(cycle.q)+'”</div>'
+      +'<div class="answer-branches"><div><b>回答「是」</b><p>“'+esc(cycle.yes)+'”</p></div><div><b>回答「不是」</b><p>“'+esc(cycle.no)+'”</p></div></div>'
+      +'<div class="formula-note"><b>关系还原法：</b>第一次触发 → A反应 → B怎样听 → B反应 → A再次升级 → 两个人最后卡在哪里。每次只还原一件真实事件。</div>'
+    +'</div>'
+
+    +'<div class="foundation-block">'
+      +'<div class="card-heading"><div><small>RELATIONSHIP THEMES</small><h3>夫妻／情侣真正要谈的相处主题</h3></div><span>验证后才下结论</span></div>'
+      +'<div class="v23-detail-grid">'
+        +relationshipThemeCard("爱与安全感",need,"依据：A内心码 "+pa.inner+" × B内心码 "+pb.inner,
+          "对方做什么时，你最容易真的感觉“他有在乎我”？",
+          "对方做什么时，你最容易真的感觉“他有在乎我”？",
+          "各自写3个“我接得到的爱”的具体行为，不写抽象词。")
+        +relationshipThemeCard("空间／黏度／边界",boundary,"依据：双方主性格 "+pa.main+" × "+pb.main+" ＋ 内在需要",
+          "你要空间的时候，最怕对方怎样理解你？",
+          "你想靠近的时候，最怕对方怎样回应你？",
+          "把“需要空间”改成有时限的暂停；把“需要连接”改成具体请求，不用追问测试爱。")
+        +relationshipThemeCard("童年模式与关系雷区",responsibility,"依据：制约数 "+pa.constraint+" × "+pb.constraint,
+          "最近哪一件事让你突然觉得“他根本不在乎我／不尊重我／不信任我”？",
+          "同一件事里，你第一秒最怕失去的是什么？",
+          "触发时先说“这件事让我想到的是___，我现在需要___”，不要先定义对方是什么人。")
+        +relationshipThemeCard("钱／生活决策",decision,"依据：双方坐镇码 "+a.seatCode+" × "+b.seatCode+"，调用现有81组联合码资料",
+          "买大件、旅行、装修、投资或临时大支出时，你最先确认的是价格、风险、责任、时间还是感觉？",
+          "你做重大决定时，最难受的是对方太慢、太快、太省、太敢花，还是一直不表态？",
+          "重大决定固定四步：各自先说目标 → 各列3个担心 → 定决定期限 → 决定后不重复攻击对方的决策风格。")
+      +'</div>'
+    +'</div>'
+
+    +'<div class="foundation-block">'
+      +'<div class="card-heading"><div><small>SHARED × GAP</small><h3>共同数字、强弱落差怎样变成“我们之间”</h3></div><span>不只显示号码</span></div>'
+      +'<div class="notion-consult-grid">'
+        +'<div><small>共同数字</small><p>'+esc(x.shared.length?x.shared.map(n=>n+"｜"+(RELATION_TRANSLATION[n]?.gift||DIGIT_CORE[n]?.gift||"共同理解点")).join("；"):"暂无明显共同数字；关系资源改从互补与真实共同经验找。")+'</p></div>'
+        +'<div><small>'+esc(aName)+'强／'+esc(bName)+'缺</small><p>'+esc(x.aStrongBMissing.length?x.aStrongBMissing.map(n=>n+"｜"+(RELATION_TRANSLATION[n]?.gift||DIGIT_CORE[n]?.gift||"较自然能力")+" 对 "+bName+"来说需要后天练习").join("；"):"无明显强／缺落差")+'</p></div>'
+        +'<div><small>'+esc(bName)+'强／'+esc(aName)+'缺</small><p>'+esc(x.bStrongAMissing.length?x.bStrongAMissing.map(n=>n+"｜"+(RELATION_TRANSLATION[n]?.gift||DIGIT_CORE[n]?.gift||"较自然能力")+" 对 "+aName+"来说需要后天练习").join("；"):"无明显强／缺落差")+'</p></div>'
+        +'<div><small>现场怎么解释</small><p>强的一方很容易觉得“这不是很自然吗？”；缺的一方可能需要时间、方法或提醒。这里最容易把能力差异误解成态度问题。</p></div>'
+      +'</div>'
+      +'<div class="question-box"><b>验证：</b><br>“你们有没有一个人觉得某件事很理所当然，另一个人却总是要被提醒或需要学很久？你们最常在哪件事发生这个落差？”</div>'
+    +'</div>'
+
+    +'<details class="blueprint-expander"><summary>查看双方个人蓝图依据（只作关系分析原料）</summary>'
+      +'<div class="two-blueprints"><div><h3>'+esc(aName)+' · A</h3>'+miniBlueprint({birthday:ctx.aBirthday})+'</div><div><h3>'+esc(bName)+' · B</h3>'+miniBlueprint({birthday:ctx.bBirthday})+'</div></div>'
+      +blueprintSheet({name:aName,birthday:ctx.aBirthday},a,aName+' · 个人依据')
+      +blueprintSheet({name:bName,birthday:ctx.bBirthday},b,bName+' · 个人依据')
+    +'</details>'
+
+    +'<details class="blueprint-expander"><summary>关系结合数字资料状态</summary><div class="formula-note"><b>已接回：</b>双方现有主性格、内心码、潜意识、制约／童年模式、重复／缺失，以及各自81组联合码资料都会进入关系分析。<br><b>不会自行生成：</b>目前不建立未经确认的“A某数字＋B某数字＝新的三位关系码”。等原始关系专属合数公式找回并确认后，再接成独立第二层。</div></details>'
+    +'</div>';
+}
+function relationshipPanel(c){
+  const r=loadRelationship(c.id), a=calculateBlueprint(c.birthday), b=r.birthday?calculateBlueprint(r.birthday):null;
+  return '<div class="module-render relationship-system-mode">'
+    +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>夫妻／情侣 · 互动合盘</span></div>'
+    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
+    +(b
+      ?relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
+        +relationshipFlowPanel(c,r,a,b)
+      :'<div class="foundation-block"><div class="question-box"><b>关系蓝图从两个人开始：</b><br>先填写对方姓名与生日。生成后首页不会重复解释当事人的人生蓝图，而是直接显示：关系核心 → A→B／B→A沟通 → 冲突循环 → 爱与安全感 → 空间边界 → 钱与生活决策 → 共同数字／强缺落差 → 关系流年。</div></div>')
+    +'</div>';
+}
 function familyMemberCard(role,prefix,person){
   return '<article class="family-member"><h4>'+esc(role)+'</h4><label>姓名<input data-family-field="'+prefix+'.name" value="'+esc(person?.name||"")+'"></label><label>生日（日/月/年）<input data-family-field="'+prefix+'.birthday" value="'+esc(person?.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(person)+'</article>';
 }
