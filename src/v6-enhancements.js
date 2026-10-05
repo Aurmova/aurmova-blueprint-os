@@ -639,8 +639,242 @@ function yearSnapshotCard(c,year,label){
     +'</section>';
 }
 
+
+const CHILD_FLOW_YEAR_GUIDE={
+  1:{
+    title:"自主与开始",
+    focus:"今年更值得观察孩子的自主感、主见、主动尝试，以及被过度安排时的反应。",
+    parent:"最近三个月，他有没有比以前更常说“我自己来”“我不要这样”“为什么一定要这样”，或明显更想自己决定？",
+    childSimple:"最近有什么事情你最喜欢自己来，不要大人帮？",
+    childSchool:"在学校或家里，什么事情你最想自己决定？",
+    childTween:"今年你有没有觉得大人管得太多，或你很想证明自己可以？",
+    childTeen:"如果今年有一件事你最想自己做主，会是什么？为什么？",
+    guide:"给有限选择和真实责任，让孩子练习决定，也保留清楚边界。",
+    avoid:"不要把“想自己来”直接贴成叛逆，也不要什么都替他决定。"
+  },
+  2:{
+    title:"关系与敏感度",
+    focus:"今年更值得观察同学、朋友、老师与父母语气对孩子的影响，以及他是否更在意被接纳、被误会或被冷落。",
+    parent:"最近他有没有更常讲朋友、老师或家里谁对他怎样，或者别人一个语气就会影响他很久？",
+    childSimple:"今天谁跟你玩让你最开心？有没有谁让你不开心？",
+    childSchool:"最近在学校，朋友做什么会让你最难过或最开心？",
+    childTween:"你现在最在意朋友怎么看你，还是老师／家人怎么看你？",
+    childTeen:"今年关系里最累你的，是被误会、被忽略、怕冲突，还是不敢说不？",
+    guide:"先听完感受，再问孩子要“被听见”还是“一起想办法”。",
+    avoid:"不要直接说孩子玻璃心、太敏感，也不要替孩子决定谁是好朋友坏朋友。"
+  },
+  3:{
+    title:"表达与被看见",
+    focus:"今年更值得观察说话、分享、创作、表演、情绪表达，以及孩子有没有更强的被看见需求。",
+    parent:"最近他是不是更爱讲话、分享、表演、画东西给你看，或很在意别人有没有听他讲完？",
+    childSimple:"你最近最想给大家看什么？",
+    childSchool:"你在学校最喜欢用什么方式表达自己：讲话、画画、做作品还是表演？",
+    childTween:"别人不听你讲，和别人说你做得不好，哪一个更容易让你不开心？",
+    childTeen:"今年你最想被别人真正听懂的是什么？",
+    guide:"不要压掉表达欲，改为教“什么时候说、怎么说、怎样让别人听得进去”。",
+    avoid:"不要把活跃、话多或情绪快直接等同不专心或不乖。"
+  },
+  4:{
+    title:"规律与基础",
+    focus:"今年更值得观察作息、功课、时间、收拾、步骤、规则，以及计划突然变化时的反应。",
+    parent:"现在你最常提醒他的，是起床、功课、时间、收东西、按步骤做，还是答应好的事情要完成？",
+    childSimple:"你最不喜欢大人叫你做哪一件固定的事情？",
+    childSchool:"功课最难的是开始做、做到一半，还是检查完成？",
+    childTween:"你最讨厌别人怎样催你做事？",
+    childTeen:"今年你觉得自己最需要建立的一个规律是什么？",
+    guide:"把要求拆成具体下一步，用固定流程代替反复催促。",
+    avoid:"不要一句“懒”“没有自律”盖过真正卡点。"
+  },
+  5:{
+    title:"变化与探索",
+    focus:"今年更值得观察孩子对新鲜感、活动、探索、转换和自由选择的需求，以及重复太久时的厌倦。",
+    parent:"最近有没有很快喜欢一个东西又换兴趣，或以前能接受的规则现在更常问“为什么”？",
+    childSimple:"最近你最想试什么新东西？",
+    childSchool:"上课或做功课时，什么情况最容易让你觉得无聊？",
+    childTween:"你比较容易因为无聊停下来，还是因为一难就想换？",
+    childTeen:"今年你最想改变哪一种安排，才会觉得自己有空间？",
+    guide:"允许探索，但同时练习“答应过的事情如何收尾”。",
+    avoid:"不要马上贴“没定性”“坐不住”；先看是需要变化还是遇到困难就逃。"
+  },
+  6:{
+    title:"责任与被需要",
+    focus:"今年更值得观察孩子是否更想当好孩子、把事情做好、照顾别人，以及是否害怕让父母或老师失望。",
+    parent:"他做错事情时，最怕的是被骂，还是最怕你失望？最近有没有更常帮忙、照顾人或主动扛责任？",
+    childSimple:"你做错事情时，最怕大人怎么样？",
+    childSchool:"老师交代事情时，你会不会很怕自己做不好？",
+    childTween:"你有没有常常觉得“我应该做好，不然别人会失望”？",
+    childTeen:"你现在背着哪些责任，其实已经让你有点累？",
+    guide:"把“事情做错”与“孩子不够好”分开，肯定努力，也允许求助。",
+    avoid:"不要利用“你要懂事”“不要让妈妈失望”去推动孩子。"
+  },
+  7:{
+    title:"思考与内在世界",
+    focus:"今年更值得观察孩子是否更爱问为什么、需要时间消化、慢热、独处，或遇事先放在心里想很久。",
+    parent:"最近他有没有问更多“为什么”，或发生事情后不是马上讲，而是隔一阵子才说？",
+    childSimple:"你不开心的时候，喜欢马上讲，还是想自己静一下？",
+    childSchool:"遇到不会的东西，你喜欢自己先想，还是马上问人？",
+    childTween:"最近有没有一件事情你想了很久，但还没有跟大人讲？",
+    childTeen:"今年什么事情最占你的脑容量？你想自己消化，还是希望有人听？",
+    guide:"给思考时间，之后再回来问；重点是孩子最后有没有出口。",
+    avoid:"不要把慢热、安静直接贴成内向、冷淡或有问题。"
+  },
+  8:{
+    title:"成就与结果",
+    focus:"今年更值得观察成绩、比赛、输赢、表现、能力感、领导与被认可，以及结果好坏对情绪的影响。",
+    parent:"最近成绩、比赛、游戏输赢、老师称赞或被比较，会不会明显影响他的情绪？",
+    childSimple:"你输了的时候最难受的是什么？",
+    childSchool:"你比较在意自己有没有进步，还是有没有赢别人？",
+    childTween:"做不到的时候，你会想再试，还是马上觉得自己不行？",
+    childTeen:"今年你最想证明自己哪一件事？如果没做到，你会怎么想自己？",
+    guide:"把“我想做好”和“我必须赢”分开，称赞策略、坚持和修正。",
+    avoid:"不要用排名、比较、羞辱刺激孩子，也不要把8解释成财富或权力。"
+  },
+  9:{
+    title:"结束与转换",
+    focus:"今年更值得观察换班、换老师、毕业、朋友变化、兴趣结束、舍不得、告别，以及孩子如何处理转换。",
+    parent:"今年有没有什么是他明显经历“以前很重要，现在要慢慢放下”的？例如朋友转校、换老师、毕业或兴趣结束。",
+    childSimple:"最近有没有谁或什么东西你很舍不得？",
+    childSchool:"如果好朋友不在同一班了，你最难受的会是什么？",
+    childTween:"今年有什么改变你嘴上说没关系，但其实还会一直想？",
+    childTeen:"今年你觉得自己正在结束哪一个阶段，又想开始什么新的？",
+    guide:"允许告别和舍不得，用仪式、回顾、联系计划帮助孩子完成转换。",
+    avoid:"不要说“这就是流年9所以一定要失去”；数字只用来提示值得观察的转换主题。"
+  }
+};
+
+const CHILD_FLOW_DIGIT={
+  1:{cause:"需要自己决定、被安排或出现竞争",process:"更想自己来、坚持主见、争取选择权",result:"主动与独立更明显，也可能抗拒被控制"},
+  2:{cause:"同学、朋友、老师或父母的语气与关系变化",process:"先观察别人反应、顾关系、避免冲突",result:"更在意被接纳、误会、冷落或公平"},
+  3:{cause:"想分享、表现、创作或被看见",process:"用说、做、表演或创作表达",result:"话变多、点子变多，情绪也可能出来得更快"},
+  4:{cause:"规则、功课、时间、步骤或计划变化",process:"想按顺序、求稳、确认做法",result:"认真踏实，也可能怕错、卡细节或抗拒突然改变"},
+  5:{cause:"重复太久、限制太多或出现新鲜事物",process:"想换方法、探索、移动、获得选择",result:"兴趣转换更快，也更需要自由与变化"},
+  6:{cause:"老师要求、家长期待、责任与照顾任务",process:"想把事情做好、照顾别人、不想让人失望",result:"责任感更明显，也可能把压力放在自己身上"},
+  7:{cause:"不懂、被催、需要时间消化或遇到复杂问题",process:"先想、观察、分析、慢一点回应",result:"会问更多为什么、需要空间，也可能想很多却不讲"},
+  8:{cause:"成绩、比赛、输赢、表现或被评价",process:"想做到、掌控、证明能力",result:"目标感和竞争心更明显，也可能把结果看得太重"},
+  9:{cause:"离别、转换、他人情绪或一个阶段结束",process:"会联想到很多、共情、回顾、想完整收尾",result:"更容易舍不得、念旧、理想化，也可能更愿意帮助别人"}
+};
+
+function childFlowBirthParts(value){
+  const p=String(value||"").trim().split(/[\/\-.]/).map(x=>Number(x)).filter(Number.isFinite);
+  if(p.length!==3)return null;
+  if(p[0]>31)return {y:p[0],m:p[1],d:p[2]};
+  return {d:p[0],m:p[1],y:p[2]};
+}
+function childFlowAgeAtYear(birthday,year){
+  const b=childFlowBirthParts(birthday);
+  if(!b)return null;
+  const ref=new Date(Number(year),9,1);
+  let age=ref.getFullYear()-b.y;
+  const had=ref.getMonth()+1>b.m || (ref.getMonth()+1===b.m && ref.getDate()>=b.d);
+  if(!had)age--;
+  return age;
+}
+function childFlowAgeBand(age){
+  if(age===null||age===undefined)return "年龄未确认";
+  if(age<=2)return "3岁以下 · 以家长观察为主";
+  if(age<=5)return "3–5岁 · 家长观察为主";
+  if(age<=9)return "6–9岁 · 家长事实＋孩子感受";
+  if(age<=12)return "10–12岁 · 增加孩子本人版本";
+  if(age<=17)return "13–17岁 · 先听青少年本人";
+  return "18岁以上";
+}
+function isChildFlowCustomer(c,year){
+  const projects=(c?.consultationTypes?.length?c.consultationTypes:[c?.consultationType]).filter(Boolean).join(" ");
+  const age=childFlowAgeAtYear(c?.birthday,year||activeFlowYear(new Date()));
+  return /儿童/.test(projects) || childAudience(c)==="child" || (age!==null && age<=17);
+}
+function childFlowQuestion(theme,age){
+  if(age===null||age===undefined)return theme.childSchool;
+  if(age<=5)return theme.childSimple;
+  if(age<=9)return theme.childSchool;
+  if(age<=12)return theme.childTween;
+  return theme.childTeen;
+}
+function childFlowCodeReading(codeValue,kind,age){
+  const ds=String(codeValue||"").split("").map(Number).filter(n=>n>=1&&n<=9);
+  const A=CHILD_FLOW_DIGIT[ds[0]]||{},B=CHILD_FLOW_DIGIT[ds[1]]||{},C=CHILD_FLOW_DIGIT[ds[2]]||{};
+  const prefix=kind==="environment"
+    ?"这组放在外部环境，不是说孩子“就是这样”，而是看学校、班级、老师、朋友或家庭安排从哪里进入。"
+    :"这组放在孩子自身流年，按“因 → 过程 → 结果”观察孩子今年怎样启动、怎样处理、最后怎样表现。";
+  const talk=prefix+" "+ds[0]+"的因是「"+(A.cause||"先看触发点")+"」；"+ds[1]+"的过程是「"+(B.process||"看处理方式")+"」；"+ds[2]+"的结果是「"+(C.result||"看最后表现")+"」。";
+  const ask="最近有没有一件真实事情，是先出现“"+(A.cause||"某个触发")+"”，孩子接着“"+(B.process||"这样处理")+"”，最后变成“"+(C.result||"这样的结果")+"”？";
+  return {talk,ask};
+}
+function childFlowAxisHtml(groups,labels,kind,age){
+  return '<div class="golden-axis-grid">'+Object.entries(groups).map(([name,arr],i)=>{
+    const codeValue=arr.join("");
+    const r=childFlowCodeReading(codeValue,kind,age);
+    return '<article class="golden-axis-code '+(kind==="environment"?'environment-code':'')+'">'
+      +'<small>'+esc((labels||[])[i]||"")+' · '+esc(name)+'</small><strong>'+esc(codeValue)+'</strong>'
+      +'<span class="source-tag">儿童成长翻译</span>'
+      +'<div class="question-box"><b>Josephine 对父母：</b><br>“'+esc(r.talk)+'”</div>'
+      +'<div class="question-box"><b>先问父母：</b><br>“'+esc(r.ask)+'”</div>'
+      +'<p><b>父母说有：</b>先请她讲最近一次具体事件，再确认是偶尔还是反复、只在家还是学校也有。</p>'
+      +'<p><b>父母说没有：</b>这组先不硬套；换学校／家庭／同伴另一个场景验证，仍没有就先放下。</p>'
+      +'</article>';
+  }).join("")+'</div>';
+}
+function childFlowSafetyBoundary(){
+  return '<div class="formula-note"><b>儿童咨询边界：</b>AURMOVA儿童流年只作为成长观察与亲子沟通提示，不做医学或心理诊断。如果孩子持续数周出现明显影响睡眠、饮食、上学、同伴关系或安全的变化，或有自伤／伤人表达，应优先由家长寻求合适的儿童医疗或心理专业支持。</div>';
+}
+function childYearSnapshotCard(c,year,label){
+  const snap=calculateGoldenYearSnapshot(c.birthday,year);
+  if(!snap)return "";
+  const age=childFlowAgeAtYear(c.birthday,year);
+  const band=childFlowAgeBand(age);
+  const n=Number(snap.personal.number);
+  const t=CHILD_FLOW_YEAR_GUIDE[n]||CHILD_FLOW_YEAR_GUIDE[7];
+  const personalCodes=Object.entries(snap.personalAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  const environmentCodes=Object.entries(snap.environmentAxis.groups).map(([k,v])=>k+" "+v.join("")).join(" · ");
+  const childQ=childFlowQuestion(t,age);
+  return '<section class="golden-year-sheet current child-year-sheet">'
+    +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+' · '+esc(band)+'</small><h3>儿童流年 '+n+' · '+esc(t.title)+'</h3></div><div class="golden-weather"><small>外部环境入口</small><b>'+esc(snap.environmentMainCode)+'</b><span>KLN只是因果起点，仍要连同 KNV / LNW / VWX 四组一起看</span></div></div>'
+    +'<div class="formula-note"><b>儿童版固定原则：</b>数字只提示今年值得观察的成长主题，不预测事件。先问真实发生了什么，再把孩子／父母的版本与数字做验证；不符合就跳过，不为了“算准”而硬套。</div>'
+    +'<div class="year-positive-negative"><div><small>今年最值得观察</small><b>'+esc(t.title)+'</b><p>'+esc(t.focus)+'</p></div><div><small>家长今年怎么陪</small><b>先观察 · 再沟通</b><p>'+esc(t.guide)+'</p></div></div>'
+    +goldenYearVisual(snap)
+    +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>孩子自身：因 → 两个过程 → 结果</p></div><div><small>外部环境4组</small><b>'+esc(environmentCodes)+'</b><p>学校／老师／朋友／家庭安排：因 → 两个过程 → 结果</p></div></div>'
+    +'<div class="question-box"><b>Josephine 第一段直接对父母讲：</b><br>“今年我不会用大人的事业、客户、赚钱或职场责任来解释。这个 '+n+' 放在孩子身上，我主要看：'+esc(t.focus)+' 我们先用最近三个月真实发生的事情来确认。”</div>'
+    +'<div class="question-box"><b>第一题问父母：</b><br>“'+esc(t.parent)+'”</div>'
+    +'<div class="question-box"><b>父母说「有」：</b><br>“好，那这个方向今年值得继续看。先不要急着给孩子贴标签，我想再确认：最近一次具体发生什么？这是偶尔，还是已经重复很多次？只在家，还是学校／朋友那里也会？”</div>'
+    +'<div class="question-box"><b>父母说「没有／不像」：</b><br>“没关系，我们不硬套。先换一个场景看——学校、家庭、朋友或兴趣活动有没有；如果都没有，这一项先放着，继续看下一组。”</div>'
+    +'<div class="question-box"><b>年龄适合时直接问孩子：</b><br>“'+esc(childQ)+'”</div>'
+    +'<div class="golden-axis-title"><div><small>CHILD SELF YEAR AXIS</small><h4>孩子自身流年 · MNO → MOQ / NOP → PQR</h4></div><span>儿童场景翻译</span></div>'
+    +childFlowAxisHtml(snap.personalAxis.groups,snap.personalAxis.labels,"personal",age)
+    +'<div class="golden-axis-title"><div><small>CHILD ENVIRONMENT AXIS</small><h4>外部环境 · KLN → KNV / LNW → VWX</h4></div><span>学校 · 老师 · 同伴 · 家庭安排</span></div>'
+    +childFlowAxisHtml(snap.environmentAxis.groups,snap.environmentAxis.labels,"environment",age)
+    +'<div class="question-box"><b>家长本周可以做：</b><br>“这周先不要急着改孩子。只记录3–7天：发生了什么场景 → 孩子第一反应 → 大人怎样回应 → 孩子多久恢复。我们下一次就用这些真实记录判断什么方法最有效。”</div>'
+    +'<div class="formula-note"><b>不要这样贴标签：</b>'+esc(t.avoid)+'</div>'
+    +childFlowSafetyBoundary()
+    +'</section>';
+}
+function childYearPanel(c,target){
+  const active=activeFlowYear(new Date());
+  const year=Number(target)||active;
+  const current=calculateGoldenYearSnapshot(c.birthday,year);
+  if(!current)return '<div class="module-render"><div class="empty-mini">无法计算儿童流年，请先确认生日格式。</div></div>';
+  const age=childFlowAgeAtYear(c.birthday,year);
+  const band=childFlowAgeBand(age);
+  const range=flowYearRange(year);
+  const quick=[active-1,active,active+1,active+2];
+  const prev=calculateGoldenYearSnapshot(c.birthday,year-1);
+  const next=calculateGoldenYearSnapshot(c.birthday,year+1);
+  const mini=[["上一流年",prev],["当前查看",current],["下一流年",next]].map(([label,x])=>{
+    const g=CHILD_FLOW_YEAR_GUIDE[Number(x.personal.number)]||{};
+    return '<div><small>'+label+' · '+x.year+'</small><b>'+x.personal.number+' · '+esc(g.title||x.personal.title)+'</b><span>自身结果 '+x.personalAxis.groups.PQR.join("")+'｜外部环境结果 '+x.environmentAxis.groups.VWX.join("")+'</span></div>';
+  }).join("");
+  return '<div class="module-render golden-year-v22 child-year-v22">'
+    +'<div class="card-heading"><div><small>AURMOVA CHILD FLOW YEAR</small><h2>儿童流年 · '+esc(c.name)+'</h2></div><span>'+esc(band)+'</span></div>'
+    +'<div class="year-control"><label>查看哪个流年年度 <input type="number" id="v6-year-target" min="1900" max="2200" value="'+year+'"></label><button type="button" class="btn btn-light" id="v6-recalc-year">重新计算</button></div>'
+    +'<div class="flow-year-quick">'+quick.map(y=>'<button type="button" class="flow-year-chip '+(y===year?'active':'')+'" data-v6-flow-year="'+y+'">'+y+(y===active?' · 当前':'')+'</button>').join("")+'</div>'
+    +'<div class="formula-note"><b>'+year+' 流年期间：</b>'+esc(range.start)+' → '+esc(range.end)+'。儿童版沿用同一套正确计算，但解释层全部改成孩子真实生活：上学、功课、老师、朋友、家庭规则、情绪、自主、兴趣与适应变化。</div>'
+    +'<div class="golden-support-grid">'+mini+'</div>'
+    +childYearSnapshotCard(c,year,"当前查看")
+    +'</div>';
+}
+
 function yearPanel(c,target){
   const active=activeFlowYear(new Date());
+  if(isChildFlowCustomer(c,Number(target)||active)) return childYearPanel(c,target);
   const year=Number(target)||active;
   const current=calculateGoldenYearSnapshot(c.birthday,year);
   const prev=calculateGoldenYearSnapshot(c.birthday,year-1);
