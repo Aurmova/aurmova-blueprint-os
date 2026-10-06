@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=28";
+import { M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=29";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -1124,12 +1124,30 @@ function innerCodeDeepPanel(a){
     +'<div class="answer-branches"><div><b>顾客说「很像」</b><p>“好，那这层先当成被你的真实经历验证到了。最近一次最明显是什么时候？”</p></div><div><b>顾客说「有一点」</b><p>“哪一个场景像、哪一个场景不像？工作和家里会不会刚好不一样？”</p></div><div><b>顾客说「完全不像」</b><p>“好，那我们不硬套，这层先放下，以你的真实经验为准。”</p></div><div><b>顾客说「不知道」</b><p>“那我们直接找最近一个真实场景，不问抽象的。”</p></div></div>'
     +'</div>';
 }
+
 function originalFamilyPanel(a){
-  const n=a.constraintCode,d=CHILDHOOD_MODES[n];
-  return '<div class="foundation-block"><div class="card-heading"><div><small>ORIGIN PATTERN</small><h3>制约数 '+n+' · 原生家庭模式</h3></div><span>基础必讲</span></div>'
-    +'<p><b>制约数：</b>'+esc(CONSTRAINT_NOTES[n]||"")+'</p>'
-    +(d?'<div class="origin-grid"><div><span>小时候发生的模式</span><p>'+esc(d.pattern)+'</p></div><div><span>小时候真正需要</span><p>'+esc(d.need)+'</p></div><div><span>长大后容易重复</span><p>'+esc(d.adult)+'</p></div><div><span>开解方向</span><p>'+esc(d.guide)+'</p></div></div>':'')
-    +'<div class="formula-note">原生家庭看“成长环境发生了什么”；制约数看这些经历在当事人身上留下了什么反应模式。两者分开讲。</div></div>';
+  const n=Number(a.constraintCode||0), d=M_CONSTRAINT_MASTER[n]||CHILDHOOD_MODES[n]||{};
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>M POSITION · ORIGIN PATTERN</small><h3>M位 '+n+'｜童年模式／制约主题 · '+esc(d.title||"")+'</h3></div><span>constraintCode = M</span></div>'
+    +'<div class="formula-note"><b>这不是另一个新号码：</b>系统里的制约数字就是M位。这里读取的是“M位在童年／原生家庭层面的意义”，不和坐镇码重复讲。</div>'
+    +'<div class="origin-grid">'
+      +'<div><span>原始核心</span><p>'+esc(d.core||CONSTRAINT_NOTES[n]||"")+'</p></div>'
+      +'<div><span>先天正向能量</span><p>'+esc(d.innate||"")+'</p></div>'
+      +'<div><span>童年环境／形成条件</span><p>'+esc(d.childhood||d.pattern||"")+'</p></div>'
+      +'<div><span>压力下保护反应</span><p>'+esc(d.protection||"")+'</p></div>'
+      +'<div><span>长大后容易延伸</span><p>'+esc(d.adult||"")+'</p></div>'
+      +'<div><span>关系里容易触发</span><p>'+esc(d.relationship||"")+'</p></div>'
+      +'<div><span>真正需要</span><p>'+esc(d.need||"")+'</p></div>'
+      +'<div><span>成长／解除方向</span><p>'+esc(d.growth||d.guide||"")+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(d.josephine||"这个M位不是给你定型，而是提醒我们回头看：你小时候通常用什么方式保护自己。")+'”</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“'+esc(d.parentQ||"你小时候最常因为什么事情被大人纠正、要求或肯定？")+'”</div>'
+    +'<div class="answer-branches">'
+      +'<div><b>顾客说「很像」</b><p>“'+esc(d.yes||"好，那我们继续找最近一个同样模式的现实例子，看它现在还影响哪里。")+'”</p></div>'
+      +'<div><b>顾客说「不像」</b><p>“'+esc(d.no||"没关系，这一层先放下，不为了对数字而硬找故事。")+'”</p></div>'
+    +'</div>'
+    +'<div class="formula-note">AURMOVA用法：原书内容作为咨询观察母资料，网页统一转换成“可能／值得验证”的表达，不把家庭经历或成年结果讲成确定因果。</div>'
+    +'</div>';
 }
 
 function energy679Panel(a){
@@ -1892,39 +1910,49 @@ function childOriginAgeGuide(c){
   return {age,band:"13–17岁",order:"优先让青少年本人说，再请家长补充观察；避免在孩子面前用标签替他下定义。"};
 }
 
+
 function childOriginConstraintPanel(c,a){
   const n=Number(a.constraintCode||0);
-  const mode=CHILDHOOD_MODES[n]||{};
+  const d=M_CONSTRAINT_MASTER[n]||CHILDHOOD_MODES[n]||{};
   const g=CHILD_ORIGIN_GUIDE[n]||{};
   const age=childOriginAgeGuide(c);
   return '<div class="foundation-block child-origin-panel">'
-    +'<div class="card-heading"><div><small>CHILDHOOD PATTERN × CONSTRAINT</small><h3>正在形成中的童年模式 × 制约数字 '+n+'</h3></div><span>'+esc(age.age)+'岁 · '+esc(age.band)+'</span></div>'
-    +'<div class="formula-note"><b>这两个要分开看：</b>童年模式看“孩子在什么家庭／学校互动里反复遇到什么”；制约数字看“这些情境下，孩子比较容易形成什么自动保护反应”。孩子现在还在成长，所以这里不讲成固定人格，也不拿来预测长大一定怎样。</div>'
+    +'<div class="card-heading"><div><small>M POSITION · CHILDHOOD PATTERN</small><h3>M位 '+n+'｜童年模式／制约主题 · '+esc(d.title||"")+'</h3></div><span>'+esc(age.age)+'岁 · '+esc(age.band)+'</span></div>'
+    +'<div class="formula-note"><b>固定规则：</b>制约数字就是M位，不另外制造第二个号码。这里不是预测孩子将来，而是把M位当成“童年里最值得观察的安全感／保护反应主题”，再用家庭、学校和孩子本人实际情况验证。</div>'
     +'<div class="child-insight-grid">'
-      +'<div><small>童年模式｜环境怎么进入</small><p>'+esc(mode.pattern||"需要用家庭与学校真实经历验证。")+'</p></div>'
-      +'<div><small>孩子真正需要</small><p>'+esc(mode.need||"先确认孩子在这个情境里真正需要什么。")+'</p></div>'
-      +'<div><small>制约数字｜当前观察主题</small><p>'+esc(CONSTRAINT_NOTES[n]||g.observe||"这项只作为观察方向，不单靠数字定性。")+'</p></div>'
-      +'<div><small>家长容易误会成</small><p>'+esc(g.misread||"不要只看最后行为，要回到触发点。")+'</p></div>'
-      +'<div><small>家里可以观察</small><p>'+esc(g.home||"看最近一周真实互动。")+'</p></div>'
-      +'<div><small>学校／同伴可以观察</small><p>'+esc(g.school||"看老师、同学和学习场景。")+'</p></div>'
+      +'<div><small>原始核心</small><p>'+esc(d.core||CONSTRAINT_NOTES[n]||"")+'</p></div>'
+      +'<div><small>先天正向能量</small><p>'+esc(d.innate||"")+'</p></div>'
+      +'<div><small>童年环境／两端模式</small><p>'+esc([d.childhood,d.extremes].filter(Boolean).join(" "))+'</p></div>'
+      +'<div><small>压力下保护反应</small><p>'+esc(d.protection||g.observe||"")+'</p></div>'
+      +'<div><small>儿童现实表现</small><p>'+esc(d.child||g.home||"")+'</p></div>'
+      +'<div><small>青春期可能表现</small><p>'+esc(d.teen||"进入青春期后要重新以本人感受验证。")+'</p></div>'
+      +'<div><small>孩子真正需要</small><p>'+esc(d.need||"")+'</p></div>'
+      +'<div><small>家长最容易误解</small><p>'+esc(g.misread||"不要只看行为结果，要先看前面的触发。")+'</p></div>'
     +'</div>'
-    +'<div class="question-box"><b>Josephine 对家长可以直接说：</b><br>“我现在看到的制约数字是 '+n+'。它不是说孩子已经被定型，而是提醒我们：在某些压力或关系情境里，他可能比较容易发展出这一套保护自己的方式。我们先不要判断对不对，先找最近真实发生的例子。”</div>'
-    +'<div class="question-box"><b>先问家长：</b><br>“'+esc(g.parentQ||"最近什么场景最容易让孩子一下变得很不像平时？")+'”</div>'
-    +'<div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(g.childQ||"最近哪件事最容易让你不舒服？")+'”</div>'
+    +'<div class="v23-detail-grid">'
+      +'<article><h4>家长尽量避免</h4><p>'+esc(d.parentAvoid||"不要用标签代替观察。")+'</p></article>'
+      +'<article><h4>家长支持方式</h4><p>'+esc(d.parentSupport||g.repair||"先处理触发点，再训练行为。")+'</p></article>'
+      +'<article><h4>学校／同伴观察</h4><p>'+esc(g.school||"看老师、同学和学习场景里的真实反应。")+'</p></article>'
+      +'<article><h4>家里观察</h4><p>'+esc(g.home||d.child||"看最近一周真实互动。")+'</p></article>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 对家长可以直接说：</b><br>“'+esc(d.josephine||"这个M位不是给孩子定型，而是提醒我们先找真实场景。")+'”</div>'
+    +'<div class="question-box"><b>先问家长：</b><br>“'+esc(d.parentQ||g.parentQ||"最近什么场景最容易让孩子一下变得很不像平时？")+'”</div>'
+    +'<div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(d.childQ||g.childQ||"最近哪件事最容易让你不舒服？")+'”</div>'
     +'<div class="answer-branches">'
-      +'<div><b>家长说「很像」</b><p>“好，那我们先不急着改孩子。我想知道最近一次是什么时候、谁在场、前面发生了什么、你们大人当时怎么回应？”</p></div>'
-      +'<div><b>家长说「有一点」</b><p>“那我们分场景看：在家像，学校不像，还是刚好相反？不同环境会帮助我们判断这是性格底色还是情境反应。”</p></div>'
-      +'<div><b>家长说「不像」</b><p>“没关系，这一层先放下。数字只是观察入口，不需要为了对上数字去找证据。”</p></div>'
-      +'<div><b>孩子与家长说法不同</b><p>“我会两边都保留。家长看到的是行为，孩子说的是里面的感受，我们先找同一件事情逐步还原，不急着决定谁对。”</p></div>'
+      +'<div><b>家长说「很像」</b><p>“'+esc(d.yes||"好，那我们先找最近一次发生的真实事件，不急着改孩子。")+'”</p></div>'
+      +'<div><b>家长说「有一点」</b><p>“那我们分场景看：在家、学校、朋友面前是不是不一样？只在某个环境出现，就优先看环境触发。”</p></div>'
+      +'<div><b>家长说「不像」</b><p>“'+esc(d.no||"没关系，这一层先放下，不需要为了对上数字去找证据。")+'”</p></div>'
+      +'<div><b>孩子与家长说法不同</b><p>“家长看到的是行为，孩子说的是里面的感受。我们拿同一件事情还原过程，不急着决定谁对。”</p></div>'
     +'</div>'
-    +'<div class="question-box"><b>家长怎么带：</b><br>“'+esc(g.repair||mode.guide||"从触发点和需要开始调整，不只压最后行为。")+'”</div>'
-    +'<div class="formula-note"><b>咨询顺序：</b>'+esc(age.order)+' 建议家长连续3–7天只记录：发生场景 → 孩子第一反应 → 大人回应 → 孩子多久恢复。下一次再用真实记录验证。</div>'
+    +'<div class="question-box"><b>3–7天家庭实验：</b><br>“'+esc(d.experiment||"记录：发生场景 → 孩子第一反应 → 大人回应 → 孩子多久恢复。")+'”</div>'
+    +'<div class="question-box"><b>成长方向：</b><br>“'+esc(d.growth||d.parentSupport||"")+'”</div>'
+    +'<div class="formula-note"><b>咨询顺序：</b>'+esc(age.order)+' 如果现实不支持这条解释，就撤回假设，不把数字当诊断。</div>'
     +'</div>';
 }
 
 function childOriginFlowBridge(c,a,year,flowNumber){
   const n=Number(a.constraintCode||0);
-  const mode=CHILDHOOD_MODES[n]||{};
+  const mode=M_CONSTRAINT_MASTER[n]||CHILDHOOD_MODES[n]||{};
   const g=CHILD_ORIGIN_GUIDE[n]||{};
   const y=CHILD_FLOW_YEAR_GUIDE[Number(flowNumber)]||{};
   const same=Number(flowNumber)===n;
@@ -2164,7 +2192,7 @@ function relationProfile(a,name){
     style:RELATION_TRANSLATION[main]||{},
     innerStyle:RELATION_TRANSLATION[inner]||{},
     subStyle:RELATION_TRANSLATION[sub]||{},
-    constraintMode:CHILDHOOD_MODES[constraint]||{},
+    constraintMode:M_CONSTRAINT_MASTER[constraint]||CHILDHOOD_MODES[constraint]||{},
     mainDetail:MAIN_DETAIL[main]||{},
     seat:getFlootKnowledge(a.seatCode)||{},
     a
