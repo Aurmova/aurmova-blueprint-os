@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=3
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
-import { CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=32";
+import { BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=33";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 
 const icons = {
@@ -61,6 +61,26 @@ function newCustomer(selected="") {
  <div class="notice">建立後，系統只會建立資料骨架，不會執行或推測任何數字心理學計算。完整分析僅保留在 Josephine 私人諮詢區。</div><div class="actions"><button class="btn btn-primary" type="submit">建立私人檔案</button><a class="btn btn-light" href="#home">取消</a></div></form>`;
 }
 
+function exactBirthdayDay(birthday){
+    const raw=String(birthday||"").trim();
+    if(!raw)return 0;
+    let m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(m){
+      const d=Number(m[1]);
+      return d>=1&&d<=31?d:0;
+    }
+    m=raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if(m){
+      const d=Number(m[3]);
+      return d>=1&&d<=31?d:0;
+    }
+    return 0;
+  }
+function birthdayDayInfo(birthday){
+    const day=exactBirthdayDay(birthday);
+    const profile=BIRTHDAY_DAY_PROFILES?.[day]||null;
+    return {day,profile};
+  }
 function simpleZodiac(birthday){
  const [d,m]=birthday.split("/").map(Number);
  const signs=[["摩羯座",20],["水瓶座",19],["双鱼座",20],["白羊座",20],["金牛座",21],["双子座",21],["巨蟹座",23],["狮子座",23],["处女座",23],["天秤座",23],["天蝎座",22],["射手座",22],["摩羯座",31]];
@@ -433,8 +453,14 @@ function initWhiteboard(){
   canvas.style.width=W+"px";canvas.style.height=H+"px";
   requestAnimationFrame(fitView);
 }
-function history(){const rows=loadCustomers().map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}</td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`).join("");return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`}
-
+function history(){
+    const rows=loadCustomers().map(c=>{
+      const bd=birthdayDayInfo(c.birthday);
+      const dayLabel=bd.profile?(bd.day+"号 · "+bd.profile.title):(bd.day?(bd.day+"号"):"—");
+      return `<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}<br><small>生日数字 ${dayLabel}</small></td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`;
+    }).join("");
+    return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日／生日数字</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`;
+  }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
   const inner=a&&a.innerEnergy&&a.innerEnergy.counts?a.innerEnergy.counts:{};
@@ -455,6 +481,7 @@ function firstConsultPage(){
   const c=loadCustomers().find(x=>x.id===id);
   if(!c) return header("FIRST CONSULTATION","首次咨询模式","请先从顾客档案开启一位顾客。")+'<section class="card empty"><h3>尚未选择顾客</h3><a class="btn btn-primary" href="#history">前往顾客档案</a></section>';
   const a=calculateBlueprint(c.birthday),profile=PERSONALITY_LIBRARY[a.mainPersonality],detail=MAIN_DETAIL[a.mainPersonality]||{};
+  const birthdayDay=birthdayDayInfo(c.birthday);
   const p=firstConsultProfile(a);
   let saved={};try{saved=JSON.parse(localStorage.getItem(firstConsultStorageKey(c.id))||"{}")}catch{}
   const val=(k,fallback="")=>escapeLibraryHtml(saved[k]===undefined?fallback:saved[k]);
@@ -465,7 +492,7 @@ function firstConsultPage(){
   const opening="你好 "+c.name+"，我是 Josephine。今天我不会一开始就把很多数字丢给你。我会先听你最近最在意的事情，再用你的盘帮你看见比较常出现的模式。过程中你随时可以打断我，觉得不像也可以直接告诉我，我们一起验证。";
   const follow="嗨 "+c.name+" 🤍 我是 Josephine。想回来关心一下，昨天我们聊到的内容对你有没有帮助？有没有哪一段是你回去以后又突然想起，或者开始发现自己真的会这样反应的？";
   return header("AURMOVA · FIRST CONSULTATION",c.name+"｜首次咨询导航","不要讲满整张盘。先抓主线、验证、再深入。")
-  +'<section class="client-summary card"><div class="client-avatar">'+escapeLibraryHtml(c.name.slice(0,1).toUpperCase())+'</div><div class="client-main"><small>FIRST SESSION</small><h2>'+escapeLibraryHtml(c.name)+'</h2><p>'+escapeLibraryHtml(c.birthday)+' · 主性格 '+a.mainPersonality+' · '+escapeLibraryHtml(c.occupation||"职业未填")+' · '+escapeLibraryHtml(c.consultationTheme||"主题未指定")+'</p></div><div class="quick-actions"><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(c.id)+'">返回咨询工作台</a></div></section>'
+  +'<section class="client-summary card"><div class="client-avatar">'+escapeLibraryHtml(c.name.slice(0,1).toUpperCase())+'</div><div class="client-main"><small>FIRST SESSION</small><h2>'+escapeLibraryHtml(c.name)+'</h2><p>'+escapeLibraryHtml(c.birthday)+' · 生日数字 '+birthdayDay.day+'号'+(birthdayDay.profile?(' · '+escapeLibraryHtml(birthdayDay.profile.title)):'')+' · 主性格 '+a.mainPersonality+' · '+escapeLibraryHtml(c.occupation||"职业未填")+' · '+escapeLibraryHtml(c.consultationTheme||"主题未指定")+'</p></div><div class="quick-actions"><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(c.id)+'">返回咨询工作台</a></div></section>'
   +'<section class="card fc-dashboard"><div class="card-heading"><div><small>PREP · 5–10 MIN</small><h2>咨询前只准备 3 件事</h2></div><span>不要预写整场答案</span></div><div class="fc-grid">'
   +'<label class="fc-check"><input type="checkbox" data-fc-check="chart" '+(saved.checks&&saved.checks.chart?"checked":"")+'><span><b>① 盘已经排好</b><small>确认三角形、缺失／高密度、情绪、理性／感性。</small></span></label>'
   +'<label class="fc-check"><input type="checkbox" data-fc-check="tensions" '+(saved.checks&&saved.checks.tensions?"checked":"")+'><span><b>② 只标 2–3 个核心张力</b><small>不是把全部模块都讲完。</small></span></label>'
@@ -513,6 +540,7 @@ function workspace(){
  const phase=a?phaseForAge(age):null;
  const p=a?.positions;
  const profile=a?PERSONALITY_LIBRARY[a.mainPersonality]:null;
+ const birthdayDay=c?birthdayDayInfo(c.birthday):{day:0,profile:null};
  if(!c) return `${header("Consultation Workspace","AURMOVA 咨询工作台","请先从历史档案开启一位顾客。")}<section class="card empty"><h3>尚未选择顾客</h3><p>从历史档案开启顾客后，完整咨询资料会显示在这里。</p><a class="btn btn-primary" href="#history">前往历史档案</a></section>`;
  const phaseCards=Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>过程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>结果 ${v.result.join("")}</span></div>`).join("");
  const selectedFocus=new Set(c?.consultationFocus||[]);
@@ -520,7 +548,7 @@ function workspace(){
  return `${header("AURMOVA · PRIVATE CONSULTATION","AURMOVA 咨询工作台","透过数字认识自己｜透过美学展现魅力")}
  <section class="client-summary card">
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
-   <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
+   <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · <b>生日数字 ${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</b> · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
    <div class="quick-actions"><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
@@ -529,7 +557,7 @@ function workspace(){
  <section class="structure-grid">
   <article class="card gene-card"><small>父亲基因</small><h3>I · J · M</h3><div class="big-code">${p.I}　${p.J}　${p.M}</div><p>I ${p.I} · J ${p.J} · M ${p.M}</p></article>
   <article class="card gene-card"><small>母亲基因</small><h3>K · L · N</h3><div class="big-code">${p.K}　${p.L}　${p.N}</div><p>K ${p.K} · L ${p.L} · N ${p.N}</p></article>
-  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article>
+  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article><article class="card gene-card"><small>生日数字 · 实际出生日</small><h3>${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</h3><p>${birthdayDay.profile?birthdayDay.profile.core:"未能读取生日日期"}</p></article>
  </section>
  <section class="card phases"><div class="card-heading"><div><small>20-YEAR ENERGY</small><h2>三阶段能量</h2></div><span>因果 → 过程 → 结果</span></div><div class="phase-grid">${phaseCards}</div></section>
  <div class="section-head"><div><p class="eyebrow">Consultation Focus</p><h2>选择本次咨询重点</h2></div></div>
