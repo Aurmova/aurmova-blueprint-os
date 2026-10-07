@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=29";
+import { BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=30";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -1125,6 +1125,36 @@ function innerCodeDeepPanel(a){
     +'</div>';
 }
 
+
+function exactBirthDay(birthday){
+  const day=Number(String(birthday||"").split("/")[0]);
+  return day>=1&&day<=31?day:0;
+}
+function birthdayDayPanel(c,a,childMode=false){
+  const day=exactBirthDay(c.birthday), d=BIRTHDAY_DAY_PROFILES[day];
+  if(!day||!d)return "";
+  const coreRoot=String(day).split("").reduce((sum,x)=>sum+Number(x||0),0);
+  const reduced=coreRoot>9?String(coreRoot).split("").reduce((sum,x)=>sum+Number(x||0),0):coreRoot;
+  const focus=childMode
+    ?'<div class="question-box"><b>家长教育重点：</b><br>'+esc(d.child||"以孩子真实情况验证。")+'</div>'
+    :'<div class="question-box"><b>成长方向：</b><br>'+esc(d.growth||"")+'</div>';
+  return '<div class="foundation-block birthday-day-profile">'
+    +'<div class="card-heading"><div><small>BIRTHDAY NUMBER · ACTUAL DAY</small><h3>'+day+'号出生｜'+esc(d.title||"生日数字")+'</h3></div><span>实际出生日 '+day+' · 不用化简代替</span></div>'
+    +'<div class="formula-note"><b>读取规则：</b>这里直接读取生日日期的“日”1–31。例如21号就是21号资料，不会用3号资料取代。盘内I位仍按AURMOVA三角形公式化简计算；两层并存、用途不同。'+(day>9?' 书中底层能量可参考 '+day+' → '+reduced+'，但不会覆盖'+day+'号本身。':'')+'</div>'
+    +'<div class="child-insight-grid">'
+      +'<div><small>核心性格</small><p>'+esc(d.core||"")+'</p></div>'
+      +'<div><small>优势／天赋</small><p>'+esc(d.strength||"")+'</p></div>'
+      +'<div><small>工作／发挥方式</small><p>'+esc(d.work||"")+'</p></div>'
+      +'<div><small>关系／相处</small><p>'+esc(d.relationship||"")+'</p></div>'
+      +'<div><small>容易卡住</small><p>'+esc(d.watch||"")+'</p></div>'
+      +'<div><small>'+(childMode?'家长怎么带':'成熟后的调整')+'</small><p>'+esc(childMode?(d.child||d.growth||""):(d.growth||""))+'</p></div>'
+    +'</div>'
+    +'<div class="question-box"><b>Josephine 可以这样说：</b><br>“除了主性格和坐镇码，我还会看你的实际出生日。你是 '+day+' 号出生，这一层比较像你天生比较顺手的反应和表达方式。它不会盖过主性格，而是补充说明你做事、相处和面对压力时为什么会有这个味道。”</div>'
+    +'<div class="question-box"><b>验证：</b><br>“'+esc(d.question||"这一段在你的真实生活里，哪一个场景最明显？")+'”</div>'
+    +focus
+    +'</div>';
+}
+
 function originalFamilyPanel(a){
   const n=Number(a.constraintCode||0), d=M_CONSTRAINT_MASTER[n]||CHILDHOOD_MODES[n]||{};
   return '<div class="foundation-block">'
@@ -2009,6 +2039,7 @@ function childBlueprintPanel(c){
     +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → <b>童年模式 → 制约数字</b> → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
+    +birthdayDayPanel(c,a,true)
     +childSeatCodeDeepPanel(a)
     +childOriginConstraintPanel(c,a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
@@ -2153,6 +2184,7 @@ function lifeBlueprintPanel(c){
     +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +consultationStartPanel(c,a)
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
+    +birthdayDayPanel(c,a,false)
     +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
     +trianglePatternSection(a)
