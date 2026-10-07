@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=30";
+import { BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=33";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -1127,8 +1127,19 @@ function innerCodeDeepPanel(a){
 
 
 function exactBirthDay(birthday){
-  const day=Number(String(birthday||"").split("/")[0]);
-  return day>=1&&day<=31?day:0;
+  const raw=String(birthday||"").trim();
+  if(!raw)return 0;
+  let m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m){
+    const d=Number(m[1]);
+    return d>=1&&d<=31?d:0;
+  }
+  m=raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m){
+    const d=Number(m[3]);
+    return d>=1&&d<=31?d:0;
+  }
+  return 0;
 }
 function birthdayDayPanel(c,a,childMode=false){
   const day=exactBirthDay(c.birthday), d=BIRTHDAY_DAY_PROFILES[day];
