@@ -1,10 +1,10 @@
-import { calculateBlueprint, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=48";
+import { calculateBlueprint, calculateHighPeakProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=49";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=34";
+import { HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=35";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -1201,6 +1201,57 @@ function specialNumberPanel(c,a){
     +'</div>';
 }
 
+
+function peakReductionText(raw,reduced){
+  return Number(raw)===Number(reduced)?String(reduced):String(raw)+" → "+String(reduced);
+}
+function highPeakPanel(c,childMode=false){
+  const calc=calculateHighPeakProfile(c.birthday);
+  if(!calc)return "";
+  const lib=HIGH_PEAK_LIBRARY||{};
+  const meta=lib.meta||{};
+  const src=calc.source||{};
+  const current=calc.current||calc.phases?.[0];
+  const rows=(calc.phases||[]).map(ph=>{
+    const d=lib[ph.number]||{};
+    const phaseText=d[["","first","second","third","fourth"][ph.index]]||d.core||"";
+    const active=current?.index===ph.index;
+    return '<article class="'+(active?'current':'')+'">'
+      +'<small>'+esc(ph.label)+' · '+esc(ph.range)+(active?' · 当前阶段':'')+'</small>'
+      +'<h4>'+ph.number+'号高峰 · '+esc(d.title||"")+'</h4>'
+      +'<p><b>阶段重点：</b>'+esc(phaseText)+'</p>'
+      +'<p><b>这股高峰的核心：</b>'+esc(d.core||"")+'</p>'
+      +'<div class="question-box"><b>验证：</b><br>“'+esc(d.question||"这个阶段最明显的变化是什么？")+'”</div>'
+      +'<div class="question-box"><b>调整方向：</b><br>“'+esc(d.growth||"把潜能用成熟，不把数字当命定结果。")+'”</div>'
+      +'</article>';
+  }).join("");
+  const p=calc.peaks, r=calc.rawPeaks;
+  const formula=[
+    "第一高峰 = 月数 "+src.month.number+" + 日数 "+src.day.number+" = "+peakReductionText(r[0],p[0]),
+    "第二高峰 = 日数 "+src.day.number+" + 年数 "+src.year.number+" = "+peakReductionText(r[1],p[1]),
+    "第三高峰 = 第一高峰 "+p[0]+" + 第二高峰 "+p[1]+" = "+peakReductionText(r[2],p[2]),
+    "第四高峰 = 月数 "+src.month.number+" + 年数 "+src.year.number+" = "+peakReductionText(r[3],p[3])
+  ];
+  return '<div class="foundation-block high-peak-panel">'
+    +'<div class="card-heading"><div><small>PINNACLE NUMBERS · FOUR LIFE STAGES</small><h3>高峰数字｜四阶段潜能</h3></div><span>当前：第'+current.index+'高峰 · '+current.number+'号</span></div>'
+    +'<div class="formula-note"><b>原书公式：</b>'+esc(meta.formula||"")+'<br><b>年龄公式：</b>'+esc(meta.ageFormula||"")+'</div>'
+    +'<div class="notion-consult-grid">'
+      +'<div><small>月数</small><p>'+src.month.raw+' → '+src.month.number+'</p></div>'
+      +'<div><small>日数</small><p>'+src.day.raw+' → '+src.day.number+'</p></div>'
+      +'<div><small>年数</small><p>'+src.year.raw+' → '+src.year.number+'</p></div>'
+      +'<div><small>生命数字</small><p>'+esc(calc.life.path.join(" → "))+' · 基础数 '+calc.life.number+'</p></div>'
+    +'</div>'
+    +'<div class="phase-code-grid">'
+      +formula.map((x,i)=>'<div><small>FORMULA '+(i+1)+'</small><strong>'+esc(x)+'</strong></div>').join("")
+    +'</div>'
+    +'<div class="formula-note"><b>阶段年龄：</b>第一阶段 0–'+calc.firstEnd+'岁（36－'+calc.life.number+'＝'+calc.firstEnd+'）｜第二阶段 '+calc.phases[1].range+'｜第三阶段 '+calc.phases[2].range+'｜第四阶段 '+calc.phases[3].range+'。当前年龄 '+calc.age+'岁，所以正在走<b>第'+current.index+'高峰 '+current.number+'号</b>。</div>'
+    +'<div class="v23-detail-grid">'+rows+'</div>'
+    +'<div class="question-box"><b>Josephine 可以这样说：</b><br>“你的四个高峰不是四个命运结论，而是四个阶段比较容易被放大的潜能和课题。我会先看你现在实际走到哪一峰，再问现实有没有对应；对不上就不硬套。”</div>'
+    +(childMode?'<div class="formula-note"><b>儿童使用：</b>现在只把当前第一高峰当作成长观察与教育方向，后面三峰保留作未来资料，不用提前给孩子贴成年标签。</div>':'')
+    +'<div class="formula-note">'+esc(meta.challengeBoundary||"")+'</div>'
+    +'</div>';
+}
+
 function birthdayDayPanel(c,a,childMode=false){
   const day=exactBirthDay(c.birthday), d=BIRTHDAY_DAY_PROFILES[day];
   if(!day||!d)return "";
@@ -2111,6 +2162,7 @@ function childBlueprintPanel(c){
     +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → <b>童年模式 → 制约数字</b> → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
     +birthdayDayPanel(c,a,true)
+    +highPeakPanel(c,true)
     +childSeatCodeDeepPanel(a)
     +childOriginConstraintPanel(c,a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
@@ -2257,6 +2309,7 @@ function lifeBlueprintPanel(c){
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +birthdayDayPanel(c,a,false)
     +specialNumberPanel(c,a)
+    +highPeakPanel(c,false)
     +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
     +trianglePatternSection(a)
