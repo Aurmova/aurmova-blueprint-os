@@ -118,6 +118,82 @@ export function compareYearClimate(personalNumber, environmentNumber) {
   };
 }
 
+
+function parseBirthdayFlexible(birthday){
+  const raw=String(birthday||"").trim();
+  let m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m)return {dd:Number(m[1]),mm:Number(m[2]),yyyy:Number(m[3])};
+  m=raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m)return {dd:Number(m[3]),mm:Number(m[2]),yyyy:Number(m[1])};
+  return null;
+}
+function reductionPath(value){
+  const path=[];
+  let n=Math.abs(Number(value)||0);
+  path.push(n);
+  while(n>9){
+    n=String(n).split("").reduce((s,x)=>s+Number(x),0);
+    path.push(n);
+  }
+  return path;
+}
+export function calculateHighPeakProfile(birthday, now=new Date()){
+  const parsed=parseBirthdayFlexible(birthday);
+  if(!parsed)return null;
+  const {dd,mm,yyyy}=parsed;
+  const monthNumber=reduce(mm);
+  const dayNumber=reduce(dd);
+  const yearNumber=reduce(yyyy);
+
+  const p1Raw=monthNumber+dayNumber;
+  const p2Raw=dayNumber+yearNumber;
+  const p1=reduce(p1Raw);
+  const p2=reduce(p2Raw);
+  const p3Raw=p1+p2;
+  const p3=reduce(p3Raw);
+  const p4Raw=monthNumber+yearNumber;
+  const p4=reduce(p4Raw);
+
+  const allDigits=String(dd).padStart(2,"0")+String(mm).padStart(2,"0")+String(yyyy).padStart(4,"0");
+  const lifeRaw=allDigits.split("").reduce((s,x)=>s+Number(x),0);
+  const lifePath=reductionPath(lifeRaw);
+  const lifeNumber=lifePath[lifePath.length-1]||0;
+
+  const firstEnd=36-lifeNumber;
+  const secondStart=firstEnd+1, secondEnd=firstEnd+9;
+  const thirdStart=secondEnd+1, thirdEnd=secondEnd+9;
+  const fourthStart=thirdEnd+1;
+
+  let age=now.getFullYear()-yyyy;
+  const birthdayThisYear=new Date(now.getFullYear(),mm-1,dd);
+  if(now<birthdayThisYear)age-=1;
+  age=Math.max(0,age);
+
+  const phases=[
+    {index:1,label:"第一高峰",number:p1,raw:p1Raw,start:0,end:firstEnd,range:"0–"+firstEnd+"岁"},
+    {index:2,label:"第二高峰",number:p2,raw:p2Raw,start:secondStart,end:secondEnd,range:secondStart+"–"+secondEnd+"岁"},
+    {index:3,label:"第三高峰",number:p3,raw:p3Raw,start:thirdStart,end:thirdEnd,range:thirdStart+"–"+thirdEnd+"岁"},
+    {index:4,label:"第四高峰",number:p4,raw:p4Raw,start:fourthStart,end:null,range:fourthStart+"岁以后"}
+  ];
+  const current=phases.find(x=>age>=x.start&&(x.end==null||age<=x.end))||phases[3];
+
+  return {
+    birthday:{dd,mm,yyyy},
+    age,
+    source:{
+      month:{raw:mm,number:monthNumber},
+      day:{raw:dd,number:dayNumber},
+      year:{raw:yyyy,number:yearNumber}
+    },
+    peaks:[p1,p2,p3,p4],
+    rawPeaks:[p1Raw,p2Raw,p3Raw,p4Raw],
+    life:{raw:lifeRaw,path:lifePath,number:lifeNumber},
+    firstEnd,
+    phases,
+    current
+  };
+}
+
 export function calculatePersonalYear(birthday, targetYear = activeFlowYear()) {
   const parsed = parseBirthday(birthday);
   if (!parsed) return null;
