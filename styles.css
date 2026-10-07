@@ -393,3 +393,51 @@ h1,h2,h3 { font-family:var(--serif);font-weight:500;margin:0; } h1 { font-size:c
 .phase-overview{margin-top:14px}
 @media(max-width:1000px){.direct-insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.direct-insight-grid,.pattern-polarity{grid-template-columns:1fr}}
+
+
+/* AURMOVA Opportunity Navigator */
+.opportunity-navigator{margin:22px 0;border:1px solid rgba(176,139,68,.32);background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)}
+.opportunity-navigator .card-heading{align-items:flex-start}
+.op-intro{max-width:920px;line-height:1.75;color:#5d564b}
+.op-input-grid{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin:18px 0 22px}
+.op-input-grid label{display:flex;flex-direction:column;gap:7px}
+.op-input-grid label span{font-size:12px;font-weight:700;letter-spacing:.04em;color:#796a4c}
+.op-input-grid input,.op-input-grid textarea{width:100%;box-sizing:border-box;border:1px solid #ddd2bd;border-radius:12px;background:#fff;padding:12px 13px;font:inherit;color:#29251f}
+.op-input-grid .wide{grid-column:1/-1}
+.op-detected{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 18px}
+.op-detected>div{padding:14px;border-radius:12px;background:#f8f4eb;border:1px solid #eadfc9}
+.op-detected small,.op-section>small{display:block;font-size:10px;letter-spacing:.14em;color:#9a7b42;text-transform:uppercase}
+.op-detected b{display:block;margin-top:5px;font-size:15px}
+.op-section{margin:22px 0}
+.op-section h3{margin:5px 0 10px;font-size:18px}
+.op-keywords{display:flex;flex-wrap:wrap;gap:8px}
+.op-keyword{display:inline-flex;padding:7px 10px;border-radius:999px;background:#f4ead6;border:1px solid #e5d1aa;font-size:12px;font-weight:700;color:#6f5529}
+.op-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.op-section ul{margin:9px 0 0;padding-left:20px;line-height:1.8}
+.op-first-question{padding:18px;border-radius:14px;background:#2b2925;color:#fff}
+.op-first-question small{color:#d9bd86}
+.op-first-question p{font-size:16px;line-height:1.75;margin:8px 0 0}
+.op-branch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.op-branch{padding:14px;border:1px solid #e5dccb;border-radius:12px;background:#fff}
+.op-branch p{margin:6px 0 0;line-height:1.65;color:#5f584e}
+.op-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.op-path-card{position:relative;border:1px solid #e1d5bf;border-radius:14px;padding:16px;background:#fff}
+.op-path-card h4{margin:0 0 10px;padding-right:42px;font-size:17px}
+.op-path-card p{margin:7px 0;line-height:1.6;font-size:13px}
+.op-path-num{position:absolute;right:14px;top:12px;font-size:22px;font-weight:800;color:#d3bd91}
+.op-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.op-action-grid>div{padding:10px;border-radius:10px;background:#f8f5ee}
+.op-action-grid small{font-size:9px;letter-spacing:.12em;color:#9a7b42}
+.op-action-grid p{margin:5px 0 0}
+.op-number-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.op-number-hint{padding:14px;border-radius:12px;background:#f7f4ee;border:1px solid #e8dfcf}
+.op-number-hint span{font-size:11px;color:#8b7245}
+.op-number-hint b{display:block;margin:4px 0 6px}
+.op-number-hint p{margin:0 0 6px;line-height:1.55}
+.op-number-hint small{color:#6e6558}
+.op-empty{padding:18px;border-radius:12px;border:1px dashed #d9c7a3;background:#fffaf1;line-height:1.7}
+@media(max-width:780px){
+  .op-input-grid,.op-two-col,.op-detected,.op-path-grid,.op-number-grid,.op-branch-grid{grid-template-columns:1fr}
+  .op-input-grid .wide{grid-column:auto}
+  .op-action-grid{grid-template-columns:1fr}
+}
