@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=3
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
-import { BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=33";
+import { SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=34";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 
 const icons = {
@@ -121,6 +121,36 @@ function libraryEntries(){
     ].filter(Boolean).join("\n")});
   }
 
+
+  const special= SPECIAL_NUMBER_LIBRARY||{};
+  Object.entries(special.master||{}).forEach(([code,d])=>entries.push({
+    category:"特别数字／卓越数",
+    title:"卓越数字 "+code+" · "+(d.label||""),
+    keywords:"卓越数 卓越数字 大师数 大器晚成 "+code,
+    text:[
+      "核心："+(d.core||""),
+      "失衡："+(d.shadow||""),
+      "成长："+(d.growth||""),
+      "AURMOVA核心算法："+(special.policy?.coreMasterRule||""),
+      "原书扩展："+(special.policy?.bookExtension||""),
+      "成熟提示："+(special.policy?.maturity||""),
+      "位置说明："+(special.policy?.positions||"")
+    ].filter(Boolean).join("\n")
+  }));
+  Object.entries(special.karmic||{}).forEach(([code,d])=>entries.push({
+    category:"特别数字／业力数",
+    title:(d.title||("业力数字 "+code)),
+    keywords:"业力数字 纠结数字 业力数 "+code,
+    text:[
+      "核心冲突："+(d.core||""),
+      "常见表现："+(d.signs||""),
+      "重点领域："+(d.areas||""),
+      "顺序差异："+(d.whyOrder||""),
+      "成长方向："+(d.growth||""),
+      "边界："+(special.safety||"")
+    ].filter(Boolean).join("\n")
+  }));
+
   const moduleOverviews=[
     {title:"黄金20年阶段",keywords:"黄金20年 阶段 URX U R X 966 933 339 669 693 396 363 636 999 少年得志 先苦后甜 中年致富 天降大任 21-40 41-60 61岁以后 IJM IMS JMT STU MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【阶段结构】21–40岁：IJM＝因果，IMS／JMT＝过程，STU＝结果；41–60岁：MNO＝因果，MOQ／NOP＝过程，PQR＝结果；61岁以后：KLN＝因果，KNV／LNW＝过程，VWX＝结果。\n\n【黄金20年趋势码】同一张固定盘取三个阶段的结果位，按人生时间顺序排成 U→R→X：U＝21–40结果、R＝41–60结果、X＝61岁以后结果。例如U=6、R=9、X=3，就得到693。\n\n【课程四类重点】966／933＝少年得志；339／669＝先苦后甜；693／396／363＝中年致富；636／999＝天降大任。名称保留为课程标签，但顾客端不讲成命定发财、命定成名或命定受苦。\n\n【咨询用法】先看顾客当前年龄所在阶段，再按“因果 → 两个过程 → 结果”往下解；黄金20年趋势码只做三阶段重心的总览，不替代完整阶段分析。\n\n【白话】“我会先看你现在走到哪一个20年阶段，再把三个阶段的结果位排成一条线。它不是告诉你哪一段一定发财，而是看哪一个阶段比较容易把前面的累积放大，以及那个阶段更适合用什么策略。”"},
     {title:"黄金流年蓝图解析",keywords:"黄金流年 流年 大环境 个人流年 10月1日 9月30日 MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【时间边界】AURMOVA流年固定以每年10月1日开始，到次年9月30日结束。\n\n【个人流年】保留顾客生日的日＋月，把年份替换成目标年份，重新计算同一张固定三角形。O看当年主题；个人四组重点：MNO＝因果／核心，MOQ＝过程1，NOP＝过程2，PQR＝结果。\n\n【大环境】不使用“年份数字相加成一个数字”取代结构。大环境固定看：KLN＝因果，KNV＝过程1，LNW＝过程2，VWX＝结果。\n\n【咨询顺序】先讲个人主题，再讲个人四码怎样展开，再看大环境四码，最后比较两边是顺势、拉扯还是需要调整节奏。\n\n【白话】“同一年大家面对的是同一个大环境，但每个人怎么感受到、怎么回应，会被自己的个人流年结构影响。所以我不会只拿一个数字告诉你今年好不好，而是会把你的四个个人过程和四个外部环境一起看。”"},
@@ -171,7 +201,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不再用只有一行说明的“空索引卡”。原书、结构化资料、AURMOVA白话和AI整合补充会分开标示。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","缺失数","挑战数","制约数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","缺失数","挑战数","制约数","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
