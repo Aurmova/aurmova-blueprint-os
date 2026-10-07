@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=33";
+import { SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=34";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -1141,6 +1141,66 @@ function exactBirthDay(birthday){
   }
   return 0;
 }
+
+function birthdayDigitSumPath(birthday){
+  const digits=String(birthday||"").replace(/\D/g,"").split("").map(Number).filter(n=>Number.isFinite(n));
+  if(!digits.length)return {digits:[],path:[]};
+  const path=[];
+  let n=digits.reduce((s,x)=>s+x,0);
+  path.push(n);
+  while(n>9){
+    n=String(n).split("").reduce((s,x)=>s+Number(x),0);
+    path.push(n);
+  }
+  return {digits,path};
+}
+function specialNumberPanel(c,a){
+  const lib=SPECIAL_NUMBER_LIBRARY||{};
+  const calc=birthdayDigitSumPath(c.birthday);
+  const first=calc.path[0]||0;
+  const coreMasters=calc.path.filter(n=>[11,22,33].includes(n));
+  const bookMasterKeys=[];
+  const directKey=(n)=>{
+    if([10,20,30,40,50,60,70,80,90].includes(n)) return n+"/"+String(n/10);
+    if(n===11)return "11/2";
+    if(n===22)return "22/4";
+    if(n===33)return "33/6";
+    if(n===44)return "44/8";
+    if(n===55)return "55/10/1";
+    if(n===66)return "66/12/3";
+    return "";
+  };
+  calc.path.forEach(n=>{const k=directKey(n);if(k&&!bookMasterKeys.includes(k))bookMasterKeys.push(k);});
+  const karmaKeys=[];
+  calc.path.forEach(n=>{const k=[13,14,16].includes(n)?(n+"/"+(String(n).split("").reduce((s,x)=>s+Number(x),0))):"";if(k&&!karmaKeys.includes(k))karmaKeys.push(k);});
+  const masterCards=bookMasterKeys.map(k=>{
+    const d=lib.master?.[k]||{};
+    return '<article><small>'+esc(d.label||"卓越数字")+'</small><h4>'+esc(k)+'</h4><p>'+esc(d.core||"")+'</p><p><b>失衡时：</b>'+esc(d.shadow||"")+'</p><p><b>成熟方向：</b>'+esc(d.growth||"")+'</p></article>';
+  }).join("");
+  const karmaCards=karmaKeys.map(k=>{
+    const d=lib.karmic?.[k]||{};
+    return '<article><small>业力数字／纠结数字</small><h4>'+esc(k)+'</h4><p>'+esc(d.core||"")+'</p><p><b>常见拉扯：</b>'+esc(d.signs||"")+'</p><p><b>重点领域：</b>'+esc(d.areas||"")+'</p><p><b>成长方向：</b>'+esc(d.growth||"")+'</p></article>';
+  }).join("");
+  const coreText=coreMasters.length
+    ?'AURMOVA核心卓越数命中：'+coreMasters.join("、")+'。按照你确认的规则，这里停止继续把该卓越数当普通个位数解释。'
+    :'本次生命数字计算链没有命中11／22／33核心卓越数。';
+  return '<div class="foundation-block special-number-panel">'
+    +'<div class="card-heading"><div><small>SPECIAL NUMBERS · SOURCE RESTORED</small><h3>特别数字｜卓越数 × 业力数字</h3></div><span>原书资料已保存</span></div>'
+    +'<div class="formula-note"><b>生命数字计算链：</b>'+esc(calc.digits.join("+"))+' → '+esc(calc.path.join(" → "))+'。<br><b>'+esc(coreText)+'</b></div>'
+    +'<div class="question-box"><b>核心规则不会被覆盖：</b><br>'+esc(lib.policy?.coreMasterRule||"")+'</div>'
+    +'<details class="blueprint-expander"><summary>查看原书完整版“卓越数字／大器晚成”规则</summary>'
+      +'<div class="formula-note">'+esc(lib.policy?.bookExtension||"")+'</div>'
+      +'<div class="formula-note">'+esc(lib.policy?.maturity||"")+'</div>'
+      +'<div class="formula-note">'+esc(lib.policy?.positions||"")+'</div>'
+    +'</details>'
+    +(masterCards?'<div class="v23-detail-grid">'+masterCards+'</div>':'<div class="empty-mini">这条生命数字计算链暂未命中原书第一类／第二类卓越数字；资料仍完整保存在资料库中。</div>')
+    +(karmaCards?'<div class="v23-detail-grid">'+karmaCards+'</div>':'<div class="formula-note"><b>业力数字：</b>生命数字计算链目前没有经过13／14／16。原书还说明业力数字可来自特定位置或派生组合；对应公式未完全确认前，系统不会自行造公式。</div>')
+    +'<div class="question-box"><b>Josephine 白话：</b><br>“特别数字不是说你一定比别人厉害，也不是一定比较辛苦。它比较像某一股能量被放大：用得顺时会很有潜力，用过头时卡点也会被放大。所以我会看它出现在哪一层，再用你真实经历验证。”</div>'
+    +'<div class="question-box"><b>验证顾客：</b><br>“你有没有一种感觉：某一项能力你其实很强，但真正学会稳定使用它，反而花了比别人更长时间？”</div>'
+    +'<div class="formula-note">'+esc(lib.safety||"")+'</div>'
+    +'</div>';
+}
+
 function birthdayDayPanel(c,a,childMode=false){
   const day=exactBirthDay(c.birthday), d=BIRTHDAY_DAY_PROFILES[day];
   if(!day||!d)return "";
@@ -2196,6 +2256,7 @@ function lifeBlueprintPanel(c){
     +consultationStartPanel(c,a)
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +birthdayDayPanel(c,a,false)
+    +specialNumberPanel(c,a)
     +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
     +trianglePatternSection(a)
