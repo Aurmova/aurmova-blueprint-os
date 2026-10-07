@@ -1,10 +1,10 @@
 import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=33";
-import { calculateBlueprint, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=48";
+import { calculateBlueprint, calculateHighPeakProfile, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=49";
 import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=32";
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
-import { SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=34";
+import { HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=35";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 
 const icons = {
@@ -122,6 +122,29 @@ function libraryEntries(){
   }
 
 
+
+  const peakLib=HIGH_PEAK_LIBRARY||{};
+  for(let n=1;n<=9;n++){
+    const d=peakLib[n]||{};
+    entries.push({
+      category:"高峰数字",
+      title:"高峰数字 "+n+" · "+(d.title||""),
+      keywords:"高峰 高峰数字 四阶段 潜能 pinnacle "+n,
+      text:[
+        "核心："+(d.core||""),
+        "第一高峰："+(d.first||""),
+        "第二高峰："+(d.second||""),
+        "第三高峰："+(d.third||""),
+        "第四高峰："+(d.fourth||""),
+        "验证："+(d.question||""),
+        "成长："+(d.growth||""),
+        "算法："+(peakLib.meta?.formula||""),
+        "年龄："+(peakLib.meta?.ageFormula||""),
+        "边界："+(peakLib.meta?.challengeBoundary||"")
+      ].filter(Boolean).join("\n")
+    });
+  }
+
   const special= SPECIAL_NUMBER_LIBRARY||{};
   Object.entries(special.master||{}).forEach(([code,d])=>entries.push({
     category:"特别数字／卓越数",
@@ -201,7 +224,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不再用只有一行说明的“空索引卡”。原书、结构化资料、AURMOVA白话和AI整合补充会分开标示。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","缺失数","挑战数","制约数","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","缺失数","挑战数","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
@@ -571,6 +594,7 @@ function workspace(){
  const p=a?.positions;
  const profile=a?PERSONALITY_LIBRARY[a.mainPersonality]:null;
  const birthdayDay=c?birthdayDayInfo(c.birthday):{day:0,profile:null};
+ const highPeak=c?calculateHighPeakProfile(c.birthday):null;
  if(!c) return `${header("Consultation Workspace","AURMOVA 咨询工作台","请先从历史档案开启一位顾客。")}<section class="card empty"><h3>尚未选择顾客</h3><p>从历史档案开启顾客后，完整咨询资料会显示在这里。</p><a class="btn btn-primary" href="#history">前往历史档案</a></section>`;
  const phaseCards=Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>过程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>结果 ${v.result.join("")}</span></div>`).join("");
  const selectedFocus=new Set(c?.consultationFocus||[]);
@@ -587,7 +611,7 @@ function workspace(){
  <section class="structure-grid">
   <article class="card gene-card"><small>父亲基因</small><h3>I · J · M</h3><div class="big-code">${p.I}　${p.J}　${p.M}</div><p>I ${p.I} · J ${p.J} · M ${p.M}</p></article>
   <article class="card gene-card"><small>母亲基因</small><h3>K · L · N</h3><div class="big-code">${p.K}　${p.L}　${p.N}</div><p>K ${p.K} · L ${p.L} · N ${p.N}</p></article>
-  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article><article class="card gene-card"><small>生日数字 · 实际出生日</small><h3>${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</h3><p>${birthdayDay.profile?birthdayDay.profile.core:"未能读取生日日期"}</p></article>
+  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article><article class="card gene-card"><small>生日数字 · 实际出生日</small><h3>${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</h3><p>${birthdayDay.profile?birthdayDay.profile.core:"未能读取生日日期"}</p></article><article class="card gene-card"><small>高峰数字 · 四阶段</small><h3>${highPeak?highPeak.peaks.join(" → "):"—"}</h3><p>${highPeak?("当前 "+highPeak.current.range+" · 第"+highPeak.current.index+"高峰 "+highPeak.current.number+"号"):"未能计算"}</p></article>
  </section>
  <section class="card phases"><div class="card-heading"><div><small>20-YEAR ENERGY</small><h2>三阶段能量</h2></div><span>因果 → 过程 → 结果</span></div><div class="phase-grid">${phaseCards}</div></section>
  <div class="section-head"><div><p class="eyebrow">Consultation Focus</p><h2>选择本次咨询重点</h2></div></div>
