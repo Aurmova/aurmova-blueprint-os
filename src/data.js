@@ -13,6 +13,7 @@ export function createCustomer(form){
     occupation:(form.occupation||"").trim(),
     whatsapp:(form.whatsapp||"").trim(),
     consultationTheme:(form.consultationTheme||"").trim(),
+    customerQuestion:(form.customerQuestion||"").trim(),
     consultationTypes,
     consultationType:consultationTypes[0]||"",
     consultationFocus,
