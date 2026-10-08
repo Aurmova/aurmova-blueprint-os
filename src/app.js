@@ -605,8 +605,9 @@ function workspace(){
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
    <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · <b>生日数字 ${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</b> · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
-   <div class="quick-actions"><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+   <div class="quick-actions"><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
+ <section id="v26-opportunity-navigator" class="card opportunity-navigator"><div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div><p class="op-intro">这里会根据顾客的职业／身份与她真正想问的问题，生成关键词、追问、可选出路、7天／30天验证动作。正在载入顾客专属分析…</p></section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
  <div class="section-head"><div><p class="eyebrow">Josephine Only</p><h2>数字结构 · 仅供后台使用</h2></div><span class="private-pill">PRIVATE</span></div>
  <section class="structure-grid">
