@@ -1,14 +1,32 @@
 
 const ROLE_RULES=[
   {id:"homemaker",label:"家庭主妇／全职照顾者",re:/家庭主妇|主妇|全职妈妈|全职太太|家庭照顾|带孩子|照顾孩子|homemaker|stay.?at.?home/i},
-  {id:"beauty",label:"美容／纹绣／美业从业者",re:/美容|纹绣|美睫|美甲|皮肤管理|facial|beauty|brow|lash|spa/i},
-  {id:"owner",label:"老板／创业者／经营者",re:/老板|创业|经营|店主|创办|business owner|founder|entrepreneur|开店/i},
+  {id:"owner",label:"老板／创业者／经营者",re:/老板|创业者|经营者|店主|创办人|business owner|founder|entrepreneur|开店|开公司/i},
   {id:"freelancer",label:"自由职业／接案者",re:/自由职业|freelance|接案|自由工作|个体户|self.?employed/i},
-  {id:"sales",label:"销售／业务／顾问型岗位",re:/销售|业务|sales|顾问|保险|地产|房地产|agent|顾客开发/i},
   {id:"manager",label:"管理层／主管／团队负责人",re:/经理|主管|管理层|team lead|manager|负责人|总监|director/i},
-  {id:"professional",label:"专业人士",re:/医生|律师|会计|工程师|教师|老师|设计师|顾问|治疗师|营养师|专业/i},
   {id:"student",label:"学生／毕业生／初入职场",re:/学生|大学|学院|毕业|fresh grad|intern|实习|应届/i},
-  {id:"employee",label:"上班族／受雇者",re:/上班|职员|员工|行政|文员|executive|employee|office|公司/i}
+  {id:"sales",label:"销售／业务／顾问型岗位",re:/销售|业务|sales|顾问|agent|顾客开发|business development/i},
+  {id:"professional",label:"专业人士／技术人员",re:/医生|律师|会计|工程师|教师|老师|设计师|治疗师|营养师|程序员|开发|技术员|专业/i},
+  {id:"employee",label:"上班族／受雇者",re:/上班|职员|员工|行政|文员|executive|employee|office|公司任职|打工/i}
+];
+
+const INDUSTRY_RULES=[
+  {id:"beauty",label:"美容／纹绣／美业",re:/美容|纹绣|美睫|美甲|皮肤管理|facial|beauty|brow|lash|spa|美容院|美业/i},
+  {id:"fnb",label:"餐饮／食品饮料",re:/餐饮|餐厅|饭店|咖啡|cafe|餐馆|饮料|烘焙|面包|food|f&b|食品|小吃|厨师|chef/i},
+  {id:"retail",label:"零售／门店",re:/零售|retail|门店|店铺|服装店|精品店|便利店|超市|药妆|实体店/i},
+  {id:"ecommerce",label:"电商／网店／直播销售",re:/电商|网店|淘宝|shopee|lazada|tiktok shop|直播带货|online shop|ecommerce|e-commerce/i},
+  {id:"education",label:"教育／培训／学院",re:/教育|培训|学院|学校|补习|课程|讲师|老师|教师|tutor|training|academy/i},
+  {id:"health",label:"医疗／健康／疗愈服务",re:/医疗|医院|诊所|医生|护士|营养|治疗|理疗|健康|wellness|therapy|therapist|physio/i},
+  {id:"finance",label:"金融／保险／会计",re:/银行|金融|保险|会计|审计|贷款|理财|investment|finance|insurance|account/i},
+  {id:"realestate",label:"房地产／地产中介",re:/房地产|地产|房产|property|real estate|房屋中介|地产经纪/i},
+  {id:"construction",label:"建筑／装修／玻璃／工程",re:/建筑|装修|装潢|玻璃|门窗|铝|工程|contractor|construction|renovation|interior|施工/i},
+  {id:"manufacturing",label:"制造／工厂／生产",re:/制造|工厂|生产|factory|manufacturing|产线|工业|机械|加工/i},
+  {id:"logistics",label:"物流／运输／仓储",re:/物流|运输|仓储|货运|快递|配送|logistics|transport|warehouse|fleet/i},
+  {id:"tech",label:"科技／IT／软件／数字服务",re:/科技|软件|程序|开发|it|tech|saas|app|网站|web|系统|数据|ai|人工智能/i},
+  {id:"creative",label:"设计／媒体／摄影／内容创作",re:/设计|摄影|视频|剪辑|媒体|广告|创作|creator|content|marketing|graphic|branding/i},
+  {id:"hospitality",label:"酒店／旅游／服务接待",re:/酒店|民宿|旅游|旅行社|导游|hotel|homestay|tourism|travel|hospitality/i},
+  {id:"professional_service",label:"专业服务／顾问",re:/律师|法律|顾问|咨询|consulting|consultant|会计师|秘书服务|企业服务/i},
+  {id:"public_service",label:"政府／公共服务／非营利",re:/政府|公务员|公共服务|ngo|非营利|协会|社工|public service/i}
 ];
 
 const INTENT_RULES=[
@@ -47,6 +65,10 @@ function detectRole(text=""){
   const s=String(text||"");
   return ROLE_RULES.find(x=>x.re.test(s))||{id:"unknown",label:s.trim()?s.trim():"身份待确认"};
 }
+function detectIndustry(text=""){
+  const s=String(text||"");
+  return INDUSTRY_RULES.find(x=>x.re.test(s))||{id:"general",label:"综合／行业待确认"};
+}
 function detectIntent(question="",theme=""){
   const s=String(question||"")+" "+String(theme||"");
   return INTENT_RULES.find(x=>x.re.test(s))||{id:"direction",label:"方向探索"};
@@ -58,11 +80,10 @@ function decisionStage(q=""){
   if(/不知道|迷茫|没方向|不懂|不确定/.test(s))return "还在探索，先缩小选择";
   return "先确认目标，再决定行动";
 }
-function keywordsFor(role,intent){
-  const base={
+function keywordsFor(role,industry,intent){
+  const roleBase={
     homemaker:["重返职场","技能变现","低成本试水","时间弹性","家庭分工","经济独立","安全垫","个人品牌"],
     employee:["升职路径","能力迁移","副业试水","作品证明","现金流缓冲","转职窗口","谈薪","职业定位"],
-    beauty:["客单价","复购率","转介绍","差异化项目","个人IP","内容获客","套餐设计","顾客体验"],
     owner:["利润模型","核心产品","SOP","团队复制","顾客留存","现金流","第二增长曲线","扩张节奏"],
     freelancer:["稳定客源","产品化服务","长期合约","定价","销售管道","专业定位","现金流安全垫","复购"],
     sales:["成交率","高质量线索","转介绍","顾客分层","跟进系统","信任建立","个人品牌","业绩复盘"],
@@ -71,6 +92,25 @@ function keywordsFor(role,intent){
     student:["职业探索","作品集","实习","技能组合","行业访谈","第一份工作","试错成本","可迁移能力"],
     unknown:["方向验证","能力盘点","低风险试水","资源盘点","时间投入","现金流","选择标准","下一步"]
   }[role.id]||[];
+  const industryBase={
+    beauty:["客单价","复购率","转介绍","差异化项目","预约率","内容获客","套餐设计","顾客体验"],
+    fnb:["毛利率","菜单结构","翻台率","外卖渠道","复购","人工成本","损耗","高峰时段"],
+    retail:["库存周转","客单价","会员","畅销品","陈列","门店转化","损耗","多渠道销售"],
+    ecommerce:["转化率","客单价","复购","内容素材","投放回报","平台风险","库存","私域"],
+    education:["招生","续费","课程产品化","家长信任","教学成果","班型","口碑","师资"],
+    health:["专业信任","合规边界","服务流程","复诊／复购","转介绍","时间容量","客单价","专业口碑"],
+    finance:["长期信任","转介绍","客户分层","顾问式销售","合规","续保／续约","目标管理","长期关系"],
+    realestate:["高质量线索","跟进周期","成交转化","房源","转介绍","个人品牌","区域专业度","客户管道"],
+    construction:["项目毛利","报价","工期","回款","施工质量","供应商","转介绍","B2B客户"],
+    manufacturing:["产能","良率","交期","库存","单位成本","供应商","自动化","客户集中度"],
+    logistics:["路线效率","准时率","车队成本","订单密度","长期合约","异常率","仓储效率","客户集中度"],
+    tech:["技能栈","作品集","产品化","订阅收入","项目报价","用户需求","技术债","可扩展性"],
+    creative:["作品集","项目定价","版权","长期合约","差异化风格","转介绍","内容曝光","客户筛选"],
+    hospitality:["入住率","评价","加购","服务体验","淡旺季","直接预订","复购","合作渠道"],
+    professional_service:["专业定位","高价值服务","口碑","长期顾问","转介绍","案件筛选","专业品牌","续约"],
+    public_service:["影响力","专业路径","晋升条件","跨部门协作","政策理解","公共价值","稳定发展","能力证明"],
+    general:[]
+  }[industry.id]||[];
   const intentExtra={
     entrepreneurship:["最小可行方案","先验证再投入","真实付费顾客","成本上限","退出条件"],
     income:["可变现技能","每月目标","单位时间收入","现金流","副业"],
@@ -79,11 +119,99 @@ function keywordsFor(role,intent){
     career:["职业定位","升值能力","市场需求","成长路径"],
     direction:["优势盘点","现实约束","小实验","反馈循环"]
   }[intent.id]||[];
-  return [...new Set([...base,...intentExtra])].slice(0,10);
+  return [...new Set([...roleBase,...industryBase,...intentExtra])].slice(0,12);
 }
 function path(title,fit,risk,firstStep,d7,d30){return{title,fit,risk,firstStep,d7,d30}}
 
-function careerPaths(role,intent){
+
+function industryCareerPaths(industry){
+  const sets={
+    beauty:[
+      path("提高客单价与套餐价值","已有顾客，但收入被低价或单次服务卡住。","只涨价、不升级体验会流失顾客。","把主力项目做成基础／进阶／高阶3层。","向5位老顾客测试方案与价格。","比较成交率、毛利、复购后再正式调整。"),
+      path("建立复购与转介绍系统","技术不错，但客源不稳定。","太频繁促销会伤信任。","做服务后回访＋下一次预约提醒。","回访10位旧顾客。","统计复购与转介绍来源，固定最有效的2个动作。"),
+      path("做差异化项目／个人IP","市场同质化、顾客只比价格。","定位太多会让顾客记不住。","选一个最能代表你的结果。","连续发布3–7条同主题案例内容。","把最高回应主题做成固定栏目与预约入口。")
+    ],
+    fnb:[
+      path("先算清单品毛利","营业额有，但忙完没赚到。","只看销售额会忽略食材、人工、损耗。","把前10个畅销品逐项算毛利。","找出3个高销量低毛利品。","调整菜单、价格或份量并追踪4周。"),
+      path("优化高峰时段与翻台","有客流，但产能卡住。","一味接单会拉低服务与出品。","记录一周高峰时段、等待时间、退单。","只优化一个最堵环节。","比较翻台、客诉与人力成本。"),
+      path("发展外卖／预订／企业订单","门店客流受地点或时间限制。","平台抽佣与包装会吃利润。","先选一个适合外送的高毛利组合。","测试20单真实订单。","若毛利和复购成立，再扩大渠道。")
+    ],
+    retail:[
+      path("提高库存周转","货很多、现金被库存压住。","乱清仓会伤品牌与毛利。","把库存分成畅销／慢销／滞销。","处理最慢20%的库存。","建立补货上限与周转指标。"),
+      path("提高客单与连带购买","有流量但每单金额低。","硬推销会降低体验。","设计自然搭配组合。","测试20笔交易的连带率。","保留最有效的2个组合。"),
+      path("会员与复购","一次性顾客多。","只靠折扣会员没有价值。","设计非折扣型会员权益。","邀请20位熟客测试。","跟踪30天复购与回店频率。")
+    ],
+    ecommerce:[
+      path("先提高转化率","有流量但不成交。","只继续投广告会放大浪费。","检查商品页、价格、评价、信任点。","只改一个核心页面并A/B观察。","以转化率与毛利决定是否扩大。"),
+      path("降低平台依赖","订单过度依赖单一平台。","分散太快会增加运营复杂度。","先建立可重复联系老客的渠道。","收集首批100个可触达客户。","建立复购内容与二次购买机制。"),
+      path("优化投放回报","有广告但利润不清楚。","只看ROAS可能忽略退货与毛利。","算真实贡献利润。","停掉最低效广告组。","把预算集中到能稳定盈利的素材与产品。")
+    ],
+    education:[
+      path("提升招生转化","咨询多人、报名少。","过度承诺教学结果会反噬口碑。","整理家长／学员最常问的5个问题。","用一次说明会或试听验证。","优化咨询→试听→报名流程。"),
+      path("提高续费与学习成果","有学生但续费不稳定。","只靠关系续费不能长期。","建立阶段成果反馈。","给现有学生做一次进度回顾。","比较有／无反馈组的续费意愿。"),
+      path("课程产品化","老师很忙、每次都从零准备。","过度标准化会失去个别差异。","把高频内容整理成模块。","用一个小班测试。","固定可复制部分，同时保留个别辅导。")
+    ],
+    health:[
+      path("提升专业信任与转介绍","专业能力有，但市场看不见。","医疗／健康内容必须守专业与合规边界。","整理最常见服务问题与适用边界。","发布3条教育型内容。","建立转介绍与回访流程。"),
+      path("优化服务流程与容量","预约满但人很累。","扩量可能影响安全与品质。","记录每项服务耗时与瓶颈。","优化一个重复流程。","比较容量、等候与顾客体验。"),
+      path("发展非诊断型教育服务","有专业知识可延伸。","不能夸大疗效或替代医疗判断。","选一个适合教育而非诊断的主题。","试做一次小型讲座。","验证需求后再决定是否产品化。")
+    ],
+    finance:[
+      path("建立顾问式获客","靠陌生开发很累。","过度销售会伤信任与合规。","把产品语言改成客户问题语言。","做10次需求访谈。","统计哪个问题最容易转成高质量会谈。"),
+      path("转介绍系统","已有客户但介绍少。","不能让客户有被索取感。","在服务完成后设计自然的转介绍节点。","向10位满意客户测试。","建立固定跟进节奏。"),
+      path("客户分层与长期经营","客户多但精力分散。","只追新客户会忽略续保／续约。","按价值与需求分层。","先深耕前20%客户。","建立季度回顾与长期关系计划。")
+    ],
+    realestate:[
+      path("提高线索质量","询问很多但成交低。","追所有人会浪费时间。","定义高意向客户标准。","重新筛最近50条线索。","建立A/B/C跟进节奏。"),
+      path("做区域专业品牌","同业竞争大。","内容太泛不会建立专业度。","选一个区域／房型做深。","发布5条区域型实用内容。","用真实咨询量判断是否继续深耕。"),
+      path("加强转介绍与旧客经营","成交周期长。","成交后断联会失去长期价值。","建立交房／入住后的回访节点。","联系10位旧客。","形成固定季度联系计划。")
+    ],
+    construction:[
+      path("先守项目毛利与回款","有工程但利润被材料、返工、拖款吃掉。","只抢单会放大现金流风险。","逐项核对最近3个项目的预算与实际。","找出最大漏损点。","把报价、变更单、收款节点标准化。"),
+      path("建立标准报价与施工SOP","老板本人要盯每个细节。","SOP太复杂会没人执行。","先标准化最常接的项目。","用1个新项目测试表单与流程。","比较返工率、工期与毛利。"),
+      path("发展B2B长期客户","订单太靠散客与介绍。","大客户账期可能更长。","列20家门厂、设计公司、承包商或发展商。","主动接触5家并测试合作条件。","争取1个重复合作客户再扩大。")
+    ],
+    manufacturing:[
+      path("改善良率与单位成本","订单有但毛利被损耗吃掉。","只压成本可能影响品质。","找出前三大报废／返工原因。","改善其中一个工序。","比较良率、成本与客诉。"),
+      path("优化产能与交期","订单多但经常赶工。","扩产太早会增加固定成本。","画出从订单到出货的瓶颈。","调整一个排程环节。","连续4周观察准时率。"),
+      path("降低客户集中风险","营收过度依赖少数客户。","开发新客户周期长。","计算最大客户占比。","锁定3个相邻市场。","每个市场完成至少5个有效接触。")
+    ],
+    logistics:[
+      path("优化路线与订单密度","车跑很多但利润薄。","只追单量会增加空驶与加班。","记录一周路线、里程、空驶。","重排一个高频区域。","比较每单成本与准时率。"),
+      path("发展长期合约客户","订单太零散。","合约价太低会锁死利润。","定义最低可接受毛利。","向5个B2B客户提长期方案。","拿到1个试运行合约后再扩大。"),
+      path("降低异常与客诉","赔偿／迟到吃掉利润。","只罚员工不解决系统问题。","分类最近30次异常。","优先修复最多的一类。","追踪异常率是否下降。")
+    ],
+    tech:[
+      path("技能→可证明作品","会很多但市场看不见。","只学课程不做项目没有证明力。","选目标岗位／客户的一项真实任务。","完成一个可展示作品。","做3个案例并收集反馈。"),
+      path("服务产品化／长期维护","每个项目都重新报价。","定得太死会不适合复杂项目。","把常见需求做成3个套餐。","测试3次报价。","保留成交最好且毛利健康的方案。"),
+      path("做数字产品／订阅型收入","有重复需求可产品化。","开发前未验证容易浪费时间。","先用人工方式验证需求。","拿到5个愿意付费的意向。","再决定是否开发MVP。")
+    ],
+    creative:[
+      path("作品集聚焦","什么都能做但不容易被记住。","过度细分会缩小市场。","选3个最强案例定义你的风格。","把作品集重排一次。","观察询价是否更精准。"),
+      path("项目定价升级","按工时收费被压价。","价值不清楚时提价会失败。","把报价改成结果＋范围＋修改次数。","测试3次新报价。","以成交率和毛利决定是否保留。"),
+      path("长期合约／Retainer","收入波动大。","需要稳定交付能力。","找出客户每月重复需要的内容。","向3位旧客户提出月度方案。","争取1个3个月合约。")
+    ],
+    hospitality:[
+      path("提高评价与直接预订","平台流量有但佣金高。","不能用不当方式规避平台规则。","整理入住后最影响评价的3个触点。","优化一个触点。","追踪评价与直接询问变化。"),
+      path("设计加购","入住率稳定但每位顾客价值低。","加购太多会破坏体验。","设计1–2个自然附加体验。","测试20位顾客。","保留接受率最高的项目。"),
+      path("淡旺季产品","淡季收入波动大。","降价过度会伤品牌。","为淡季定义不同客群。","测试一个本地客／长住方案。","比较入住率与毛利。")
+    ],
+    professional_service:[
+      path("高价值顾问化","专业强但收费按单次、难增长。","必须守专业伦理与执业边界。","把常见问题整理成阶段式服务。","向3位现有客户测试。","形成清楚范围、收费和交付。"),
+      path("转介绍与专业品牌","业务靠熟人但不稳定。","过度营销可能伤专业形象。","选一个常见问题持续教育市场。","发布3篇高质量内容。","建立自然的转介绍入口。"),
+      path("筛选更适合的客户","案件多但耗时失控。","筛选太严会减少短期营收。","定义最适合与最不适合客户。","对新询问使用统一初筛。","比较利润与工作负担。")
+    ],
+    public_service:[
+      path("明确晋升与专业路线","想发展但路径不清楚。","只靠资历可能忽略能力证明。","列出下一层岗位的正式与非正式要求。","找1位前辈做职业访谈。","完成一个能证明能力的项目。"),
+      path("跨部门影响力","能力不错但影响范围有限。","过度承担会造成耗竭。","选一个跨部门可解决的问题。","发起一次小型协作。","记录成果与可复用方法。"),
+      path("专业能力深化","稳定但担心停滞。","学习与岗位脱节会难转化。","选一个与职责直接相关的能力。","完成一个7天应用任务。","把成果写进工作记录／晋升材料。")
+    ]
+  };
+  return (sets[industry.id]||[]).slice();
+}
+
+function careerPaths(role,intent,industry={id:"general"}){
+  if(role.id!=="homemaker"){const industryPaths=industryCareerPaths(industry);if(industryPaths.length)return industryPaths;}
   if(role.id==="homemaker"){
     return[
       path("重返职场","如果真正想要稳定收入、社会连接和相对清楚的工作边界。","时间安排、接送孩子、家庭分工需要先谈清楚。","列出过去做过的工作、技能和可接受工时，先筛3种岗位。","联系3位正在相关行业工作的朋友／前同事，问真实工作内容和薪资范围。","投递或面试3–5个合适岗位，用真实市场反馈决定要不要继续。"),
@@ -93,7 +221,7 @@ function careerPaths(role,intent){
       path("个人品牌／内容型入口","如果你有经验、故事、专业或审美，希望先建立信任再变现。","需要持续输出，短期未必马上赚钱。","确定一个你愿意连续讲30次的主题。","发布3–5条解决同一类问题的内容，观察谁来问你。","把高回应主题做成一个可收费的小服务／咨询／产品。")
     ];
   }
-  if(role.id==="beauty"){
+  if(false&&role.id==="beauty"){
     return[
       path("提高客单价","适合已有顾客，但收入被低价或单次服务卡住。","只涨价但价值没升级，顾客会流失。","梳理最受欢迎项目，设计基础／进阶／高阶3层方案。","向老顾客测试套餐接受度。","比较套餐成交率、毛利和顾客反馈后再正式调整。"),
       path("做复购与转介绍系统","适合技术不错，但客源不稳定。","过度促销会伤信任。","建立服务后回访与下一次预约提醒。","联系10位旧顾客做真实关心式回访。","统计复购、转介绍来源，留下最有效的2个动作。"),
@@ -204,20 +332,21 @@ export function buildOpportunityNavigator(input={}){
   const occupation=String(input.occupation||"");
   const question=String(input.question||"");
   const role=detectRole(occupation);
+  const industry=detectIndustry(occupation+" "+question);
   const intent=detectIntent(question,input.theme);
   const isCareer=["career","income","entrepreneurship","jobchange","expansion","direction"].includes(intent.id);
-  let paths=isCareer?careerPaths(role,intent):nonCareerPaths(intent);
-  if(!paths.length)paths=careerPaths(role,{id:"direction"});
+  let paths=isCareer?careerPaths(role,intent,industry):nonCareerPaths(intent);
+  if(!paths.length)paths=careerPaths(role,{id:"direction"},industry);
   return{
-    role,intent,stage:decisionStage(question),
-    keywords:keywordsFor(role,intent),
+    role,industry,intent,stage:decisionStage(question),
+    keywords:keywordsFor(role,industry,intent),
     motives:motiveOptions(role,intent),
     firstQuestion:firstQuestion(role,intent),
     branches:branchPrompts(intent),
     paths:paths.slice(0,5),
     numericHints:numericHints(input.blueprint,input.highPeak),
     summary:isCareer
-      ?"这里不是替顾客选职业，而是把“想改变”拆成几条现实可验证的路，再让顾客自己选择。"
+      ?"这里不是替顾客选职业，而是结合她的身份、行业现实与真正目标，把“想改变”拆成几条可以验证的路，再让顾客自己选择。"
       :"这个主题先以真实经历与顾客回答为主，行业只是背景，不强行套事业路线。",
     boundary:"AURMOVA数字层只用来补充行动偏好、沟通方式、风险点与节奏，不用来替顾客决定辞职、创业、投资、离婚或其他重大选择。现实条件与顾客本人意愿优先。"
   };
