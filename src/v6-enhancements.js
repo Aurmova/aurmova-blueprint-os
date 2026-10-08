@@ -5,7 +5,7 @@ import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
 import { HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=35";
-import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=1";
+import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
 const customerKey="aurmova.customers";
@@ -2977,7 +2977,7 @@ function opportunityNavigatorMarkup(c,a){
     +'</article>').join("");
   const hints=result.numericHints.map(h=>'<div class="op-number-hint"><span>'+esc(h.label)+' · '+h.number+'</span><b>'+esc(h.gift)+'</b><p>'+esc(h.use)+'</p><small>留意：'+esc(h.watch)+'</small></div>').join("");
   const analysis=q?(
-    '<div class="op-detected"><div><small>身份／行业</small><b>'+esc(result.role.label)+'</b></div><div><small>主要问题</small><b>'+esc(result.intent.label)+'</b></div><div><small>决策阶段</small><b>'+esc(result.stage)+'</b></div></div>'
+    '<div class="op-detected"><div><small>身份／角色</small><b>'+esc(result.role.label)+'</b></div><div><small>行业场景</small><b>'+esc(result.industry?.label||"行业待确认")+'</b></div><div><small>主要问题</small><b>'+esc(result.intent.label)+'</b></div><div><small>决策阶段</small><b>'+esc(result.stage)+'</b></div></div>'
     +'<div class="op-section"><small>RESONANCE KEYWORDS</small><h3>顾客容易有感觉的关键词</h3><div class="op-keywords">'+keywordHtml+'</div></div>'
     +'<div class="op-two-col"><div class="op-section"><small>POSSIBLE REAL GOALS</small><h3>她真正想要的，可能不是同一件事</h3><ul>'+motives+'</ul></div>'
     +'<div class="op-section op-first-question"><small>JOSEPHINE FIRST QUESTION</small><h3>第一句先这样问</h3><p>“'+esc(result.firstQuestion)+'”</p></div></div>'
@@ -2985,11 +2985,11 @@ function opportunityNavigatorMarkup(c,a){
     +'<div class="op-section"><small>OPTION PATHS</small><h3>不要替她决定｜给她几条可以选的出路</h3><p>'+esc(result.summary)+'</p><div class="op-path-grid">'+paths+'</div></div>'
     +(hints?'<div class="op-section"><small>DIGITAL BLUEPRINT SUPPORT LAYER</small><h3>数字蓝图只负责辅助排序，不替顾客做决定</h3><div class="op-number-grid">'+hints+'</div></div>':'')
     +'<div class="formula-note"><b>使用边界：</b>'+esc(result.boundary)+'</div>'
-  ):('<div class="op-empty"><b>先把顾客真正想问的问题写下来。</b><p>例如：“我是家庭主妇，想要有自己的事业，但不知道要上班、做副业还是创业。” 保存以后，系统会自动给你关键词、第一轮追问、可选路径、7天／30天验证动作。</p></div>');
+  ):('<div class="op-empty"><b>先把顾客真正想问的问题写下来。</b><p>例如：“我是家庭主妇想重新开始事业”“我是美容师想提高收入”“我是餐饮老板想扩张”“我是上班族想转行”。保存以后，系统会按不同身份与行业给不同关键词、追问、可选路径和7天／30天验证动作。</p></div>');
   return '<div class="opportunity-navigator-inner">'
     +'<div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div>'
     +'<p class="op-intro">不是只告诉顾客“你适合什么”，而是先确认她真正想解决什么，再把现实条件拆成可以选择、可以验证的路线。</p>'
-    +'<div class="op-input-grid"><label><span>职业／身份</span><input id="v26-op-occupation" value="'+esc(c.occupation||"")+'" placeholder="例如：家庭主妇／美容师／上班族"></label>'
+    +'<div class="op-input-grid"><label><span>职业／身份</span><input id="v26-op-occupation" value="'+esc(c.occupation||"")+'" placeholder="例如：家庭主妇／美容师／餐饮老板／工程师／销售／上班族"></label>'
     +'<label class="wide"><span>顾客这次最想问的问题</span><textarea id="v26-op-question" rows="3" placeholder="请尽量用顾客原话记录">'+esc(c.customerQuestion||"")+'</textarea></label>'
     +'<div class="actions wide"><button type="button" class="btn btn-primary" id="v26-save-opportunity">保存并重新分析</button></div></div>'
     +analysis+'</div>';
