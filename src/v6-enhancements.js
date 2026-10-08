@@ -2995,13 +2995,21 @@ function opportunityNavigatorMarkup(c,a){
     +analysis+'</div>';
 }
 function ensureOpportunityNavigator(c,a){
-  if(document.querySelector("#v26-opportunity-navigator"))return;
+  const existing=document.querySelector("#v26-opportunity-navigator");
+  if(existing){
+    if(!existing.dataset.v26Ready){
+      existing.innerHTML=opportunityNavigatorMarkup(c,a);
+      existing.dataset.v26Ready="1";
+    }
+    return;
+  }
   const anchor=document.querySelector(".module-tabs")||document.querySelector(".structure-grid");
   if(!anchor)return;
   const section=document.createElement("section");
   section.id="v26-opportunity-navigator";
   section.className="card opportunity-navigator";
   section.innerHTML=opportunityNavigatorMarkup(c,a);
+  section.dataset.v26Ready="1";
   anchor.before(section);
 }
 
@@ -3076,6 +3084,7 @@ new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true
 setTimeout(enhance,0);
 
 document.addEventListener("click",event=>{
+  const jumpOpportunity=event.target.closest("[data-v26-jump]"); if(jumpOpportunity){document.querySelector("#v26-opportunity-navigator")?.scrollIntoView({behavior:"smooth",block:"start"});return}
   const saveOpportunity=event.target.closest("#v26-save-opportunity"); if(saveOpportunity){
     const c=currentCustomer(); if(!c)return;
     const occupation=document.querySelector("#v26-op-occupation")?.value.trim()||"";
