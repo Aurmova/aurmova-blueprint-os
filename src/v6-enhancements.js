@@ -1,10 +1,10 @@
-import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=51";
+import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=52";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { EXPRESSION_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=37";
+import { EXPRESSION_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=38";
 import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
@@ -1217,16 +1217,16 @@ function expressionNumberPanel(c,childMode=false){
   const lib=EXPRESSION_NUMBER_LIBRARY||{}, meta=lib.meta||{};
   if(!calc.canCalculate){
     return '<div class="foundation-block expression-number-panel">'
-      +'<div class="card-heading"><div><small>EXPRESSION NUMBER · NAME</small><h3>表现数字｜等待正式英文／拼音姓名</h3></div><span>不会自动猜拼音</span></div>'
-      +'<div class="formula-note"><b>为什么暂时不计算：</b>'+esc(calc.transitionRule||"缺少可计算姓名")+'<br><b>需要补：</b>身份证／出生登记／法律承认的英文或拼音完整姓名，必须按顾客实际拼写。</div>'
-      +'<div class="question-box"><b>Josephine 可以直接问：</b><br>“你身份证／出生登记上完整的英文或拼音姓名是怎样拼的？如果你曾经正式改过名，也告诉我旧姓名和大概哪一年改，我会把两个都算出来对照。”</div>'
+      +'<div class="card-heading"><div><small>EXPRESSION NUMBER · NAME</small><h3>表现数字｜等待姓名转换</h3></div><span>华文自动拼音 · 英文直接算</span></div>'
+      +'<div class="formula-note"><b>为什么暂时不计算：</b>'+esc(calc.transitionRule||"缺少可计算姓名")+'<br><b>输入方式：</b>顾客姓名可以直接填华文或英文。华文会自动转拼音；英文／拼音会直接计算。</div>'
+      +'<div class="question-box"><b>Josephine 可以直接问：</b><br>“你现在正式使用的姓名是什么？华文名字直接给我华文就可以，系统会自动转拼音；如果你曾经正式改过名，也告诉我旧姓名和大概哪一年改，我会把两个都算出来对照。”</div>'
       +'<div class="formula-note">'+esc(meta.multilingual||"")+'</div></div>';
   }
   const x=calc.primary, d=lib[x.reduced]||{};
-  const formula=x.letters.map(z=>z.char+"="+z.value).join(" + ")+" = "+x.total+" → "+x.path.join(" → ");
-  const currentLine=calc.current?.valid?calc.current.input+" = "+calc.current.compound:"未填写";
-  const formerLine=calc.former?.valid?calc.former.input+" = "+calc.former.compound:"无";
-  const sourceLabel={"current-official":"现正式姓名","display-name-fallback":"档案姓名暂算","former-under-5-years":"曾用正式姓名（改名未满5年）","current-5-years-plus":"现正式姓名（改名已满5年）","change-year-unconfirmed":"现／旧姓名并列，改名年份待确认","former-only":"仅历史姓名可算"}[calc.primarySource]||"姓名";
+  const formula=(x.hasHan?("华文 "+x.input+" → 拼音 "+x.autoPinyin+" ｜ "):"")+x.letters.map(z=>z.char+"="+z.value).join(" + ")+" = "+x.total+" → "+x.path.join(" → ");
+  const currentLine=calc.current?.valid?(calc.current.hasHan?(calc.current.input+" → "+calc.current.autoPinyin+" = "+calc.current.compound):(calc.current.input+" = "+calc.current.compound)):"未填写";
+  const formerLine=calc.former?.valid?(calc.former.hasHan?(calc.former.input+" → "+calc.former.autoPinyin+" = "+calc.former.compound):(calc.former.input+" = "+calc.former.compound)):"无";
+  const sourceLabel={"current-official":"现正式英文／拼音姓名","current-official-chinese":"现正式华文姓名 · 自动拼音","display-name-fallback":"档案英文／拼音姓名直接计算","display-chinese-auto":"档案华文姓名 · 自动拼音","former-under-5-years":"曾用正式姓名（改名未满5年）","former-under-5-years-chinese":"曾用华文姓名 · 自动拼音（改名未满5年）","current-5-years-plus":"现正式姓名（改名已满5年）","current-5-years-plus-chinese":"现华文姓名 · 自动拼音（改名已满5年）","change-year-unconfirmed":"现／旧姓名并列，改名年份待确认","change-year-unconfirmed-chinese":"现／旧华文姓名自动拼音 · 改名年份待确认","former-only":"仅历史姓名可算"}[calc.primarySource]||"姓名";
   const context=(c.occupation||c.customerQuestion)?'<div class="formula-note"><b>顾客现实资料：</b>职业／身份：'+esc(c.occupation||"未填")+'。最想问：'+esc(c.customerQuestion||"未填")+'。表现数字只用来找“较自然的任务方式”，不会取代真实技能、市场和资源评估。</div>':"";
   let consult="";
   if(childMode){
