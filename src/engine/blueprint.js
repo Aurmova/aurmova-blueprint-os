@@ -202,18 +202,52 @@ export const EXPRESSION_LETTER_MAP=Object.freeze((()=>{
   return out;
 })());
 
-export function calculateExpressionNumber(name){
+function expressionNameSource(name){
   const input=String(name||"").trim();
-  if(!input)return {valid:false,input,reason:"missing-name",letters:[],total:0,path:[],reduced:0,compound:""};
-  const normalized=input.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+  if(!input)return {valid:false,input,reason:"missing-name",hasHan:false,sourceType:"missing",calculationName:"",autoPinyin:""};
+  const hasHan=/[\u3400-\u9FFF\uF900-\uFAFF]/u.test(input);
+  if(!hasHan){
+    return {valid:true,input,reason:"",hasHan:false,sourceType:"latin-direct",calculationName:input,autoPinyin:""};
+  }
+  const converter=globalThis.pinyinPro?.pinyin;
+  if(typeof converter!=="function"){
+    return {valid:false,input,reason:"pinyin-engine-unavailable",hasHan:true,sourceType:"chinese-awaiting-pinyin",calculationName:"",autoPinyin:""};
+  }
+  try{
+    const romanized=String(converter(input,{
+      toneType:"none",
+      type:"string",
+      separator:" ",
+      surname:"head",
+      nonZh:"consecutive"
+    })||"").replace(/\s+/g," ").trim();
+    if(!romanized || !/[A-Za-z]/.test(romanized)){
+      return {valid:false,input,reason:"pinyin-empty",hasHan:true,sourceType:"chinese-awaiting-pinyin",calculationName:"",autoPinyin:""};
+    }
+    const autoPinyin=romanized.toUpperCase();
+    return {valid:true,input,reason:"",hasHan:true,sourceType:"chinese-auto-pinyin",calculationName:autoPinyin,autoPinyin};
+  }catch(error){
+    return {valid:false,input,reason:"pinyin-conversion-failed",hasHan:true,sourceType:"chinese-awaiting-pinyin",calculationName:"",autoPinyin:""};
+  }
+}
+
+export function calculateExpressionNumber(name){
+  const source=expressionNameSource(name);
+  if(!source.valid)return {valid:false,...source,normalized:"",letters:[],total:0,path:[],reduced:0,compound:"",masterHits:[]};
+  const normalized=source.calculationName.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
   const chars=(normalized.match(/[A-Z]/g)||[]);
-  if(!chars.length)return {valid:false,input,normalized,reason:"no-latin-letters",letters:[],total:0,path:[],reduced:0,compound:""};
+  if(!chars.length)return {valid:false,...source,normalized,reason:"no-latin-letters",letters:[],total:0,path:[],reduced:0,compound:"",masterHits:[]};
   const letters=chars.map(ch=>({char:ch,value:EXPRESSION_LETTER_MAP[ch]}));
   const total=letters.reduce((s,x)=>s+x.value,0);
   const path=reductionPath(total);
   const reduced=path[path.length-1]||0;
   const masterHits=path.filter(n=>n===11||n===22||n===33);
-  return {valid:true,input,normalized,letters,total,path,reduced,compound:path.join("/"),masterHits:[...new Set(masterHits)],ignoredRule:"空格、连字符、撇号、句点与其他非A–Z符号不计分；重音字母先去除重音后按A–Z计算。中文姓名不会由系统自动猜拼音。"};
+  return {
+    valid:true,...source,normalized,letters,total,path,reduced,
+    compound:path.join("/"),
+    masterHits:[...new Set(masterHits)],
+    ignoredRule:"英文名直接按A–Z计算；华文名先自动转成无声调拼音，再按同一A–Z数字表计算。空格、连字符、撇号、句点不计分。"
+  };
 }
 
 export function calculateExpressionProfile(input={},now=new Date()){
@@ -222,22 +256,59 @@ export function calculateExpressionProfile(input={},now=new Date()){
   const formerName=String(input.formerName||"").trim();
   const changedYearRaw=String(input.nameChangedYear||"").trim();
   const changedYear=/^\d{4}$/.test(changedYearRaw)?Number(changedYearRaw):null;
-  const fallbackLatin=/[A-Za-z]/.test(displayName)?displayName:"";
-  const currentName=officialName||fallbackLatin;
+  const currentName=officialName||displayName;
   const current=calculateExpressionNumber(currentName);
   const former=calculateExpressionNumber(formerName);
   const yearsSinceChange=changedYear?Math.max(0,now.getFullYear()-changedYear):null;
+
   let primary=current.valid?current:(former.valid?former:null);
-  let primarySource=current.valid?(officialName?"current-official":"display-name-fallback"):(former.valid?"former-only":"missing");
+  let primarySource=current.valid
+    ?(officialName
+      ?(current.hasHan?"current-official-chinese":"current-official")
+      :(current.hasHan?"display-chinese-auto":"display-name-fallback"))
+    :(former.valid?"former-only":"missing");
   let transitionRule="";
+
   if(current.valid&&former.valid){
-    if(changedYear&&yearsSinceChange<5){primary=former;primarySource="former-under-5-years";transitionRule="按原书规则：改名未满5年，旧正式姓名作为当前主要表现数字；新姓名同时保留作过渡观察。";}
-    else if(changedYear){primary=current;primarySource="current-5-years-plus";transitionRule="按原书规则：改名已满5年，现正式姓名作为主要表现数字；旧姓名仍保留作背景影响与对照。";}
-    else{primary=current;primarySource="change-year-unconfirmed";transitionRule="已同时填写新旧姓名，但未填写改名年份。网页先并列计算，不武断决定哪一个是主用；请向顾客确认改名年份。";}
-  }else if(current.valid){transitionRule=officialName?"使用顾客填写的现正式英文／拼音姓名计算。":"旧档案没有独立正式姓名字段，暂以档案中的拉丁字母姓名计算；建议补填身份证／出生登记拼写确认。";}
-  else if(former.valid){transitionRule="只有曾用姓名可计算；现正式姓名尚未补齐，因此结果只作历史参考。";}
-  else{transitionRule="尚无可计算的A–Z正式姓名。不要自动把中文姓名转拼音，因为不同拼写会改变结果。";}
-  return {displayName,officialName,formerName,changedYear,yearsSinceChange,current,former,primary,primarySource,transitionRule,canCalculate:Boolean(primary&&primary.valid),needsOfficialName:!current.valid,needsChangeYear:current.valid&&former.valid&&!changedYear,rule:"表现数字使用正式姓名的全部拉丁字母逐字换算：A/J/S=1，B/K/T=2，C/L/U=3，D/M/V=4，E/N/W=5，F/O/X=6，G/P/Y=7，H/Q/Z=8，I/R=9。保留复合总数与化简路径，再用最终1–9作为本章基础解读。"};
+    if(changedYear&&yearsSinceChange<5){
+      primary=former;
+      primarySource=former.hasHan?"former-under-5-years-chinese":"former-under-5-years";
+      transitionRule="按原书规则：改名未满5年，旧正式姓名作为当前主要表现数字；新姓名同时保留作过渡观察。华文姓名会先自动转拼音再计算。";
+    }else if(changedYear){
+      primary=current;
+      primarySource=current.hasHan?"current-5-years-plus-chinese":"current-5-years-plus";
+      transitionRule="按原书规则：改名已满5年，现正式姓名作为主要表现数字；旧姓名仍保留作背景影响与对照。华文姓名会先自动转拼音再计算。";
+    }else{
+      primary=current;
+      primarySource=current.hasHan?"change-year-unconfirmed-chinese":"change-year-unconfirmed";
+      transitionRule="已同时填写新旧姓名，但未填写改名年份。网页先并列计算，不武断决定哪一个是主用；华文姓名会自动转拼音。";
+    }
+  }else if(current.valid){
+    if(current.hasHan){
+      transitionRule=officialName
+        ?"现正式姓名为华文，系统已自动转成拼音后计算；下方会显示转换结果。"
+        :"顾客姓名为华文，系统已自动转成拼音后计算，不需要另外重复输入英文名。";
+    }else{
+      transitionRule=officialName
+        ?"现正式姓名为英文／拼音，系统直接按字母计算。"
+        :"顾客姓名为英文／拼音，系统直接按字母计算。";
+    }
+  }else if(former.valid){
+    transitionRule="只有曾用姓名可计算；现姓名暂未成功转换，因此结果只作历史参考。";
+  }else if(current.reason==="pinyin-engine-unavailable"||current.reason==="pinyin-conversion-failed"){
+    transitionRule="顾客姓名是华文，但自动拼音转换暂时未载入成功。请刷新网页；系统不会在失败时乱算。";
+  }else{
+    transitionRule="暂时没有可计算姓名。顾客姓名可直接输入华文或英文：华文会自动转拼音，英文会直接计算。";
+  }
+
+  return {
+    displayName,officialName,formerName,changedYear,yearsSinceChange,current,former,
+    primary,primarySource,transitionRule,
+    canCalculate:Boolean(primary&&primary.valid),
+    needsOfficialName:!current.valid,
+    needsChangeYear:current.valid&&former.valid&&!changedYear,
+    rule:"表现数字使用姓名全部字母计算。英文／拼音姓名直接按A–Z；华文姓名先自动转成无声调拼音（例如 张杰文 → ZHANG JIE WEN），再按 A/J/S=1、B/K/T=2、C/L/U=3、D/M/V=4、E/N/W=5、F/O/X=6、G/P/Y=7、H/Q/Z=8、I/R=9 计算。"
+  };
 }
 
 export function calculateChallengeProfile(birthday, now=new Date()){
