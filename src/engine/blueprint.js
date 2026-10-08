@@ -194,6 +194,62 @@ export function calculateHighPeakProfile(birthday, now=new Date()){
   };
 }
 
+
+export function calculateChallengeProfile(birthday, now=new Date()){
+  const parsed=parseBirthdayFlexible(birthday);
+  if(!parsed)return null;
+  const {dd,mm,yyyy}=parsed;
+  // 挑战数字计算固定把月／日／年都化简成个位数；11/22/33在这里也继续化简。
+  const monthNumber=reduce(mm);
+  const dayNumber=reduce(dd);
+  const yearNumber=reduce(yyyy);
+
+  const c1=Math.abs(monthNumber-dayNumber);
+  const c2=Math.abs(dayNumber-yearNumber);
+  const c3=Math.abs(c1-c2);
+  const c4=Math.abs(monthNumber-yearNumber);
+
+  // 阶段年龄沿用 AURMOVA 已确认的四高峰阶段边界。
+  const peak=calculateHighPeakProfile(birthday,now);
+  const phaseSource=peak?.phases||[];
+  const values=[c1,c2,c3,c4];
+  const phases=values.map((number,i)=>{
+    const p=phaseSource[i]||{};
+    return {
+      index:i+1,
+      label:["第一挑战","第二挑战","第三挑战","第四挑战"][i],
+      number,
+      start:p.start??0,
+      end:p.end??null,
+      range:p.range||"",
+      peakNumber:peak?.peaks?.[i]??null,
+      peakLabel:p.label||""
+    };
+  });
+  const current=phases.find(x=>peak?.current?.index===x.index)||phases[0];
+  return {
+    birthday:{dd,mm,yyyy},
+    source:{
+      month:{raw:mm,number:monthNumber},
+      day:{raw:dd,number:dayNumber},
+      year:{raw:yyyy,number:yearNumber}
+    },
+    values,
+    first:c1,
+    second:c2,
+    third:c3,
+    fourth:c4,
+    phases,
+    current,
+    age:peak?.age??0,
+    lifeNumber:peak?.life?.number??null,
+    lifePath:peak?.life?.path||[],
+    peakNumbers:peak?.peaks||[],
+    hasZero:values.includes(0),
+    systemNote:"AURMOVA按本教材把四个挑战位置分别对应四个高峰阶段；第三挑战在部分其他数字学流派中也被称为主挑战／长期挑战，本系统不混用两套时间规则。"
+  };
+}
+
 export function calculatePersonalYear(birthday, targetYear = activeFlowYear()) {
   const parsed = parseBirthday(birthday);
   if (!parsed) return null;
