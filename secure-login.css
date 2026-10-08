@@ -1,0 +1,16 @@
+:root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f8f7f4;color:#24221d;display:grid;place-items:center;padding:24px}
+.panel{width:min(100%,560px);background:white;border:1px solid #e9e2d6;border-radius:20px;padding:clamp(22px,5vw,40px);box-shadow:0 12px 36px #3024180e}
+.mark{display:grid;place-items:center;width:52px;height:52px;border:1px solid #c4a975;color:#a38653;border-radius:50%;font-family:Georgia,serif;font-size:29px}
+.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:#947e5b;margin-top:26px}
+h1{font-size:29px;line-height:1.3;margin:0 0 14px}p{line-height:1.75}.description{font-size:14px;color:#554f45}
+.notice{border-left:3px solid #b09363;background:#f8f4ec;padding:10px 17px;margin:22px 0}.notice p{margin:4px 0;font-size:13px}
+label{display:block;font-size:14px;font-weight:600;margin-top:24px;margin-bottom:10px}
+input{width:100%;font:inherit;padding:13px 14px;border:1px solid #cfc9c0;border-radius:10px;background:white;color:#24221d}
+input:focus,button:focus-visible,a:focus-visible{outline:3px solid #c5ab78;outline-offset:3px}
+.hint{font-size:12px;color:#6b6359;margin:8px 0 22px}.actions{display:flex;flex-wrap:wrap;gap:10px}
+button{background:#22201c;color:white;border:1px solid #22201c;border-radius:10px;padding:12px 17px;font:inherit;cursor:pointer}
+button.secondary{background:white;color:#22201c}button:disabled{opacity:.45;cursor:not-allowed}
+.message{margin-top:22px;border-top:1px solid #eee8de;padding-top:18px;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #e9e2d6;background:#faf8f4;padding:15px;border-radius:10px;font-size:12px}
+.back{margin-top:26px;font-size:14px}.back a{color:#7f6542}
