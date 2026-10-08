@@ -9,6 +9,7 @@ workers_dev = true
 # Update after confirming the live workers.dev domain in Cloudflare.
 API_ORIGIN = "https://aurmova-secure-api.xbing5668.workers.dev"
 FRONTEND_LOGIN_URL = "https://aurmova.github.io/aurmova-blueprint-os/secure-login.html"
+GITHUB_CLIENT_ID = "Ov23liedj1R6nncwWSFg"
 
 [[d1_databases]]
 binding = "DB"
