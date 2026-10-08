@@ -1,0 +1,17 @@
+# Deployment is intentionally NOT automatic. Fill in account-specific values locally
+# before first manual deploy; never commit credentials.
+name = "aurmova-secure-api"
+main = "src/index.js"
+compatibility_date = "2026-10-08"
+workers_dev = true
+
+[vars]
+# Replace after Cloudflare assigns your workers.dev hostname.
+API_ORIGIN = "https://REPLACE-ME.workers.dev"
+FRONTEND_LOGIN_URL = "https://aurmova.github.io/aurmova-blueprint-os/secure-login.html"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aurmova-private"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "migrations"
