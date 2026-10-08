@@ -195,6 +195,51 @@ export function calculateHighPeakProfile(birthday, now=new Date()){
 }
 
 
+
+export const EXPRESSION_LETTER_MAP=Object.freeze((()=>{
+  const out={};
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach((ch,i)=>out[ch]=(i%9)+1);
+  return out;
+})());
+
+export function calculateExpressionNumber(name){
+  const input=String(name||"").trim();
+  if(!input)return {valid:false,input,reason:"missing-name",letters:[],total:0,path:[],reduced:0,compound:""};
+  const normalized=input.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+  const chars=(normalized.match(/[A-Z]/g)||[]);
+  if(!chars.length)return {valid:false,input,normalized,reason:"no-latin-letters",letters:[],total:0,path:[],reduced:0,compound:""};
+  const letters=chars.map(ch=>({char:ch,value:EXPRESSION_LETTER_MAP[ch]}));
+  const total=letters.reduce((s,x)=>s+x.value,0);
+  const path=reductionPath(total);
+  const reduced=path[path.length-1]||0;
+  const masterHits=path.filter(n=>n===11||n===22||n===33);
+  return {valid:true,input,normalized,letters,total,path,reduced,compound:path.join("/"),masterHits:[...new Set(masterHits)],ignoredRule:"空格、连字符、撇号、句点与其他非A–Z符号不计分；重音字母先去除重音后按A–Z计算。中文姓名不会由系统自动猜拼音。"};
+}
+
+export function calculateExpressionProfile(input={},now=new Date()){
+  const displayName=String(input.displayName||input.name||"").trim();
+  const officialName=String(input.officialName||"").trim();
+  const formerName=String(input.formerName||"").trim();
+  const changedYearRaw=String(input.nameChangedYear||"").trim();
+  const changedYear=/^\d{4}$/.test(changedYearRaw)?Number(changedYearRaw):null;
+  const fallbackLatin=/[A-Za-z]/.test(displayName)?displayName:"";
+  const currentName=officialName||fallbackLatin;
+  const current=calculateExpressionNumber(currentName);
+  const former=calculateExpressionNumber(formerName);
+  const yearsSinceChange=changedYear?Math.max(0,now.getFullYear()-changedYear):null;
+  let primary=current.valid?current:(former.valid?former:null);
+  let primarySource=current.valid?(officialName?"current-official":"display-name-fallback"):(former.valid?"former-only":"missing");
+  let transitionRule="";
+  if(current.valid&&former.valid){
+    if(changedYear&&yearsSinceChange<5){primary=former;primarySource="former-under-5-years";transitionRule="按原书规则：改名未满5年，旧正式姓名作为当前主要表现数字；新姓名同时保留作过渡观察。";}
+    else if(changedYear){primary=current;primarySource="current-5-years-plus";transitionRule="按原书规则：改名已满5年，现正式姓名作为主要表现数字；旧姓名仍保留作背景影响与对照。";}
+    else{primary=current;primarySource="change-year-unconfirmed";transitionRule="已同时填写新旧姓名，但未填写改名年份。网页先并列计算，不武断决定哪一个是主用；请向顾客确认改名年份。";}
+  }else if(current.valid){transitionRule=officialName?"使用顾客填写的现正式英文／拼音姓名计算。":"旧档案没有独立正式姓名字段，暂以档案中的拉丁字母姓名计算；建议补填身份证／出生登记拼写确认。";}
+  else if(former.valid){transitionRule="只有曾用姓名可计算；现正式姓名尚未补齐，因此结果只作历史参考。";}
+  else{transitionRule="尚无可计算的A–Z正式姓名。不要自动把中文姓名转拼音，因为不同拼写会改变结果。";}
+  return {displayName,officialName,formerName,changedYear,yearsSinceChange,current,former,primary,primarySource,transitionRule,canCalculate:Boolean(primary&&primary.valid),needsOfficialName:!current.valid,needsChangeYear:current.valid&&former.valid&&!changedYear,rule:"表现数字使用正式姓名的全部拉丁字母逐字换算：A/J/S=1，B/K/T=2，C/L/U=3，D/M/V=4，E/N/W=5，F/O/X=6，G/P/Y=7，H/Q/Z=8，I/R=9。保留复合总数与化简路径，再用最终1–9作为本章基础解读。"};
+}
+
 export function calculateChallengeProfile(birthday, now=new Date()){
   const parsed=parseBirthdayFlexible(birthday);
   if(!parsed)return null;
