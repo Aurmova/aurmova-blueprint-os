@@ -1,10 +1,10 @@
-import { calculateBlueprint, calculateHighPeakProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=49";
+import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=50";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=35";
+import { CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=36";
 import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
@@ -872,6 +872,7 @@ function childYearPanel(c,target){
     +'<div class="formula-note"><b>'+year+' 流年期间：</b>'+esc(range.start)+' → '+esc(range.end)+'。儿童版沿用同一套正确计算，但解释层全部改成孩子真实生活：上学、功课、老师、朋友、家庭规则、情绪、自主、兴趣与适应变化。</div>'
     +'<div class="golden-support-grid">'+mini+'</div>'
     +childYearSnapshotCard(c,year,"当前查看")
+    +challengeFlowBridge(c,year,true)
     +'</div>';
 }
 
@@ -896,6 +897,7 @@ function yearPanel(c,target){
     +'<div class="golden-support-grid">'+compare+'</div>'
     +yearTeachingPanel()
     +yearSnapshotCard(c,year,"当前查看")
+    +challengeFlowBridge(c,year,false)
     +'</div>';
 }
 
@@ -1253,6 +1255,88 @@ function highPeakPanel(c,childMode=false){
     +'</div>';
 }
 
+
+function challengeNumberPanel(c,childMode=false){
+  const calc=calculateChallengeProfile(c.birthday);
+  if(!calc)return "";
+  const lib=CHALLENGE_NUMBER_LIBRARY||{};
+  const meta=lib.meta||{};
+  const current=calc.current||calc.phases?.[0];
+  const src=calc.source||{};
+  const formula=[
+    "第一挑战 = |月数 "+src.month.number+" − 日数 "+src.day.number+"| = "+calc.first,
+    "第二挑战 = |日数 "+src.day.number+" − 年数 "+src.year.number+"| = "+calc.second,
+    "第三挑战 = |第一挑战 "+calc.first+" − 第二挑战 "+calc.second+"| = "+calc.third,
+    "第四挑战 = |月数 "+src.month.number+" − 年数 "+src.year.number+"| = "+calc.fourth
+  ];
+  const cards=(calc.phases||[]).map(ph=>{
+    const d=lib[ph.number]||{};
+    const active=ph.index===current.index;
+    const zero=ph.number===0;
+    const title=zero?"特殊挑战值0":("挑战数字 "+ph.number);
+    const childBlock=childMode
+      ?'<div class="question-box"><b>先问父母：</b><br>“'+esc(d.parentQuestion||"这个阶段最反复的具体场景是什么？")+'”</div>'
+       +'<div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(d.childQuestion||"最近什么事情最让你觉得难？")+'”</div>'
+       +'<p><b>儿童观察：</b>'+esc(d.childFocus||"以学校、家庭、同伴和学习场景验证。")+'</p>'
+      :'<div class="question-box"><b>Josephine 可以这样说：</b><br>“'+esc(d.talk||"这个挑战只作为阶段成长主题，要用真实经历验证。")+'”</div>'
+       +'<div class="question-box"><b>验证顾客：</b><br>“'+esc(d.question||"这个主题在你的现实生活里像不像？")+'”</div>'
+       +'<div class="answer-branches"><div><b>顾客说「有」</b><p>“'+esc(d.yes||"好，我们继续找一个具体事件验证。")+'”</p></div><div><b>顾客说「没有」</b><p>“'+esc(d.no||"那这条先放下，不硬套。")+'”</p></div><div><b>顾客说「不确定」</b><p>“'+esc(d.unsure||"先观察几天再回来判断。")+'”</p></div></div>';
+    return '<article class="'+(active?'current':'')+'">'
+      +'<small>'+esc(ph.label)+' · '+esc(ph.range)+(active?' · 当前阶段':'')+' · 对应高峰 '+esc(ph.peakNumber??"")+'</small>'
+      +'<h4>'+esc(title)+' · '+esc(d.title||"")+'</h4>'
+      +'<p><b>成长主题：</b>'+esc(d.core||"")+'</p>'
+      +'<p><b>成熟能力：</b>'+esc(d.positive||"")+'</p>'
+      +'<p><b>卡住／用过头：</b>'+esc(d.overuse||"")+'</p>'
+      +'<p><b>常见现实场景：</b>'+esc(d.scenes||"")+'</p>'
+      +childBlock
+      +'<p><b>3–7天行动：</b>'+esc(d.action||"记录真实场景，不用数字代替事实。")+'</p>'
+      +(d.bookNote?'<details class="blueprint-expander"><summary>原书内容怎样安全转换</summary><div class="formula-note">'+esc(d.bookNote)+'</div></details>':'')
+      +'</article>';
+  }).join("");
+  const currentData=lib[current.number]||{};
+  const lifeSame=current.number!==0&&Number(calc.lifeNumber)===Number(current.number);
+  return '<div class="foundation-block challenge-number-panel">'
+    +'<div class="card-heading"><div><small>CHALLENGE NUMBERS · FOUR STAGES</small><h3>阶段挑战数字｜正式1–8 · 0特殊处理</h3></div><span>当前：第'+current.index+'挑战 · '+current.number+'</span></div>'
+    +'<div class="formula-note"><b>正式范围：</b>'+esc(meta.officialRange||"")+'<br><b>计算：</b>'+esc(meta.formula||"")+'</div>'
+    +'<div class="notion-consult-grid"><div><small>月数</small><p>'+src.month.raw+' → '+src.month.number+'</p></div><div><small>日数</small><p>'+src.day.raw+' → '+src.day.number+'</p></div><div><small>年数</small><p>'+src.year.raw+' → '+src.year.number+'</p></div><div><small>四挑战</small><p>'+calc.values.join(" → ")+'</p></div></div>'
+    +'<div class="phase-code-grid">'+formula.map((x,i)=>'<div><small>CHALLENGE FORMULA '+(i+1)+'</small><strong>'+esc(x)+'</strong></div>').join("")+'</div>'
+    +'<div class="formula-note"><b>阶段对应：</b>'+esc(meta.positionRule||"")+'<br><b>流派差异：</b>'+esc(meta.streamDifference||"")+'</div>'
+    +'<div class="formula-note"><b>当前阶段：</b>'+esc(current.range)+'｜第'+current.index+'挑战＝<b>'+current.number+'</b>｜第'+current.index+'高峰＝<b>'+esc(current.peakNumber??"")+'</b>。'+(lifeSame?' 当前挑战与生命基础数同号，只表示同一主题在不同模块重复出现，值得优先验证；不代表一定不断发生大事。':'')+'</div>'
+    +'<div class="v23-detail-grid">'+cards+'</div>'
+    +(childMode?'<div class="formula-note"><b>儿童版固定：</b>不由挑战数推断父亲／母亲缺席、父母争吵、孩子考试结果或未来婚姻。只观察具体行为、情绪、学习与家校场景。</div>':'')
+    +'<div class="formula-note"><b>挑战值0：</b>'+esc(meta.zeroRule||"")+'</div>'
+    +'<div class="formula-note"><b>使用边界：</b>'+esc(meta.safety||"")+'</div>'
+    +'</div>';
+}
+
+function challengeFlowBridge(c,year,childMode=false){
+  const calc=calculateChallengeProfile(c.birthday);
+  const snap=calculateGoldenYearSnapshot(c.birthday,year);
+  if(!calc||!snap)return "";
+  const ch=calc.current?.number;
+  const fy=Number(snap.personal?.number||0);
+  const d=CHALLENGE_NUMBER_LIBRARY?.[ch]||{};
+  if(ch===0){
+    return '<div class="foundation-block challenge-flow-bridge"><div class="card-heading"><div><small>CHALLENGE × FLOW YEAR</small><h3>当前挑战值0｜流年 '+fy+'</h3></div><span>不做“相撞”判断</span></div><div class="formula-note">挑战值0没有一个单一1–8主题，所以不会拿0去和流年硬配。仍然从今年真实发生的场景辨认主线。</div></div>';
+  }
+  const same=Number(ch)===fy;
+  const head=same?'主题共振｜挑战 '+ch+' × 流年 '+fy:'双层观察｜挑战 '+ch+' × 流年 '+fy;
+  const body=same
+    ?'当前阶段的成长主题与今年个人流年同号。AURMOVA只把它视为“同一主题更值得多观察”，不是事件预言。重点验证：'+(d.core||"这项成长主题")+''
+    :'当前阶段挑战与今年流年不是同号，不需要为了凑解释而硬说“相撞”。挑战讲阶段成长课题，流年讲今年节奏，两层分开读；只有现实事件同时触发时才连接。';
+  const safety=same&&ch===4?'即使是4×4，也不能由数字推断身体会出问题；若有身体症状，以医疗判断为准。'
+    :same&&ch===6?'即使是6×6，也不能由数字推断家庭会出事；只观察责任、家庭分工、关系标准是否更突出。'
+    :same&&ch===8?'即使是8×8，也不等于一定破财或发财；只观察成果、资源、条件、控制与自我价值主题。'
+    :same?'同号只代表咨询主题重复，不代表具体事件一定发生。':'';
+  const childQ=childMode?(d.childQuestion||"今年哪件事让你觉得最难处理？"):(d.question||"这个主题今年有没有更明显？");
+  return '<div class="foundation-block challenge-flow-bridge">'
+    +'<div class="card-heading"><div><small>CHALLENGE × FLOW YEAR</small><h3>'+esc(head)+'</h3></div><span>'+(same?'同号 · 多观察':'不同号 · 不硬连')+'</span></div>'
+    +'<div class="formula-note">'+esc(body)+'</div>'
+    +'<div class="question-box"><b>'+(childMode?'问孩子／家长':'验证顾客')+'：</b><br>“'+esc(childQ)+'”</div>'
+    +(safety?'<div class="formula-note"><b>边界：</b>'+esc(safety)+'</div>':'')
+    +'</div>';
+}
+
 function birthdayDayPanel(c,a,childMode=false){
   const day=exactBirthDay(c.birthday), d=BIRTHDAY_DAY_PROFILES[day];
   if(!day||!d)return "";
@@ -1366,7 +1450,7 @@ function detailedEnergyPanel(a){
   };
   const challengeCards=challenges.map(n=>{
     const p=plain[n]||{}, d=ENERGY_LIBRARY[n]||{};
-    return '<article><small>挑战数字 '+n+' · 出现 '+Number(a.innerEnergy?.counts?.[n]||0)+' 次</small><h4>'+esc(p.name||d.name||"")+'</h4>'
+    return '<article><small>七魄重复能量 '+n+' · 出现 '+Number(a.innerEnergy?.counts?.[n]||0)+' 次</small><h4>'+esc(p.name||d.name||"")+'</h4>'
       +'<p><b>正向能力：</b>'+esc(d.gift||"这股能量较容易成为惯用能力。")+'</p>'
       +'<p><b>用过头：</b>'+esc(d.high||p.cw||"需要留意优势过度。")+'</p>'
       +'<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(p.cw||"这不是缺点，而是熟练能力用过头时容易卡住。")+'”</div>'
@@ -2164,6 +2248,7 @@ function childBlueprintPanel(c){
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
     +birthdayDayPanel(c,a,true)
     +highPeakPanel(c,true)
+    +challengeNumberPanel(c,true)
     +childSeatCodeDeepPanel(a)
     +childOriginConstraintPanel(c,a)
     +'<div class="foundation-block"><div class="card-heading"><div><small>CHILD CORE</small><h3>'+n+'号儿童 · '+esc(child.name||adult.title||"")+'</h3></div><span>'+esc(traits||"儿童核心模式")+'</span></div>'
@@ -2311,6 +2396,7 @@ function lifeBlueprintPanel(c){
     +birthdayDayPanel(c,a,false)
     +specialNumberPanel(c,a)
     +highPeakPanel(c,false)
+    +challengeNumberPanel(c,false)
     +seatCodeDeepPanel(a)
     +parentGeneBalancePanel(a)
     +trianglePatternSection(a)
