@@ -14,8 +14,10 @@ test("2026 and 2027 same customer yields different explanations from selected ye
 });
 test("2027 fire is 3 positions but only digit 3 repeats twice at P and R",()=>{
   const a=analyzeAnnualFiveElements(calculateGoldenYearSnapshot("18/08/1985",2027));
-  assert.equal(a.focusText,"火 3次");
+  assert.equal(a.focusText,"火（3号重复2次）");
   assert.equal(a.highlighted[0].count,3);
+  assert.equal(a.highlighted[0].repeatedDigits[0].digit,3);
+  assert.equal(a.highlighted[0].repeatedDigits[0].count,2);
   assert.deepEqual(a.highlighted[0].digits,[8,3,3]);
   assert.equal(a.duplicates.length,1);
   assert.equal(a.duplicates[0].digit,3);
