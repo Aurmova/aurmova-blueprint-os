@@ -1,3 +1,4 @@
+import { CUSTOMER_HTML, CUSTOMER_CSS, CUSTOMER_SCRIPT } from "./private-customers-page.js";
 // Static pilot assets. Public HTML, CSS and JS contain NO OAuth credentials or customer data.
 // Sensitive tokens are issued by the Worker and kept in browser memory only.
 export const LOGIN_HTML = `<!doctype html>
@@ -24,6 +25,7 @@ export const LOGIN_HTML = `<!doctype html>
 <button id="logout" type="button" class="outline" hidden>退出安全会话</button>
 </div>
 <div class="status" role="status" aria-live="polite" id="message">等待 GitHub 身份验证。</div>
+${CUSTOMER_HTML}
 <pre id="result" hidden></pre>
 <p class="footnote">身份验证只允许指定的 GitHub 账号。安全会话最长 30 分钟；刷新页面后需要重新登录。</p>
 </main>
@@ -45,7 +47,7 @@ button.outline{background:white;color:#634e33}button:disabled{opacity:.45;cursor
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f7f5f0;padding:15px;border-radius:8px}
 .footnote{font-size:12px;color:#82766a;line-height:1.7;margin:19px 0 0}
 @media(max-width:440px){.card{padding:27px 21px}h1{font-size:26px}}
-`;
+` + CUSTOMER_CSS;
 
 export const LOGIN_SCRIPT = `
 "use strict";
@@ -66,6 +68,14 @@ function setLoggedIn(token) {
   login.hidden = !!token;
   logout.hidden = !token;
   check.disabled = !token;
+  document.getElementById("customer-panel").hidden = !token;
+  if (token) {
+    loadPrivateCustomerList();
+  } else {
+    document.getElementById("private-customer-list").replaceChildren();
+    document.getElementById("private-customer-detail").hidden = true;
+    document.getElementById("private-customer-detail").textContent = "";
+  }
 }
 async function api(path, options) {
   const headers = { "Content-Type": "application/json" };
@@ -131,4 +141,4 @@ async function finishLogin() {
   }
 }
 finishLogin();
-`;
+` + CUSTOMER_SCRIPT;

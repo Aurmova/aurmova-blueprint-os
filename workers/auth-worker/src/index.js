@@ -1,4 +1,5 @@
 import { LOGIN_HTML, LOGIN_CSS, LOGIN_SCRIPT } from "./owner-login-page.js";
+import { handlePrivateCustomers } from "./private-customers-api.js";
 
 // AURMOVA secure pilot API.
 // This Worker is NOT part of the public GitHub Pages static bundle.
@@ -248,6 +249,12 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/auth/exchange") {
         return await exchangeTicket(request, env, origin);
+      }
+
+      if (url.pathname === "/private/customers" || url.pathname.startsWith("/private/customers/")) {
+        const session = await authenticatedSession(request, env);
+        if (!session) return json({ error: "Authentication required" }, 401, origin);
+        return await handlePrivateCustomers(request, env, session.session, url.pathname, (payload, status = 200) => json(payload, status, origin));
       }
 
       if (url.pathname === "/private/status" || url.pathname === "/auth/logout") {
