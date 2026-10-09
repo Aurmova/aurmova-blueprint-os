@@ -7,6 +7,7 @@ import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
 import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=41";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
+import { MATURITY_NUMBER_LIBRARY, BLACK_HOLE_NUMBER_LIBRARY } from "./hole-maturity-library.js?v=1";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -91,6 +92,22 @@ function simpleZodiac(birthday){
 function libraryEntries(){
   const entries=[];
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
+  const maturityLib=MATURITY_NUMBER_LIBRARY||{};
+  const holeLib=BLACK_HOLE_NUMBER_LIBRARY||{};
+  entries.push({category:"黑洞数字",title:"黑洞数字｜六类位置与判定限制",keywords:"黑洞数字 黑洞 黑洞数 缺席数字 成熟数字",
+    text:["教材定义："+(holeLib.meta?.definition||""),"六类位置："+(holeLib.meta?.sixPositions||[]).join("、"),
+      "核对规则："+(holeLib.meta?.checkRule||""),"最多三项限制："+(holeLib.meta?.threshold||""),
+      "空椅子比喻："+(holeLib.meta?.analogy||""),"计算安全边界："+(holeLib.meta?.boundary||"")].join("\n")});
+  entries.push({category:"成熟数字",title:"成熟数字｜计算与36岁后观察",keywords:"成熟数字 成熟数 36岁 生命数 表现数",
+    text:["本章计算："+(maturityLib.meta?.formula||""),"36岁规则："+(maturityLib.meta?.ageRule||""),
+      "避免混算："+(maturityLib.meta?.distinction||""),"解释边界："+(maturityLib.meta?.safety||"")].join("\n")});
+  for(let n=1;n<=9;n++){
+    const d=maturityLib.numbers?.[n]||{};
+    entries.push({category:"成熟数字",title:"成熟数字 "+n+" · "+(d.title||""),keywords:"成熟数字"+n+" 成熟数"+n+" 第十四章",
+      text:["主题："+(d.core||""),"正向优势："+(d.positive||""),"可能卡点："+(d.watch||""),
+        "Josephine白话："+(d.talk||""),"追问："+(d.question||""),"行动："+(d.action||""),
+        "教材年龄说明："+(maturityLib.meta?.ageRule||""),"资料来源："+(maturityLib.meta?.source||"")].filter(Boolean).join("\n")});
+  }
   const cycleLib=CYCLE_ENVIRONMENT_LIBRARY||{};
   entries.push({category:"循环数字解读",title:"循环数字｜月·日·年计算与对应阶段",keywords:"第一循环 第二循环 第三循环 环境 家庭 高峰 挑战 1–9",
     text:[cycleLib.meta?.definition,cycleLib.meta?.formula,cycleLib.meta?.timeline,cycleLib.meta?.boundaries].filter(Boolean).join("\n")});
@@ -322,7 +339,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不记录书本页码或拍照页面；只保留可查询的结构化内容、AURMOVA白话和必要的规则说明。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","循环数字解读","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","循环数字解读","黑洞数字","成熟数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
