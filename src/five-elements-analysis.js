@@ -84,7 +84,9 @@ export function analyzeAnnualFiveElements(snapshot,childMode=false){
  if(!base)return null;
  const covered=base.rows.filter(r=>r.count>0).map(r=>({...r,guide:WUXING_ELEMENT_ANALYSIS[r.key]}))
    .sort((a,b)=>b.count-a.count||FIVE_ELEMENT_LIBRARY.elements.findIndex(e=>e.key===a.key)-FIVE_ELEMENT_LIBRARY.elements.findIndex(e=>e.key===b.key));
- const highlighted=covered.filter(r=>r.count>=2).slice(0,3);
+ const highlighted=covered.filter(r=>base.repeatDigits.some(x=>r.digits.includes(x.digit)))
+   .map(r=>({...r,repeatedDigits:base.repeatDigits.filter(x=>r.digits.includes(x.digit))}))
+   .slice(0,3);
  const duplicates=base.repeatDigits.map(r=>{
    const g=WUXING_DIGIT_ANALYSIS[r.digit];
    const cross=r.slots.some(s=>"MNO".includes(s))&&r.slots.some(s=>"PQR".includes(s));
@@ -95,15 +97,15 @@ export function analyzeAnnualFiveElements(snapshot,childMode=false){
        ?"这个主题从MNO因果段延伸到PQR结果段，可以核对「起初怎么决定」与「最后怎么行动」之间的联系。"
        :"这个主题在同一段结构中重复，可观察是否反复使用相似的处理方式。"};
  });
- const byElement=highlighted.map(r=>r.label+" "+r.count+"次").join("、");
+ const byElement=highlighted.map(r=>r.label+"（"+r.repeatedDigits.map(x=>x.digit+"号重复"+x.count+"次").join("、")+"）").join("、");
  const byDigit=duplicates.map(r=>r.digit+"号在"+r.slots.join("和")+"位重复"+r.count+"次").join("；");
  const mno=base.points.slice(0,3).map(p=>p.digit).join("");
  const pqr=base.points.slice(3).map(p=>p.digit).join("");
  const speech=childMode
-  ?"“这位孩子"+base.year+"年的MNO是"+mno+"，PQR是"+pqr+"；五行出现较多的是"+(byElement||"没有特别集中")+"；"+(byDigit||"没有号码重复")+"。我们不会据此预测健康，先请家长分享今年在家里、学校和作息上真实发生的事。”"
-  :"“你的"+base.year+"流年MNO是"+mno+"，PQR是"+pqr+"；出现较多的五行是"+(byElement||"没有特别集中")+"；"+(byDigit||"没有号码重复")+"。我们会从这些数字对应的课程主题里挑重点，跟你今年的真实经历核对，不会直接说你哪一年身体一定有问题。”";
+  ?"“这位孩子"+base.year+"年的MNO是"+mno+"，PQR是"+pqr+"；本年符合重点条件的是"+(byElement||"没有同号重复")+"；"+(byDigit||"没有号码重复")+"。我们不会据此预测健康，先请家长分享今年在家里、学校和作息上真实发生的事。”"
+  :"“你的"+base.year+"流年MNO是"+mno+"，PQR是"+pqr+"；本年符合重点条件的是"+(byElement||"没有同号重复")+"；"+(byDigit||"没有号码重复")+"。我们会从这些数字对应的课程主题里挑重点，跟你今年的真实经历核对，不会直接说你哪一年身体一定有问题。”";
  return {...base,covered,highlighted,duplicates,mno,pqr,speech,
-   focusText:byElement||"五行没有明显集中",
+   focusText:byElement||"没有同号重复需要重点解读",
    repeatText:byDigit||"无同号重复",healthRisk:null,diagnostic:false};
 }
 
@@ -114,15 +116,15 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
  const elementHtml=data.highlighted.length?data.highlighted.map(r=>{
    const g=r.guide;
    const sameDigits=r.digits.some(d=>data.frequencies[d]>=2);
-   return '<article class="card reading-card"><h4>'+esc(g.title)+' · '+r.count+'次</h4>'
+   return '<article class="card reading-card"><h4>'+esc(g.title)+'｜'+esc(r.repeatedDigits.map(x=>x.digit+"号×"+x.count).join("、"))+'</h4>'
     +'<p><b>本年对应位置：</b>'+esc(r.slots.map((s,i)=>s+"="+r.digits[i]).join("、"))+'</p>'
-    +'<p><b>数量判断：</b>'+esc(r.count>=3?"六个位中此五行相对集中":"六个位中此五行出现较多")
-    +'；'+esc(sameDigits?"其中存在相同号码重复，下方另有位置解读。":"此处为同五行数量累计，不能当成同号码重复。")+'</p>'
+    +'<p><b>重点判定：</b>同一个数字出现2次或以上。'+esc("本五行六位合计"+r.count+"次；其中"+r.repeatedDigits.map(x=>x.digit+"号重复"+x.count+"次").join("、")+"才符合重点条件")
+    +'；'+esc(sameDigits?"其中存在相同号码重复，下方另有位置解读。":"只有同号重复才列为重点；同五行不同号码出现次数不触发。")+'</p>'
     +'<p><b>课程传统身体对应：</b>'+esc(g.tradition)+'</p>'
     +'<p><b>可以讨论的生活主题：</b>'+esc(childMode?g.child:g.adult)+'</p>'
     +'<div class="question-box"><b>Josephine追问：</b>“'+esc(childMode?g.askChild:g.askAdult)+'”</div>'
     +'<p><b>实际引导：</b>'+esc(childMode?g.actionChild:g.actionAdult)+'</p></article>';
- }).join(""):'<div class="formula-note">五行没有一项在六个位中出现至少两次，不要勉强贴出重点。</div>';
+ }).join(""):'<div class="formula-note">这六个位置没有相同数字重复2次或以上，因此不展开五行重点分析；只出现1次的号码不需要特别理会。</div>';
  const duplicateHtml=data.duplicates.length?data.duplicates.map(r=>
   '<article class="card reading-card"><h4>'+r.digit+'号（'+esc(r.element)+'）重复 '+r.count+'次</h4>'
   +'<p><b>重复位置：</b>'+esc(r.slots.join("、"))+'</p>'
@@ -141,7 +143,7 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
   +'<br><b>结构：</b>MNO '+esc(data.mno)+'（因果）→ MOQ／NOP（过程）→ PQR '+esc(data.pqr)+'（结果）</div>'
   +'<div style="overflow-x:auto"><table style="width:100%;text-align:left;border-collapse:collapse"><thead><tr><th>五行／数字</th><th>次数</th><th>位置</th></tr></thead><tbody>'+rowHtml+'</tbody></table></div>'
   +'<div class="formula-note"><b>本年统计重点：</b>'+esc(data.focusText)+'。<b>重复号码：</b>'+esc(data.repeatText)+'。</div>'
-  +'<div class="card-heading"><div><h4>① 五行集中主题｜重点白话分析</h4></div></div>'
+  +'<div class="card-heading"><div><h4>① 同号重复对应的五行｜重点白话分析</h4></div></div>'
   +'<div class="reading-grid">'+elementHtml+'</div>'
   +'<div class="card-heading"><div><h4>② 重复数字｜位置之间如何相互影响</h4></div></div>'
   +'<div class="reading-grid">'+duplicateHtml+'</div>'
