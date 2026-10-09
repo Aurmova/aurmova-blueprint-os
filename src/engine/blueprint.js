@@ -361,6 +361,68 @@ export function calculateInnerDriveProfile(input={},now=new Date()){
   };
 }
 
+
+export const TEMPERAMENT_PLANE_GROUPS=Object.freeze({
+  mind:[1,8],
+  body:[4,5],
+  emotion:[2,3,6],
+  intuition:[7,9]
+});
+
+function temperamentCountLabel(count){
+  if(count===0)return {kind:"zero",label:"0次",supported:false,note:"课程没有0号性情解读；这里只表示当前姓名这一组没有字母落入。"};
+  if(count>=1&&count<=9)return {kind:"course",label:String(count),supported:true,note:"课程1–9范围内，可调用对应咨询资料。"};
+  return {kind:"over",label:String(count)+"次",supported:false,note:"超过课程1–9解读范围；保留原始次数，不化简。"};
+}
+
+export function calculateTemperamentNumber(name){
+  const base=calculateExpressionNumber(name);
+  if(!base.valid){
+    return {valid:false,input:String(name||"").trim(),reason:base.reason||"invalid-name",base,totalLetters:0,counts:{mind:0,body:0,emotion:0,intuition:0},ratios:{mind:0,body:0,emotion:0,intuition:0},digitCounts:{},sumCheck:false};
+  }
+  const digitCounts=Object.fromEntries(Array.from({length:9},(_,i)=>[i+1,0]));
+  base.letters.forEach(x=>{if(digitCounts[x.value]!==undefined)digitCounts[x.value]++;});
+  const counts={
+    mind:(digitCounts[1]||0)+(digitCounts[8]||0),
+    body:(digitCounts[4]||0)+(digitCounts[5]||0),
+    emotion:(digitCounts[2]||0)+(digitCounts[3]||0)+(digitCounts[6]||0),
+    intuition:(digitCounts[7]||0)+(digitCounts[9]||0)
+  };
+  const totalLetters=base.letters.length;
+  const ratios=Object.fromEntries(Object.entries(counts).map(([k,v])=>[k,totalLetters?Math.round((v/totalLetters)*1000)/10:0]));
+  const max=Math.max(...Object.values(counts)),min=Math.min(...Object.values(counts));
+  const dominant=Object.keys(counts).filter(k=>counts[k]===max);
+  const least=Object.keys(counts).filter(k=>counts[k]===min);
+  const status=Object.fromEntries(Object.entries(counts).map(([k,v])=>[k,temperamentCountLabel(v)]));
+  return {
+    valid:true,input:base.input,calculationName:base.calculationName,autoPinyin:base.autoPinyin||"",hasHan:Boolean(base.hasHan),
+    letters:base.letters,digitCounts,counts,ratios,totalLetters,status,dominant,least,
+    sumCheck:Object.values(counts).reduce((a,b)=>a+b,0)===totalLetters,
+    rule:"性情数字只统计出现次数：头脑=1/8次数；身体=4/5次数；情绪=2/3/6次数；直觉=7/9次数。次数不做化简。"
+  };
+}
+
+export function calculateTemperamentProfile(input={},now=new Date()){
+  const expression=calculateExpressionProfile(input,now);
+  const current=calculateTemperamentNumber(expression.current?.input||"");
+  const former=calculateTemperamentNumber(expression.former?.input||"");
+  const primary=calculateTemperamentNumber(expression.primary?.input||"");
+  return {
+    displayName:expression.displayName,
+    officialName:expression.officialName,
+    formerName:expression.formerName,
+    changedYear:expression.changedYear,
+    yearsSinceChange:expression.yearsSinceChange,
+    current,former,primary,
+    primarySource:expression.primarySource,
+    transitionRule:expression.transitionRule,
+    canCalculate:Boolean(primary.valid),
+    needsChangeYear:expression.needsChangeYear,
+    reason:primary.reason||"",
+    rule:"姓名来源与表现数字一致；华文先转拼音。性情数字使用姓名全部字母，但不是把数值相加，而是统计四组出现次数。"
+  };
+}
+
 export function calculateChallengeProfile(birthday, now=new Date()){
   const parsed=parseBirthdayFlexible(birthday);
   if(!parsed)return null;
