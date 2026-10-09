@@ -51,8 +51,8 @@ export const WUXING_COURSE_SUPPLEMENT = Object.freeze({
   ],
   stageRules:{
     missing:"在所选流年的六个位子某五行计数为0，标记为「未出现」；这是结构记录，不代表身体缺失、体质差或需要补五行。",
-    focused:"只有同一个号码出现2次或以上，才作为五行课程的重点观察数字；同一五行下两个不同号码各出现1次，不应视为重点。不得据此推断疾病。",
-    repeats:"只有同一个号码重复≥2次才列「同号重复」；例如3与8同属火，不等于3号重复。",
+    focused:"同一种五行出现2次或以上，就成为课程重点观察的五行；大、小数字合计（例如3＋8＝火2次）。这不代表疾病风险。",
+    repeats:"同号重复是另一项独立标记：例如3与8各出现1次，不是「3号重复」，但属于火五行出现2次，已满足五行重点观察条件。",
     classroom:"原书第63–64页示例使用五个位子，教材讲义示例可展示原始五位法，但AURMOVA黄金流年一律按已确认的六位法计算。"
   }
 });
@@ -100,12 +100,7 @@ export function analyzeWuxingCourseRelations(annualDistribution){
  const s=WUXING_COURSE_SUPPLEMENT;
  const active=new Set(annualDistribution.rows.filter(x=>x.count>0).map(x=>x.key));
  const missing=annualDistribution.rows.filter(x=>x.count===0).map(x=>x.label);
- const focused=annualDistribution.rows.map(row=>{
-   const repeatedDigits=(annualDistribution.repeatDigits||[]).filter(x=>row.digits.includes(x.digit));
-   return {...row,repeatedDigits};
- }).filter(row=>row.repeatedDigits.length>0)
-   .map(row=>({label:row.label,count:row.repeatedDigits.reduce((n,x)=>n+x.count,0),
-     repeatedDigits:row.repeatedDigits.map(x=>({digit:x.digit,count:x.count,slots:x.slots}))}));
+ const focused=annualDistribution.rows.filter(x=>x.count>=2).map(x=>({label:x.label,count:x.count,digits:x.digits,slots:x.slots}));
  return {
   missing,focused,
   supporting:s.supports.filter(x=>active.has(x.from)&&active.has(x.to)).map(x=>x.label),
@@ -119,14 +114,14 @@ export function renderWuxingCourseRelations(annualDistribution,childMode=false){
  if(!info)return "";
  const src=WUXING_COURSE_SUPPLEMENT;
  const missing=info.missing.length?info.missing.join("、"):"五种五行均有出现";
- const strong=info.focused.length?info.focused.map(x=>x.label+"（"+x.repeatedDigits.map(d=>d.digit+"号×"+d.count).join("、")+"）").join("、"):"没有相同号码重复2次以上";
+ const strong=info.focused.length?info.focused.map(x=>x.label+" "+x.count+"次（"+x.digits.join("、")+"）").join("、"):"没有任何五行累计达到2次";
  const make=(arr)=>arr.length?arr.join("、"):"所选六位没有同时包含这类对应的两种五行";
  const guide=childMode
   ?"可用传统相生相克作为课堂讨论，实际仍要听家长和孩子对学习、关系及日常压力的描述；不能用五行推断孩子疾病。"
   :"可用相生相克的传统比喻，讨论哪些能力和习惯相互帮助或阻碍。优先以顾客真实经历为准，不从数字推断身体疾病。";
  return '<section class="foundation-block annual-wuxing-course">'
-  +'<div class="card-heading"><div><small>COURSE REFERENCES · WUXING</small><h4>⑤ 五行相生相克｜教材延伸参考</h4></div></div>'
-  +'<div class="formula-note"><b>本年六位中未出现：</b>'+safeText(missing)+'。<b>同号重复（≥2次）的课程重点：</b>'+safeText(strong)
+  +'<div class="card-heading"><div><small>COURSE REFERENCES · WUXING</small><h4>⑤ 五行相生相克、大小五行及缺多观察</h4></div></div>'
+  +'<div class="formula-note"><b>本年六位中未出现：</b>'+safeText(missing)+'。<b>本年观察重点（同五行≥2次）：</b>'+safeText(strong)
   +'。这些仅表示数字分布，不代表体质、器官疾病或医学风险。</div>'
   +'<p><b>传统相生（本盘同时出现）：</b>'+safeText(make(info.supporting))+'</p>'
   +'<p><b>传统相克（本盘同时出现）：</b>'+safeText(make(info.controlling))+'</p>'
