@@ -9,8 +9,9 @@ import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
 import { MATURITY_NUMBER_LIBRARY, BLACK_HOLE_NUMBER_LIBRARY } from "./hole-maturity-library.js?v=1";
 import { FIVE_ELEMENT_LIBRARY } from "./five-elements.js?v=2";
-import { WUXING_ELEMENT_ANALYSIS, WUXING_DIGIT_ANALYSIS, WUXING_POSITION_ROLES } from "./five-elements-analysis.js?v=2";
+import { WUXING_ELEMENT_ANALYSIS, WUXING_DIGIT_ANALYSIS, WUXING_POSITION_ROLES } from "./five-elements-analysis.js?v=3";
 import { buildWuxingCourseEntries } from "./wuxing-course-supplement.js?v=1";
+import { buildWuxingHealthLibraryEntries } from "./wuxing-health-course.js?v=1";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 
 const icons = {
@@ -135,6 +136,8 @@ function libraryEntries(){
       +"\n同一号码跨MNO与PQR出现可以作为课堂追问线索，但不能断言事件发生。"});
   // Additional original course summaries (not scans or literal book copies) with five-vs-six position audit.
   entries.push(...buildWuxingCourseEntries());
+  // Traditional body/health associations remain attributed course notes, not individual medical conclusions.
+  entries.push(...buildWuxingHealthLibraryEntries());
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
   entries.push(...buildStudentCompositeEntries());
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
