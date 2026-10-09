@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=3
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
-import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=40";
+import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=41";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 
 const icons = {
@@ -259,6 +259,7 @@ function libraryEntries(){
   }));
 
   const moduleOverviews=[
+    {title:"姓名性情数字｜四体分布",keywords:"性情数字 姓名性情 头脑数字 身体数字 情绪数字 直觉数字 1 8 4 5 2 3 6 7 9 四体",text:"【固定算法】先把姓名全部字母按A–Z数字表转换，再统计出现次数：头脑＝1与8；身体＝4与5；情绪＝2、3、6；直觉＝7与9。这里是‘计数’，不是把数字再相加，也不做个位化简。四组次数总和必须等于姓名字母总数。\n\n【0与10+】0次只表示当前姓名没有字母落入该组，不叫缺陷，也没有‘0号性情’；10次以上保留原始次数，不化简，因为课程只提供1–9逐项解读。\n\n【怎么看】同一姓名同时看绝对次数与百分比，避免长姓名因为字母多看起来每组都高。分布较高不是比较好，较低也不是比较差。\n\n【姓名变化】现名与曾用名可并列对照，但只表示字母结构变化，不解释成改名改变命运或人格。\n\n【与其他模块区分】表现数字＝全部字母数值相加；内驱数字＝A/E/I/O/U元音相加；性情数字＝全部字母按四组计数；出生盘的主性格、内心码与潜意识另算。\n\n【咨询边界】只作为提问与自我观察框架。不能根据数字诊断焦虑、抑郁、失眠、头痛、肠胃或其他疾病，也不预测婚姻、健康、财运或灵异能力。顾客说不像时不硬套，优先真实行为与专业评估。"},
     {title:"黄金20年阶段",keywords:"黄金20年 阶段 URX U R X 966 933 339 669 693 396 363 636 999 少年得志 先苦后甜 中年致富 天降大任 21-40 41-60 61岁以后 IJM IMS JMT STU MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【阶段结构】21–40岁：IJM＝因果，IMS／JMT＝过程，STU＝结果；41–60岁：MNO＝因果，MOQ／NOP＝过程，PQR＝结果；61岁以后：KLN＝因果，KNV／LNW＝过程，VWX＝结果。\n\n【黄金20年趋势码】同一张固定盘取三个阶段的结果位，按人生时间顺序排成 U→R→X：U＝21–40结果、R＝41–60结果、X＝61岁以后结果。例如U=6、R=9、X=3，就得到693。\n\n【课程四类重点】966／933＝少年得志；339／669＝先苦后甜；693／396／363＝中年致富；636／999＝天降大任。名称保留为课程标签，但顾客端不讲成命定发财、命定成名或命定受苦。\n\n【咨询用法】先看顾客当前年龄所在阶段，再按“因果 → 两个过程 → 结果”往下解；黄金20年趋势码只做三阶段重心的总览，不替代完整阶段分析。\n\n【白话】“我会先看你现在走到哪一个20年阶段，再把三个阶段的结果位排成一条线。它不是告诉你哪一段一定发财，而是看哪一个阶段比较容易把前面的累积放大，以及那个阶段更适合用什么策略。”"},
     {title:"黄金流年蓝图解析",keywords:"黄金流年 流年 大环境 个人流年 10月1日 9月30日 MNO MOQ NOP PQR KLN KNV LNW VWX",text:"【时间边界】AURMOVA流年固定以每年10月1日开始，到次年9月30日结束。\n\n【个人流年】保留顾客生日的日＋月，把年份替换成目标年份，重新计算同一张固定三角形。O看当年主题；个人四组重点：MNO＝因果／核心，MOQ＝过程1，NOP＝过程2，PQR＝结果。\n\n【大环境】不使用“年份数字相加成一个数字”取代结构。大环境固定看：KLN＝因果，KNV＝过程1，LNW＝过程2，VWX＝结果。\n\n【咨询顺序】先讲个人主题，再讲个人四码怎样展开，再看大环境四码，最后比较两边是顺势、拉扯还是需要调整节奏。\n\n【白话】“同一年大家面对的是同一个大环境，但每个人怎么感受到、怎么回应，会被自己的个人流年结构影响。所以我不会只拿一个数字告诉你今年好不好，而是会把你的四个个人过程和四个外部环境一起看。”"},
     {title:"财富密码",keywords:"财富 钱 金钱 资源 6 财富密码 守财 花钱 投资 责任 预算",text:"【AURMOVA读取原则】财富不是看一个数字就断“有钱／没钱”。要同时看与资源、责任、价值交换、行动和机会有关的联合码，再看它落在哪个位置、有没有重复或缺失，并用顾客真实的赚钱、花钱、储蓄、承担与合作习惯做验证。\n\n【咨询重点】赚钱能力、守财习惯、责任型支出、人情支出、资源配置、合作边界、风险承受与长期安全感。\n\n【白话】“我这里不会用一个号码就告诉你一定发财。数字给我看的是：你面对钱和资源时最自然的习惯是什么——你是容易赚但留不住、太谨慎不敢动，还是常常因为责任和人情多承担。真正有用的是找到你最容易漏财或失衡的那个行为点。”\n\n【边界】投资相关内容只作为行为与风险管理提醒，不根据数字直接建议买卖任何投资。"},
@@ -281,7 +282,7 @@ function renderLibraryResults(query=""){
   box.innerHTML='<div class="library-result-head"><b>找到 '+filtered.length+' 条资料</b><span>'+(q?"查询："+escapeLibraryHtml(query):"显示全部已恢复资料")+'</span></div>'
     +(filtered.length?[...grouped.entries()].map(([cat,items])=>'<section class="library-group"><h3>'+escapeLibraryHtml(cat)+' <small>'+items.length+'</small></h3>'
       +items.map((x,i)=>'<details class="library-entry" '+(filtered.length<=6&&i===0?'open':'')+'><summary><span>'+escapeLibraryHtml(x.title)+'</span><em>查看完整资料</em></summary><div class="library-entry-body">'+escapeLibraryHtml(x.text).replace(/\n/g,"<br>")+'</div></details>').join("")+'</section>').join("")
-      :'<div class="card empty"><h3>没有找到这项资料</h3><p>可以换成号码、关键词或主题，例如 112、缺失4、挑战7、内驱2、679。</p></div>');
+      :'<div class="card empty"><h3>没有找到这项资料</h3><p>可以换成号码、关键词或主题，例如 112、缺失4、挑战7、内驱2、头脑4、身体5、679。</p></div>');
 }
 function initLibrarySearch(){
   const input=document.querySelector("#library-search"); if(!input)return;
