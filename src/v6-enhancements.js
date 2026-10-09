@@ -1,6 +1,7 @@
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4";
+import { renderAnnualYearGuidance } from "./annual-year-guidance.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -633,6 +634,7 @@ function yearSnapshotCard(c,year,label){
     +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+'</small><h3>自身流年 O='+p.number+' · '+esc(p.title)+'</h3></div><div class="golden-weather"><small>大环境因果 · KLN</small><b>'+esc(snap.environmentMainCode)+'</b><span>不是“大环境数字”；必须连同 KNV / LNW / VWX 一起读</span></div></div>'
     +'<div class="formula-note"><b>AURMOVA唯一结构：</b>这一年只用同一张重排年盘。自身固定读取 <b>MNO → MOQ / NOP → PQR</b>；大环境固定读取 <b>KLN → KNV / LNW → VWX</b>。不再加入外三角三边流年码、直接命中主场、单一大环境数字或人为权重。</div>'
     +'<div class="year-positive-negative"><div><small>O位年度主题 · 正面</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>O位年度主题 · 反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
+    +renderAnnualYearGuidance(snap,false)
     +goldenYearVisual(snap)
     +renderAnnualFiveElementAnalysis(snap,false)
     +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>因果 → 两个过程 → 结果</p></div><div><small>大环境4组</small><b>'+esc(environmentCodes)+'</b><p>因果 → 两个过程 → 结果</p></div></div>'
@@ -837,6 +839,7 @@ function childYearSnapshotCard(c,year,label){
     +'<div class="golden-year-sheet-head"><div><small>'+esc(label)+' · '+year+' · '+esc(band)+'</small><h3>儿童流年 '+n+' · '+esc(t.title)+'</h3></div><div class="golden-weather"><small>外部环境入口</small><b>'+esc(snap.environmentMainCode)+'</b><span>KLN只是因果起点，仍要连同 KNV / LNW / VWX 四组一起看</span></div></div>'
     +'<div class="formula-note"><b>儿童版固定原则：</b>数字只提示今年值得观察的成长主题，不预测事件。先问真实发生了什么，再把孩子／父母的版本与数字做验证；不符合就跳过，不为了“算准”而硬套。</div>'
     +'<div class="year-positive-negative"><div><small>今年最值得观察</small><b>'+esc(t.title)+'</b><p>'+esc(t.focus)+'</p></div><div><small>家长今年怎么陪</small><b>先观察 · 再沟通</b><p>'+esc(t.guide)+'</p></div></div>'
+    +renderAnnualYearGuidance(snap,true)
     +goldenYearVisual(snap)
     +renderAnnualFiveElementAnalysis(snap,true)
     +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>孩子自身：因 → 两个过程 → 结果</p></div><div><small>外部环境4组</small><b>'+esc(environmentCodes)+'</b><p>学校／老师／朋友／家庭安排：因 → 两个过程 → 结果</p></div></div>'
