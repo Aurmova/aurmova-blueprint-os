@@ -166,13 +166,14 @@ function libraryEntries(){
   for(const [plane,label] of [["mind","头脑"],["body","身体"],["emotion","情绪"],["intuition","直觉"]]){
     for(let n=1;n<=9;n++){
       const d=tempLib?.[plane]?.[n]||{};
-      entries.push({category:"姓名性情数字",title:label+"数字 "+n+" · "+(d.title||""),keywords:"性情数字 四体 "+label+"数字 "+n+" 姓名出现次数 temperament",text:[
+      entries.push({category:"姓名性情数字",title:label+"数字 "+n+" · "+(d.title||""),keywords:"性情数字 四体 "+label+"数字 "+n+" 姓名出现次数 temperament 头脑 身体 情绪 直觉",text:[
         "核心："+(d.core||""),"成熟："+(d.mature||""),"卡住："+(d.watch||""),
         "Josephine白话："+(d.talk||""),"验证问题："+(d.question||""),
         "像："+(d.yes||""),"不像："+(d.no||""),"不确定："+(d.unsure||""),
         "3–7天行动："+(d.action||""),"不可乱讲："+(d.risk||""),
         "算法："+(tempLib.meta?.formula||""),"0与10+："+(tempLib.meta?.rangeRule||""),
-        "区分："+(tempLib.meta?.distinction||""),"安全边界："+(tempLib.meta?.safety||"")
+        "读取顺序："+(tempLib.meta?.consultOrder||""),"姓名长度比较："+(tempLib.meta?.comparisonRule||""),
+        "儿童规则："+(tempLib.meta?.childRule||""),"区分："+(tempLib.meta?.distinction||""),"安全边界："+(tempLib.meta?.safety||"")
       ].filter(Boolean).join("\n")});
     }
   }
