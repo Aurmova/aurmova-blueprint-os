@@ -1,18 +1,18 @@
-# Cloudflare builds track the dedicated security branch; GitHub Pages main stays untouched.
-# OAuth credentials are configured as server-side secrets, never committed.
-name = "aurmova-secure-api"
+# AURMOVA isolated staging only. Do not deploy to or bind production resources.
+# GitHub Pages main and the existing owner-auth Worker are managed separately.
+# Configure a separate staging GitHub OAuth App and server-side secrets before testing sign-in.
+name = "aurmova-secure-api-staging"
 main = "src/index.js"
 compatibility_date = "2026-10-08"
 workers_dev = true
 
 [vars]
-# Update after confirming the live workers.dev domain in Cloudflare.
-API_ORIGIN = "https://aurmova-secure-api.xbing5668.workers.dev"
-FRONTEND_LOGIN_URL = "https://aurmova-secure-api.xbing5668.workers.dev/owner-login"
-GITHUB_CLIENT_ID = "Ov23liedj1R6nncwWSFg"
+API_ORIGIN = "https://aurmova-secure-api-staging.xbing5668.workers.dev"
+FRONTEND_LOGIN_URL = "https://aurmova-secure-api-staging.xbing5668.workers.dev/owner-login"
+# GITHUB_CLIENT_ID intentionally omitted until the independent staging OAuth App is created.
 
 [[d1_databases]]
 binding = "DB"
-database_name = "aurmova-private"
-database_id = "b053d2e2-6394-4e34-90b0-3a5dab0b28e5"
+database_name = "aurmova-private-staging"
+database_id = "0783ec25-8819-49df-b360-fe1ef87dda0c"
 migrations_dir = "migrations"
