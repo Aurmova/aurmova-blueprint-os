@@ -1,4 +1,5 @@
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
+import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -2497,6 +2498,7 @@ function childBlueprintPanel(c){
     +innerDriveNumberPanel(c,true)
     +temperamentNumberPanel(c,true)
     +renderCycleEnvironmentPanel(c,true)
+    +renderHoleMaturityPanel(c,true)
     +highPeakPanel(c,true)
     +challengeNumberPanel(c,true)
     +childSeatCodeDeepPanel(a)
@@ -2648,6 +2650,7 @@ function lifeBlueprintPanel(c){
     +innerDriveNumberPanel(c,false)
     +temperamentNumberPanel(c,false)
     +renderCycleEnvironmentPanel(c,false)
+    +renderHoleMaturityPanel(c,false)
     +specialNumberPanel(c,a)
     +highPeakPanel(c,false)
     +challengeNumberPanel(c,false)
