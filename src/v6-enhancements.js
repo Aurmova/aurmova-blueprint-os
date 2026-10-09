@@ -1,3 +1,4 @@
+import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -2495,6 +2496,7 @@ function childBlueprintPanel(c){
     +expressionNumberPanel(c,true)
     +innerDriveNumberPanel(c,true)
     +temperamentNumberPanel(c,true)
+    +renderCycleEnvironmentPanel(c,true)
     +highPeakPanel(c,true)
     +challengeNumberPanel(c,true)
     +childSeatCodeDeepPanel(a)
@@ -2645,6 +2647,7 @@ function lifeBlueprintPanel(c){
     +expressionNumberPanel(c,false)
     +innerDriveNumberPanel(c,false)
     +temperamentNumberPanel(c,false)
+    +renderCycleEnvironmentPanel(c,false)
     +specialNumberPanel(c,a)
     +highPeakPanel(c,false)
     +challengeNumberPanel(c,false)
@@ -3368,7 +3371,7 @@ function enhanceWorkspace(){
   ensureOpportunityNavigator(c,a);
 
   document.querySelector(".wealth-card")?.style.setProperty("display","none");
-  document.querySelector(".reading-grid")?.style.setProperty("display","none");
+  document.querySelector("#app > .reading-grid")?.style.setProperty("display","none");
   document.querySelector(".phases")?.style.setProperty("display","none");
 
   const quick=document.querySelector(".quick-actions");
