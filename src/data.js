@@ -1,5 +1,5 @@
 export const CONSULTATION_TYPES=["人生蓝图解析","黄金流年蓝图解析","关系蓝图解析","亲子蓝图解析","合作蓝图解析","儿童蓝图解析"];
-export const INTERNAL_TERMS=["完整數字計算","父親基因","母親基因","坐鎮碼","主性格","內心碼","潛意識碼","缺失數","挑戰數","表现数字","679綜合","81組聯合碼","三階段能量","Josephine 諮詢話術"];
+export const INTERNAL_TERMS=["完整數字計算","父親基因","母親基因","坐鎮碼","主性格","內心碼","潛意識碼","缺失數","挑戰數","表现数字","内驱数字","679綜合","81組聯合碼","三階段能量","Josephine 諮詢話術"];
 export function createCustomer(form){
   const day=String(form.day).padStart(2,"0"),month=String(form.month).padStart(2,"0");
   const consultationTypes=Array.isArray(form.consultationTypes)?form.consultationTypes.filter(Boolean):[form.consultationType].filter(Boolean);
