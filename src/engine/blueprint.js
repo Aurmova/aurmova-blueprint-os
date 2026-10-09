@@ -311,6 +311,56 @@ export function calculateExpressionProfile(input={},now=new Date()){
   };
 }
 
+
+export const INNER_DRIVE_VOWEL_VALUES=Object.freeze({A:1,E:5,I:9,O:6,U:3});
+
+export function calculateInnerDriveNumber(name){
+  const base=calculateExpressionNumber(name);
+  if(!base.valid){
+    return {valid:false,input:String(name||"").trim(),reason:base.reason||"invalid-name",base,letters:[],total:0,path:[],reduced:0,compound:"",masterHits:[]};
+  }
+  const chars=(base.normalized.match(/[AEIOU]/g)||[]);
+  if(!chars.length){
+    return {
+      valid:false,input:base.input,reason:"no-course-vowels",base,
+      calculationName:base.calculationName,autoPinyin:base.autoPinyin||"",hasHan:Boolean(base.hasHan),
+      letters:[],total:0,path:[],reduced:0,compound:"",masterHits:[],
+      rule:"AURMOVA内驱数字只算A/E/I/O/U；Y/W不计。这个姓名没有课程规则中的元音，所以不硬算成0。"
+    };
+  }
+  const letters=chars.map(ch=>({char:ch,value:INNER_DRIVE_VOWEL_VALUES[ch]}));
+  const total=letters.reduce((s,x)=>s+x.value,0);
+  const path=reductionPath(total);
+  const reduced=path[path.length-1]||0;
+  const masterHits=path.filter(n=>n===11||n===22||n===33);
+  return {
+    valid:true,input:base.input,calculationName:base.calculationName,autoPinyin:base.autoPinyin||"",hasHan:Boolean(base.hasHan),
+    letters,total,path,reduced,compound:path.join("/"),masterHits:[...new Set(masterHits)],
+    rule:"只取A/E/I/O/U：A=1、E=5、I=9、O=6、U=3。Y/W不计；复合路径保留，但最终按1–9基础数解读。"
+  };
+}
+
+export function calculateInnerDriveProfile(input={},now=new Date()){
+  const expression=calculateExpressionProfile(input,now);
+  const current=calculateInnerDriveNumber(expression.current?.input||"");
+  const former=calculateInnerDriveNumber(expression.former?.input||"");
+  const primary=calculateInnerDriveNumber(expression.primary?.input||"");
+  return {
+    displayName:expression.displayName,
+    officialName:expression.officialName,
+    formerName:expression.formerName,
+    changedYear:expression.changedYear,
+    yearsSinceChange:expression.yearsSinceChange,
+    current,former,primary,
+    primarySource:expression.primarySource,
+    transitionRule:expression.transitionRule,
+    canCalculate:Boolean(primary.valid),
+    needsChangeYear:expression.needsChangeYear,
+    reason:primary.reason||"",
+    rule:"姓名来源与表现数字一致；内驱数字只取A/E/I/O/U元音。复合总数保留，例如22/4；最终1–9解读取最后基础数。"
+  };
+}
+
 export function calculateChallengeProfile(birthday, now=new Date()){
   const parsed=parseBirthdayFlexible(birthday);
   if(!parsed)return null;
