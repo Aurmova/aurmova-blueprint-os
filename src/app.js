@@ -8,7 +8,7 @@ import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMB
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
 import { MATURITY_NUMBER_LIBRARY, BLACK_HOLE_NUMBER_LIBRARY } from "./hole-maturity-library.js?v=1";
-import { FIVE_ELEMENT_LIBRARY } from "./five-elements.js?v=1";
+import { FIVE_ELEMENT_LIBRARY } from "./five-elements.js?v=2";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 
 const icons = {
@@ -94,16 +94,18 @@ function simpleZodiac(birthday){
 function libraryEntries(){
   const entries=[];
   // 五行归档独立入口：原始健康对照资料继续保留在原位，不推广为疾病诊断。
-  entries.push({category:"五行资料",title:"五行基础｜数字对应与统计规则",keywords:"五行 金 木 水 火 土 数字五行 内三角 外圈 五行数字分布",
+  entries.push({category:"五行资料",title:"流年五行｜M N O P Q R 六位统计",keywords:"五行 流年五行 M N O P Q R 金 木 水 火 土 数字五行 黄金流年 重复数字 健康关怀",
     text:["课程出处："+FIVE_ELEMENT_LIBRARY.meta.source,
       "对应公式："+FIVE_ELEMENT_LIBRARY.meta.formula,
       "计数范围："+FIVE_ELEMENT_LIBRARY.meta.scope,
-      "重要限制："+FIVE_ELEMENT_LIBRARY.meta.limitation].join("\n")});
+      "重复数字规则："+FIVE_ELEMENT_LIBRARY.meta.repeatRule,
+      "健康提醒边界："+FIVE_ELEMENT_LIBRARY.meta.healthBoundary].join("\n")});
   for(const el of FIVE_ELEMENT_LIBRARY.elements){
     entries.push({category:"五行资料",title:"数字五行｜"+el.label+"（"+el.digits.join("、")+"）",
       keywords:"五行 "+el.label+" 元素 "+el.digits.join(" "),
       text:["【教材数字对应】"+el.label+"："+el.digits.join("、"),
-        "【解读要求】先检查号码来自哪一个数字位置；数量多少不能据此推断健康、事故或八字喜忌。",
+        "【流年解读】只查看当年 M、N、O、P、Q、R 六个位置；同一号码重复才标记重复数字；同五行不同数字只合计出现次数。",
+        "【使用限制】五行频率不代表生病或事故风险，实际健康问题必须以症状和医生评估为准。",
         "【咨询白话】这项对应是课程的五行数字归类，需要结合实际情况观察，不代表人格或身体诊断。"].join("\n")});
   }
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
