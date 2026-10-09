@@ -1,10 +1,10 @@
-import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=53";
+import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=39";
+import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=40";
 import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
@@ -1323,6 +1323,103 @@ function innerDriveRelationshipPanel(c,r,b){
     +'</div>';
 }
 
+
+const TEMPERAMENT_PLANE_META={
+  mind:{label:"头脑",digits:"1 + 8",emoji:"思考"},
+  body:{label:"身体",digits:"4 + 5",emoji:"行动/身体感受"},
+  emotion:{label:"情绪",digits:"2 + 3 + 6",emoji:"情绪调节"},
+  intuition:{label:"直觉",digits:"7 + 9",emoji:"灵感/主观直觉"}
+};
+function temperamentBand(age){
+  if(age<=5)return "3–5";
+  if(age<=9)return "6–9";
+  if(age<=12)return "10–12";
+  return "13–17";
+}
+function temperamentChildPrompt(plane,count,d,age){
+  const band=temperamentBand(age),name=TEMPERAMENT_PLANE_META[plane]?.label||plane;
+  const prompts={
+    mind:{
+      "3–5":"孩子遇到新玩法时，是先观察再做、一直换方法，还是很快认定一种做法？",
+      "6–9":"孩子做功课或游戏时，脑袋卡住会怎样调整？会听意见、坚持、还是换方法？",
+      "10–12":"孩子做决定时，是容易想太多、太快下结论，还是能比较后再决定？",
+      "13–17":"青少年遇到复杂选择时，最常用什么思考方式？这个方式什么时候帮到他、什么时候卡住他？"
+    },
+    body:{
+      "3–5":"孩子身体最舒服的活动节奏是什么？安静、移动、靠着、观察环境，还是一直想动？",
+      "6–9":"孩子累或烦时，什么身体方式最能帮助他恢复？走动、安静、有人陪、换环境？",
+      "10–12":"孩子对外表、环境、运动、休息和身体界限分别有多敏感？",
+      "13–17":"青少年会不会为了成绩、朋友或责任忽略身体需要？他如何看休息和自我照顾？"
+    },
+    emotion:{
+      "3–5":"孩子有情绪时，最常是自己静、找人抱、哭说出来、跑动，还是卡在身体上？",
+      "6–9":"孩子不开心时，哪一种方式最能帮助他恢复？他能不能说出自己的需要？",
+      "10–12":"孩子会不会压着、反复讲、爆出来，或用身体/行动表达情绪？",
+      "13–17":"青少年现在最常用什么方式调节情绪？这个方式有没有伤到自己或关系？"
+    },
+    intuition:{
+      "3–5":"孩子什么时候最容易冒出新点子：玩耍、安静、走动、帮别人，还是观察气氛？",
+      "6–9":"孩子说‘我觉得…’时，我们可以怎样帮他学会同时找证据？",
+      "10–12":"孩子的灵感通常在哪种状态出现？他会不会把感觉直接当事实？",
+      "13–17":"青少年怎样区分‘我的感觉’、‘我的猜测’和‘有证据的判断’？"
+    }
+  };
+  return {band,parent:prompts[plane]?.[band]||("观察孩子的"+name+"模式，不急着贴标签。"),child:"你觉得自己在这方面最像哪一种？有没有一次实际例子？",focus:d?.core||""};
+}
+function temperamentValueBlock(plane,count,d,calc,childMode,c){
+  const meta=TEMPERAMENT_PLANE_META[plane]||{},st=calc.status?.[plane]||{};
+  if(count===0){
+    return '<article class="card reading-card"><span class="reading-label">'+meta.label+' · 0次</span><h4>当前姓名这一组未出现</h4><p>0不是“缺陷”，也不是第0号性情。这里只表示本次姓名没有字母落入 '+meta.digits+' 这一组。课程没有0号逐项解读，所以系统不会硬套。</p><div class="question-box"><b>验证：</b>现实里你仍然会使用'+meta.label+'功能吗？通常在什么场景才会启动？</div></article>';
+  }
+  if(count>9){
+    return '<article class="card reading-card"><span class="reading-label">'+meta.label+' · '+count+'次</span><h4>超过课程1–9范围</h4><p>保留原始次数 '+count+'，不化简成个位数。这里先看比例与现实行为，不调用不存在的“'+count+'号性情”。</p></article>';
+  }
+  if(!d)return "";
+  let consult="";
+  if(childMode){
+    const age=ageFromBirthday(c.birthday),q=temperamentChildPrompt(plane,count,d,age);
+    consult='<div class="question-box"><b>'+q.band+'岁｜先问家长：</b><br>“'+esc(q.parent)+'”</div><div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(q.child)+'”</div><p><b>儿童观察重点：</b>'+esc(q.focus)+'</p>';
+  }else{
+    consult='<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(d.talk||"")+'”</div><div class="question-box"><b>直接验证：</b><br>“'+esc(d.question||"")+'”</div><div class="answer-branches"><div><b>顾客说「像」</b><p>“'+esc(d.yes||"我们继续找实际场景。")+'”</p></div><div><b>顾客说「不像」</b><p>“'+esc(d.no||"那先不硬套。")+'”</p></div><div><b>顾客说「不确定」</b><p>“'+esc(d.unsure||"先观察一周。")+'”</p></div></div><p><b>3–7天验证：</b>'+esc(d.action||"")+'</p>';
+  }
+  return '<article class="card reading-card"><span class="reading-label">'+meta.label+' · '+count+'次</span><h4>'+esc(d.title||"")+'</h4><p><b>核心：</b>'+esc(d.core||"")+'</p><p><b>成熟：</b>'+esc(d.mature||"")+'</p><p><b>卡住：</b>'+esc(d.watch||"")+'</p>'+consult+'<small><b>不可乱讲：</b>'+esc(d.risk||TEMPERAMENT_NUMBER_LIBRARY?.meta?.safety||"")+'</small></article>';
+}
+function temperamentNumberPanel(c,childMode=false){
+  const calc=calculateTemperamentProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
+  const meta=TEMPERAMENT_NUMBER_LIBRARY?.meta||{};
+  if(!calc.canCalculate){
+    return '<div class="foundation-block temperament-panel"><div class="card-heading"><div><small>TEMPERAMENT · NAME COUNTS</small><h3>姓名性情数字｜等待姓名可计算</h3></div><span>头脑 · 身体 · 情绪 · 直觉</span></div><div class="formula-note">'+esc(calc.transitionRule||"请补充可计算姓名")+'</div></div>';
+  }
+  const x=calc.primary,planeKeys=["mind","body","emotion","intuition"];
+  const nameLine=x.hasHan?(x.input+" → "+x.autoPinyin):x.input;
+  const labels={mind:"头脑",body:"身体",emotion:"情绪",intuition:"直觉"};
+  const dist=planeKeys.map(k=>'<div><small>'+labels[k]+' · '+TEMPERAMENT_PLANE_META[k].digits+'</small><p><b>'+x.counts[k]+'次</b> · '+x.ratios[k]+'%</p></div>').join("");
+  const dominant=(x.dominant||[]).map(k=>labels[k]).join("／"),least=(x.least||[]).map(k=>labels[k]).join("／");
+  const breakdown=x.letters.map(z=>z.char+"="+z.value).join(" · ");
+  const blocks=planeKeys.map(k=>temperamentValueBlock(k,x.counts[k],TEMPERAMENT_NUMBER_LIBRARY?.[k]?.[x.counts[k]],x,childMode,c)).join("");
+  return '<div class="foundation-block temperament-panel">'
+    +'<div class="card-heading"><div><small>TEMPERAMENT · COUNT, NOT SUM</small><h3>姓名性情数字｜四体分布</h3></div><span>'+x.totalLetters+' 个字母 · 校验 '+(x.sumCheck?"通过":"异常")+'</span></div>'
+    +'<div class="formula-note"><b>姓名：</b>'+esc(nameLine)+'<br><b>固定算法：</b>'+esc(meta.formula||"")+'</div>'
+    +'<div class="notion-consult-grid">'+dist+'</div>'
+    +'<div class="formula-note"><b>相对分布：</b>当前姓名较高：'+esc(dominant||"—")+'；较低：'+esc(least||"—")+'。这里只比较同一个姓名里的比例，不把“多”说成好、“少”说成差。姓名较长时次数自然更高，所以同时看百分比。</div>'
+    +'<details class="blueprint-expander"><summary>查看字母→数字与计数校验</summary><div class="formula-note">'+esc(breakdown)+'</div><div class="formula-note">头脑 '+x.counts.mind+' + 身体 '+x.counts.body+' + 情绪 '+x.counts.emotion+' + 直觉 '+x.counts.intuition+' = '+(x.counts.mind+x.counts.body+x.counts.emotion+x.counts.intuition)+'；姓名字母总数 '+x.totalLetters+'。</div></details>'
+    +'<div class="reading-grid">'+blocks+'</div>'
+    +'<details class="blueprint-expander"><summary>与表现数字／内驱数字／出生盘的区别</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div><div class="formula-note"><b>跨流派：</b>'+esc(meta.crossSchool||"")+'</div><div class="formula-note"><b>0与10+：</b>'+esc(meta.rangeRule||"")+'</div></details>'
+    +'<div class="formula-note"><b>安全边界：</b>'+esc(meta.safety||"")+'</div>'
+    +'</div>';
+}
+function temperamentRelationshipPanel(c,r){
+  const a=calculateTemperamentProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
+  const b=calculateTemperamentProfile({displayName:r.name,officialName:r.officialName,formerName:r.formerName,nameChangedYear:r.nameChangedYear});
+  if(!a.canCalculate||!b.canCalculate)return "";
+  const labels={mind:"头脑",body:"身体",emotion:"情绪",intuition:"直觉"};
+  const rows=["mind","body","emotion","intuition"].map(k=>{
+    const av=a.primary.counts[k],bv=b.primary.counts[k],gap=Math.abs(av-bv);
+    return '<div><small>'+labels[k]+'</small><p>'+esc(c.name)+' '+av+'次 ('+a.primary.ratios[k]+'%) · '+esc(r.name||"对方")+' '+bv+'次 ('+b.primary.ratios[k]+'%)</p><span>次数差 '+gap+'；先问真实相处，不作配对分数。</span></div>';
+  }).join("");
+  return '<div class="foundation-block"><div class="card-heading"><div><small>TEMPERAMENT · RELATIONSHIP</small><h3>双方四体分布｜不是合不合评分</h3></div></div><div class="notion-consult-grid">'+rows+'</div><div class="question-box"><b>关系验证：</b><br>“你们遇到同一件事时，谁更先想、谁更先动、谁更需要表达情绪、谁更相信自己的感觉？这四种不同有没有变成误会？”</div><div class="formula-note">差异只用来找沟通方式，不代表谁更成熟、谁比较爱谁，也不能预测关系结果。</div></div>';
+}
+
 function peakReductionText(raw,reduced){
   return Number(raw)===Number(reduced)?String(reduced):String(raw)+" → "+String(reduced);
 }
@@ -2367,6 +2464,7 @@ function childBlueprintPanel(c){
     +birthdayDayPanel(c,a,true)
     +expressionNumberPanel(c,true)
     +innerDriveNumberPanel(c,true)
+    +temperamentNumberPanel(c,true)
     +highPeakPanel(c,true)
     +challengeNumberPanel(c,true)
     +childSeatCodeDeepPanel(a)
@@ -2516,6 +2614,7 @@ function lifeBlueprintPanel(c){
     +birthdayDayPanel(c,a,false)
     +expressionNumberPanel(c,false)
     +innerDriveNumberPanel(c,false)
+    +temperamentNumberPanel(c,false)
     +specialNumberPanel(c,a)
     +highPeakPanel(c,false)
     +challengeNumberPanel(c,false)
@@ -2753,6 +2852,7 @@ function relationshipPanel(c){
     +(b
       ?relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
         +innerDriveRelationshipPanel(c,r,b)
+        +temperamentRelationshipPanel(c,r)
         +relationshipFlowPanel(c,r,a,b)
       :'<div class="foundation-block"><div class="question-box"><b>关系蓝图从两个人开始：</b><br>先填写对方姓名与生日。生成后首页不会重复解释当事人的人生蓝图，而是直接显示：关系核心 → A→B／B→A沟通 → 冲突循环 → 爱与安全感 → 空间边界 → 钱与生活决策 → 共同数字／强缺落差 → 关系流年。</div></div>')
     +'</div>';
