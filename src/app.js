@@ -1,10 +1,10 @@
 import { CONSULTATION_TYPES, INTERNAL_TERMS, createCustomer, validateCustomer } from "./data.js?v=34";
-import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=52";
+import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, ageFromBirthday, phaseForAge } from "./engine/blueprint.js?v=53";
 import { PERSONALITY_LIBRARY, FOCUS_OPTIONS } from "./personality-library.js?v=32";
 import { DB as JOINT_DB, CHILD, MAIN, INNER_PREF } from "./aurmova-knowledge.js?v=32";
 import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledge.js?v=32";
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
-import { EXPRESSION_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=38";
+import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=39";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 
 const icons = {
@@ -51,14 +51,14 @@ function newCustomer(selected="") {
  const years=Array.from({length:100},(_,i)=>new Date().getFullYear()-i).map(y=>`<option>${y}</option>`).join("");
  return `${header("Client Profile","建立顧客檔案","只收集本次諮詢所需資料；生日格式固定為日 / 月 / 年。")}
  <form id="customer-form" class="card form-card"><section class="form-section"><div class="form-section-title"><span class="step">01</span><h2>基本資料</h2></div><div class="fields"><div class="field"><label for="name">姓名 *</label><input id="name" name="name" autocomplete="name" placeholder="輸入顧客姓名" required></div><div class="field"><label for="gender">性別 *</label><select id="gender" name="gender" required><option value="">请选择</option><option>女性</option><option>男性</option></select></div><div class="field" style="grid-column:1/-1"><label>生日 · 日 / 月 / 年 *</label><div class="date-fields"><select name="day" aria-label="日" required><option value="">日</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="month" aria-label="月" required><option value="">月</option>${Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select name="year" aria-label="年" required><option value="">年</option>${years}</select></div></div>
- <div class="field"><label>出生城市</label><input name="birthCity" placeholder="例如 Johor Bahru"></div><div class="field"><label>身份证／出生登记正式姓名（中文或英文均可）</label><input name="officialName" autocomplete="name" placeholder="例如 张杰文 或 JOSEPHINE TAN"><small>用于表现数字：华文会自动转成拼音；英文／拼音直接计算。留空时会直接使用上面的顾客姓名。</small></div><div class="field"><label>曾用／最初正式姓名（如有）</label><input name="formerName" placeholder="华文或英文都可以；曾正式改名才填写"></div><div class="field"><label>正式改名年份（如有）</label><input name="nameChangedYear" inputmode="numeric" pattern="\d{4}" placeholder="例如 2024"><small>原书规则：改名未满5年会优先参考旧正式姓名；网页会同时保留新旧结果。</small></div>
+ <div class="field"><label>出生城市</label><input name="birthCity" placeholder="例如 Johor Bahru"></div><div class="field"><label>身份证／出生登记正式姓名（中文或英文均可）</label><input name="officialName" autocomplete="name" placeholder="例如 张杰文 或 JOSEPHINE TAN"><small>用于表现数字与内驱数字：华文会自动转成拼音；英文／拼音直接计算。留空时会直接使用上面的顾客姓名。</small></div><div class="field"><label>曾用／最初正式姓名（如有）</label><input name="formerName" placeholder="华文或英文都可以；曾正式改名才填写"></div><div class="field"><label>正式改名年份（如有）</label><input name="nameChangedYear" inputmode="numeric" pattern="\d{4}" placeholder="例如 2024"><small>原书规则：改名未满5年会优先参考旧正式姓名；网页会同时保留新旧结果。</small></div>
  <div class="field"><label>职业／学校年级</label><input name="occupation" placeholder="成人可填职业；儿童可填学校／年级"></div>
  <div class="field"><label>WhatsApp 手机号码</label><input name="whatsapp" inputmode="tel" placeholder="+60 1X-XXXX XXXX"></div>
  <div class="field"><label>本次最想聊的主题</label><select name="consultationTheme"><option value="">未指定</option><option>事业／工作</option><option>感情／关系</option><option>家庭／亲子</option><option>金钱／资源</option><option>自我方向</option><option>综合</option></select></div>
  <div class="field" style="grid-column:1/-1"><label>顾客这次最想问的问题</label><textarea name="customerQuestion" rows="3" placeholder="例如：我现在是家庭主妇，但我想有自己的事业，不知道要从哪里开始。"></textarea><small>系统会把问题与职业／身份、现实阶段和蓝图资料结合，生成关键词、追问与多条可选出路。</small></div>
- </div><div class="notice">AURMOVA 统一使用阳历生日计算；不需要出生时间。出生城市仅作为顾客档案资料。表现数字姓名可直接填华文或英文：华文自动转拼音，英文／拼音直接计算；转换结果会显示出来供你核对。</div>${childAutoAgeNotice}</section>
+ </div><div class="notice">AURMOVA 统一使用阳历生日计算；不需要出生时间。出生城市仅作为顾客档案资料。表现数字与内驱数字共用同一份姓名：华文自动转拼音，英文／拼音直接计算；转换结果会显示出来供你核对。</div>${childAutoAgeNotice}</section>
  <section class="form-section"><div class="form-section-title"><span class="step">02</span><h2>选择咨询项目 · 可多选</h2></div><div class="radio-grid">${CONSULTATION_TYPES.map((x,i)=>`<label class="radio-card"><input type="checkbox" name="consultationTypes" value="${x}" ${selected===x?'checked':''}><span>0${i+1}　${x}</span></label>`).join("")}</div></section>
- <section class="form-section"><div class="form-section-title"><span class="step">03</span><h2>选择本次咨询重点 · 可多选</h2></div><div class="projects">${FOCUS_OPTIONS.map(x=>`<label class="chip"><input type="checkbox" name="consultationFocus" value="${x}"><span>${x}</span></label>`).join("")}</div><div class="notice">主性格、父母基因、坐镇码、三阶段、81组联合码、表现数字、缺失数、阶段挑战数字、七魄重复能量、679、原生模式等属于每次咨询的基础解析，不再让你手动勾选。</div></section>
+ <section class="form-section"><div class="form-section-title"><span class="step">03</span><h2>选择本次咨询重点 · 可多选</h2></div><div class="projects">${FOCUS_OPTIONS.map(x=>`<label class="chip"><input type="checkbox" name="consultationFocus" value="${x}"><span>${x}</span></label>`).join("")}</div><div class="notice">主性格、父母基因、坐镇码、三阶段、81组联合码、表现数字、内驱数字、缺失数、阶段挑战数字、七魄重复能量、679、原生模式等属于每次咨询的基础解析，不再让你手动勾选。</div></section>
  <div class="notice">建立後，系統只會建立資料骨架，不會執行或推測任何數字心理學計算。完整分析僅保留在 Josephine 私人諮詢區。</div><div class="actions"><button class="btn btn-primary" type="submit">建立私人檔案</button><a class="btn btn-light" href="#home">取消</a></div></form>`;
 }
 
@@ -107,7 +107,7 @@ function libraryEntries(){
       "情感需求："+(d.emotion||""), "童年模式："+(d.childhood||""), "内驱力："+(d.drive||""), "核心天赋："+(d.talents||""),
       "留意："+(d.watch||""), "Josephine白话："+(d.script||"")
     ].filter(Boolean).join("\n")});
-    entries.push({category:"内驱力",title:"内驱力 "+n,keywords:"内驱 内驱力 "+n+"号",text:["核心内驱："+(d.drive||""),"内在偏好："+(INNER_PREF?.[n]||""),"咨询白话："+(d.script||"")].filter(Boolean).join("\n")});
+    entries.push({category:"主性格动力",title:"主性格动力 "+n,keywords:"主性格动力 原内驱力 "+n+"号",text:["核心动力："+(d.drive||""),"内在偏好："+(INNER_PREF?.[n]||""),"咨询白话："+(d.script||""),"提醒：这里来自主性格资料，不是姓名元音计算的“内驱数字”。"].filter(Boolean).join("\n")});
     entries.push({category:"起始数",title:"起始数 "+n,keywords:"起始 起始数 "+n,text:["Josephine白话：你碰到新环境或新事情时，第一反应比较容易先走「"+(core.core||"")+"」这条路。状态好的时候会表现成"+(core.gift||"")+"；压力大时要留意"+(core.shadow||"")+"。","核心："+(core.core||""),"优势："+(core.gift||""),"卡点："+(core.shadow||""),"适合发挥："+(core.work||"")].filter(Boolean).join("\n")});
     entries.push({category:"缺失数",title:"缺失 "+n,keywords:"缺失"+n+" 缺失数"+n,text:["Josephine白话：这个数字没有明显出现在你的基础盘，不代表你没有这项能力，而是平时比较不会自动用出来，通常要遇到事情后才会刻意练习。","常见表现："+(e.low||""),"成长／补足方向："+(e.gift||""),"提醒：缺失不等于没有能力，而是这股能量更需要后天练习。"].join("\n")});
     entries.push({category:"七魄重复能量",title:"重复能量 "+n,keywords:"七魄重复 重复能量 "+n+" 旧挑战判定",text:["Josephine白话：这股能量在你的盘里重复出现，所以你通常会比别人更容易用它；用得好是天赋，用过头就会变成压力或卡点。","正向潜力："+(e.gift||""),"过强／失衡时："+(e.high||""),"提醒：重复出现要把天赋与过强风险一起看。"].join("\n")});
@@ -134,6 +134,30 @@ function libraryEntries(){
       "儿童观察："+(d.child||""),"家长引导："+(d.parentGuide||""),"Josephine白话："+(d.talk||""),"验证问题："+(d.question||""),
       "顾客说有："+(d.yes||""),"顾客说没有："+(d.no||""),"顾客不确定："+(d.unsure||""),"3–7天行动："+(d.action||""),
       "算法："+(expressionLib.meta?.formula||""),"改名规则："+(expressionLib.meta?.namingRule||""),"多语言规则："+(expressionLib.meta?.multilingual||""),"边界："+(expressionLib.meta?.safety||"")
+    ].filter(Boolean).join("\n")});
+  }
+
+
+  const innerDriveLib=INNER_DRIVE_NUMBER_LIBRARY||{};
+  for(let n=1;n<=9;n++){
+    const d=innerDriveLib[n]||{};
+    entries.push({category:"内驱数字",title:"内驱数字 "+n+" · "+(d.title||""),keywords:"内驱数字 姓名元音 soul urge heart desire motivation "+n,text:[
+      "容易欣赏／被吸引："+(d.attraction||""),
+      "内在向往："+(d.innerWish||""),
+      "成熟表现："+(d.mature||""),
+      "容易误判："+(d.shadow||""),
+      "Josephine白话："+(d.talk||""),
+      "验证问题："+(d.question||""),
+      "顾客说像："+(d.yes||""),
+      "顾客说不像："+(d.no||""),
+      "顾客不确定："+(d.unsure||""),
+      "3–7天行动："+(d.action||""),
+      "儿童观察："+(d.childFocus||""),
+      "算法："+(innerDriveLib.meta?.formula||""),
+      "Y/W规则："+(innerDriveLib.meta?.yRule||""),
+      "复合数："+(innerDriveLib.meta?.compoundRule||""),
+      "区分："+(innerDriveLib.meta?.distinction||""),
+      "边界："+(innerDriveLib.meta?.safety||"")
     ].filter(Boolean).join("\n")});
   }
 
@@ -259,7 +283,7 @@ function libraryPage(){
   return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜结构化资料、规则与白话咨询版集中查询。")}
   <section class="card form-card">
     <div class="form-section-title"><span class="step">01</span><h2>快速查询全部资料</h2></div>
-    <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、表现数字8、缺失4、挑战7、主性格2、679"></div>
+    <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、表现数字8、内驱数字4、缺失4、挑战7、主性格2"></div>
     <div class="library-stats">
       <div><strong>${total} / 81</strong><span>联合码实际号码</span></div>
       <div><strong>1–9</strong><span>主性格／内驱／天赋</span></div>
@@ -268,7 +292,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不记录书本页码或拍照页面；只保留可查询的结构化内容、AURMOVA白话和必要的规则说明。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","表现数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
@@ -641,6 +665,7 @@ function workspace(){
  const highPeak=c?calculateHighPeakProfile(c.birthday):null;
  const challengeProfile=c?calculateChallengeProfile(c.birthday):null;
  const expressionProfile=c?calculateExpressionProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear}):null;
+ const innerDriveProfile=c?calculateInnerDriveProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear}):null;
  if(!c) return `${header("Consultation Workspace","AURMOVA 咨询工作台","请先从历史档案开启一位顾客。")}<section class="card empty"><h3>尚未选择顾客</h3><p>从历史档案开启顾客后，完整咨询资料会显示在这里。</p><a class="btn btn-primary" href="#history">前往历史档案</a></section>`;
  const phaseCards=Object.entries(a.phases).map(([name,v])=>`<div class="phase-card ${name===phase?'current':''}"><small>${name}</small><b>因果 ${v.cause.join("")}</b><span>过程 ${v.process1.join("")} · ${v.process2.join("")}</span><span>结果 ${v.result.join("")}</span></div>`).join("");
  const selectedFocus=new Set(c?.consultationFocus||[]);
@@ -655,13 +680,13 @@ function workspace(){
  <section id="v26-opportunity-navigator" class="card opportunity-navigator"><div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div><p class="op-intro">这里会根据顾客的职业／身份与她真正想问的问题，生成关键词、追问、可选出路、7天／30天验证动作。正在载入顾客专属分析…</p></section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
  <div class="section-head"><div><p class="eyebrow">Josephine Only</p><h2>数字结构 · 仅供后台使用</h2></div><span class="private-pill">PRIVATE</span></div>
- <section class="card form-card expression-name-editor" data-expression-editor="${c.id}"><div class="card-heading"><div><small>EXPRESSION NAME SOURCE</small><h3>表现数字姓名资料｜旧顾客也可在这里补</h3></div><span>${expressionProfile?.canCalculate?("目前 "+expressionProfile.primary.compound):"待补姓名"}</span></div>
+ <section class="card form-card expression-name-editor" data-expression-editor="${c.id}"><div class="card-heading"><div><small>EXPRESSION NAME SOURCE</small><h3>姓名资料｜表现数字 + 内驱数字共用</h3></div><span>${expressionProfile?.canCalculate?("目前 "+expressionProfile.primary.compound):"待补姓名"}</span></div>
  <div class="fields"><div class="field"><label>现正式姓名（华文／英文都可以）</label><input data-expression-field="officialName" value="${escapeLibraryHtml(c.officialName||"")}" placeholder="留空则直接使用顾客姓名；华文自动转拼音"></div><div class="field"><label>曾用／最初正式姓名</label><input data-expression-field="formerName" value="${escapeLibraryHtml(c.formerName||"")}" placeholder="华文／英文都可以；没有正式改名可留空"></div><div class="field"><label>改名年份</label><input data-expression-field="nameChangedYear" value="${escapeLibraryHtml(c.nameChangedYear||"")}" inputmode="numeric" placeholder="例如 2024"></div></div>
  <div class="notice">${escapeLibraryHtml(expressionProfile?.transitionRule||"补齐姓名后自动计算表现数字。")}</div><button type="button" class="btn btn-primary" data-save-expression-name="${c.id}">保存姓名资料并重新计算</button></section>
  <section class="structure-grid">
   <article class="card gene-card"><small>父亲基因</small><h3>I · J · M</h3><div class="big-code">${p.I}　${p.J}　${p.M}</div><p>I ${p.I} · J ${p.J} · M ${p.M}</p></article>
   <article class="card gene-card"><small>母亲基因</small><h3>K · L · N</h3><div class="big-code">${p.K}　${p.L}　${p.N}</div><p>K ${p.K} · L ${p.L} · N ${p.N}</p></article>
-  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article><article class="card gene-card"><small>生日数字 · 实际出生日</small><h3>${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</h3><p>${birthdayDay.profile?birthdayDay.profile.core:"未能读取生日日期"}</p></article><article class="card gene-card"><small>高峰数字 · 四阶段</small><h3>${highPeak?highPeak.peaks.join(" → "):"—"}</h3><p>${highPeak?("当前 "+highPeak.current.range+" · 第"+highPeak.current.index+"高峰 "+highPeak.current.number+"号"):"未能计算"}</p></article><article class="card gene-card"><small>阶段挑战数字 · 四阶段</small><h3>${challengeProfile?challengeProfile.values.join(" → "):"—"}</h3><p>${challengeProfile?("当前 "+challengeProfile.current.range+" · 第"+challengeProfile.current.index+"挑战 "+challengeProfile.current.number+(challengeProfile.current.number===0?"（特殊值）":"")):"未能计算"}</p></article><article class="card gene-card"><small>表现数字 · 正式姓名</small><h3>${expressionProfile?.canCalculate?expressionProfile.primary.compound:"待补姓名"}</h3><p>${expressionProfile?.canCalculate?("基础数 "+expressionProfile.primary.reduced+" · "+expressionProfile.transitionRule):"输入华文或英文姓名后自动计算"}</p></article>
+  <article class="card core-card"><small>核心结构</small><div class="core-row"><div><span>主性格 O</span><strong>${a.mainPersonality}</strong></div><div><span>内心码</span><strong>${a.innerCode}</strong></div><div><span>坐镇码</span><strong>${a.seatCode}</strong></div></div><p>当前年龄 ${age}岁 · ${phase} 阶段</p></article><article class="card gene-card"><small>生日数字 · 实际出生日</small><h3>${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</h3><p>${birthdayDay.profile?birthdayDay.profile.core:"未能读取生日日期"}</p></article><article class="card gene-card"><small>高峰数字 · 四阶段</small><h3>${highPeak?highPeak.peaks.join(" → "):"—"}</h3><p>${highPeak?("当前 "+highPeak.current.range+" · 第"+highPeak.current.index+"高峰 "+highPeak.current.number+"号"):"未能计算"}</p></article><article class="card gene-card"><small>阶段挑战数字 · 四阶段</small><h3>${challengeProfile?challengeProfile.values.join(" → "):"—"}</h3><p>${challengeProfile?("当前 "+challengeProfile.current.range+" · 第"+challengeProfile.current.index+"挑战 "+challengeProfile.current.number+(challengeProfile.current.number===0?"（特殊值）":"")):"未能计算"}</p></article><article class="card gene-card"><small>表现数字 · 正式姓名</small><h3>${expressionProfile?.canCalculate?expressionProfile.primary.compound:"待补姓名"}</h3><p>${expressionProfile?.canCalculate?("基础数 "+expressionProfile.primary.reduced+" · "+expressionProfile.transitionRule):"输入华文或英文姓名后自动计算"}</p></article><article class="card gene-card"><small>内驱数字 · 姓名元音</small><h3>${innerDriveProfile?.canCalculate?innerDriveProfile.primary.compound:"待确认"}</h3><p>${innerDriveProfile?.canCalculate?("基础数 "+innerDriveProfile.primary.reduced+" · 只算 A/E/I/O/U"):(innerDriveProfile?.reason==="no-course-vowels"?"姓名没有A/E/I/O/U，需人工确认":"姓名转换后自动计算")}</p></article>
  </section>
  <section class="card phases"><div class="card-heading"><div><small>20-YEAR ENERGY</small><h2>三阶段能量</h2></div><span>因果 → 过程 → 结果</span></div><div class="phase-grid">${phaseCards}</div></section>
  <div class="section-head"><div><p class="eyebrow">Consultation Focus</p><h2>选择本次咨询重点</h2></div></div>
