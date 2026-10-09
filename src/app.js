@@ -9,6 +9,7 @@ import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
 import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
 import { MATURITY_NUMBER_LIBRARY, BLACK_HOLE_NUMBER_LIBRARY } from "./hole-maturity-library.js?v=1";
 import { FIVE_ELEMENT_LIBRARY } from "./five-elements.js?v=2";
+import { WUXING_ELEMENT_ANALYSIS, WUXING_DIGIT_ANALYSIS, WUXING_POSITION_ROLES } from "./five-elements-analysis.js?v=1";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 
 const icons = {
@@ -108,6 +109,29 @@ function libraryEntries(){
         "【使用限制】五行频率不代表生病或事故风险，实际健康问题必须以症状和医生评估为准。",
         "【咨询白话】这项对应是课程的五行数字归类，需要结合实际情况观察，不代表人格或身体诊断。"].join("\n")});
   }
+  // 根据原书五行映射＋年度六位置，单独保存可查询的咨询深度模块。
+  for(const item of FIVE_ELEMENT_LIBRARY.elements){
+    const g=WUXING_ELEMENT_ANALYSIS[item.key];
+    entries.push({category:"五行资料",title:"黄金流年五行深度｜"+item.label+"（"+item.digits.join("、")+"）",
+      keywords:"流年五行 五行分析 健康关怀 "+item.label+" "+item.digits.join(" "),
+      text:["【传统课程身体对照】"+g.tradition,
+        "【成人可能讨论的主题】"+g.adult,"【成人追问】"+g.askAdult,"【成人引导】"+g.actionAdult,
+        "【儿童场景】"+g.child,"【亲子提问】"+g.askChild,"【儿童引导】"+g.actionChild,
+        "【判断前提】必须先在指定流年的 M/N/O/P/Q/R 中确认数字出现次数。五行累计和同号重复是不同条件。",
+        "【专业边界】数字分布不能预测疾病，也不替代任何医学评估。"].join("\n")});
+  }
+  for(let n=1;n<=9;n++){
+    const g=WUXING_DIGIT_ANALYSIS[n];
+    entries.push({category:"五行资料",title:"黄金流年同号"+n+"｜位置分析与咨询提问",
+      keywords:"黄金流年 数字重复 同号"+n+" 重复"+n+" M N O P Q R",
+      text:["【课程主题】"+g.title,"【成人行为观察】"+g.adult,"【儿童行为观察】"+g.child,
+        "【可能过度】"+g.watch,"【成人追问】"+g.questionAdult,"【亲子追问】"+g.questionChild,
+        "【使用前提】只有同一个号码在M/N/O/P/Q/R六位出现至少两次才启用此卡片。不代表生病概率提高。"].join("\n")});
+  }
+  entries.push({category:"五行资料",title:"流年六位定位｜MNO因果／PQR结果",
+    keywords:"M N O P Q R 位置 概念 因果 过程 结果 六个位 年盘 流年五行",
+    text:Object.entries(WUXING_POSITION_ROLES).map(([key,meaning])=>key+"："+meaning).join("\n")
+      +"\n同一号码跨MNO与PQR出现可以作为课堂追问线索，但不能断言事件发生。"});
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
   entries.push(...buildStudentCompositeEntries());
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
