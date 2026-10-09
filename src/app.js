@@ -89,7 +89,7 @@ function simpleZodiac(birthday){
 }
 function libraryEntries(){
   const entries=[];
-  (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"原书拍照资料",title:x.title||"",keywords:(x.keywords||"")+" "+(x.source||""),text:(x.source?("来源："+x.source+"\n"):"")+(x.text||"")}));
+  (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
   (JOINT_DB||[]).forEach(x=>{const first=String(x.code||"").split("/")[0],k=getKnowledge(first)||{};entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:[
     k.script&&("Josephine白话："+k.script),
     k.logic&&("核心逻辑："+k.logic),
@@ -256,7 +256,7 @@ function initLibrarySearch(){
 }
 function libraryPage(){
   const total=(JOINT_DB||[]).reduce((sum,x)=>sum+String(x.code||"").split("/").filter(Boolean).length,0);
-  return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜原始资料、结构化资料与白话咨询版集中查询。")}
+  return `${header("AURMOVA KNOWLEDGE","完整资料库","Josephine 私人查询页｜结构化资料、规则与白话咨询版集中查询。")}
   <section class="card form-card">
     <div class="form-section-title"><span class="step">01</span><h2>快速查询全部资料</h2></div>
     <div class="field"><label>输入数字／联合码／主题</label><input id="library-search" autocomplete="off" placeholder="例如：112、表现数字8、缺失4、挑战7、主性格2、679"></div>
@@ -266,7 +266,7 @@ function libraryPage(){
       <div><strong>1–8</strong><span>阶段挑战｜0特殊值</span></div>
       <div><strong>679</strong><span>原资料索引保留</span></div>
     </div>
-    <div class="notice">下面显示的是实际资料内容，不再用只有一行说明的“空索引卡”。原书、结构化资料、AURMOVA白话和AI整合补充会分开标示。</div>
+    <div class="notice">下面显示的是实际资料内容，不记录书本页码或拍照页面；只保留可查询的结构化内容、AURMOVA白话和必要的规则说明。</div>
     <div class="library-module-nav">
       ${["81组联合码","1–9主性格","起始数","表现数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
