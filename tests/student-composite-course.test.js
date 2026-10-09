@@ -11,7 +11,7 @@ test("合成数字学员教材应是跨位置同号，不是生日月加日",()=
 test("第十五章25组配对完整且无重复",()=>{
   const pairs=STUDENT_COMPOSITE_COURSE.pairs;
   assert.equal(pairs.length,25);
-  assert.deepEqual(Object.entries(Object.groupBy(pairs,p=>p.left)).map(([name,arr])=>[name,arr.length]),
+  assert.deepEqual(Object.entries(pairs.reduce((groups,p)=>{(groups[p.left]??=[]).push(p);return groups;},{})).map(([name,arr])=>[name,arr.length]),
     [["生命道路",7],["高峰",6],["挑战",5],["个人年",4],["表现",2],["内驱",1]]);
   const ids=pairs.map(p=>[p.left,p.right].join(":"));
   assert.equal(new Set(ids).size,25);
