@@ -3,7 +3,7 @@
 // 不能把五行频率与疾病、事故、症状发生概率建立临床因果联系。
 export const WUXING_HEALTH_COURSE = Object.freeze({
   intro:"这是原书传统五行与身体主题的课程归档，不是诊断、筛查、医学概率或治疗建议。课程列举的病名和征象并非由数字得到的个人健康结论。",
-  positionRule:"只读取顾客当前选择的黄金流年年盘 M、N、O、P、Q、R 六位，每个位置计一次。相同号码出现≥2次单列重复，但不能判定疾病风险。",
+  positionRule:"只读取当年黄金流年 M、N、O、P、Q、R 六个位置；只有同一个数字出现2次或以上才列为五行健康教材观察重点，出现1次忽略。同五行的不同数字不得合计触发；不用于判断疾病风险。",
   missingRule:"某个五行在六位中未出现，只表示本课程数字盘没有这类数字，不表示对应器官有疾病、缺陷或需要补五行。",
   frequentRule:"某个五行在六位中出现较多，仅表示数字分布集中；无法判断心、肺、肾、肝、脾胃等器官的健康状态。",
   entries:[
@@ -43,52 +43,52 @@ const htmlEsc=x=>String(x??"").replace(/[&<>"']/g,k=>({"&":"&amp;","<":"&lt;",">
 const joined=a=>a.map(htmlEsc).join("、");
 
 export function analyzeWuxingHealthReference(annualDistribution,childMode=false){
- if(!annualDistribution||annualDistribution.positionCount!==6||!Array.isArray(annualDistribution.rows)||annualDistribution.rows.length!==5)return null;
+ if(!annualDistribution||annualDistribution.positionCount!==6||!Array.isArray(annualDistribution.rows)||annualDistribution.rows.length!==5||!Array.isArray(annualDistribution.repeatDigits))return null;
  const details=WUXING_HEALTH_COURSE.entries.map(e=>{
    const hit=annualDistribution.rows.find(r=>r.key===e.key);
    if(!hit||!Number.isInteger(hit.count)||hit.count<0||hit.count>6||!Array.isArray(hit.slots)||hit.slots.length!==hit.count)return null;
-   return {...e,count:hit.count,slots:hit.slots,
-     description:hit.count===0?"本年六位未出现（不等于器官问题）":hit.count>=3?"本年六位出现较多（不等于健康风险增加）":"本年六位有出现（仅属统计）",
+   const repeatedDigits=annualDistribution.repeatDigits
+     .filter(r=>e.digits.includes(r.digit)&&Number.isInteger(r.count)&&r.count>=2&&Array.isArray(r.slots)&&r.slots.length===r.count);
+   return {...e,count:hit.count,slots:hit.slots,repeatedDigits,
+     focusDigits:repeatedDigits.map(r=>r.digit),
+     repeatCount:repeatedDigits.reduce((n,r)=>n+r.count,0),
+     description:repeatedDigits.length
+       ?"同一号码在六个位置中重复2次或以上，列为教材观察重点（不表示患病风险）"
+       :"没有同号重复，不列入健康观察重点",
      talk:childMode?e.consultChild:e.consultAdult};
  });
  if(details.some(x=>!x)||details.reduce((n,x)=>n+x.count,0)!==6)return null;
- return {year:annualDistribution.year,details:details.sort((a,b)=>b.count-a.count),
-   attended:details.filter(x=>x.count>0),
-   absent:details.filter(x=>x.count===0),
-   referenceOnly:true,diseasePrediction:false};
+ const focused=details.filter(x=>x.repeatedDigits.length>0).sort((a,b)=>b.repeatCount-a.repeatCount);
+ return {year:annualDistribution.year,details,focused,
+   referenceOnly:true,diseasePrediction:false,
+   threshold:"只有同一数字在流年M/N/O/P/Q/R中出现至少2次，才列教材健康关怀重点；同五行不同数字不合并触发。"};
 }
 export function renderWuxingHealthReference(annualDistribution,childMode=false){
  const data=analyzeWuxingHealthReference(annualDistribution,childMode);
  if(!data)return "";
  const meta=WUXING_HEALTH_COURSE;
- const rows=data.details.map(r=>
-   '<tr><th style="padding:8px;border-bottom:1px solid #e1d8c9">'+r.element+'（'+r.digits.join("、")+'）</th>'+
-   '<td style="padding:8px;border-bottom:1px solid #e1d8c9">'+r.count+'次</td>'+
-   '<td style="padding:8px;border-bottom:1px solid #e1d8c9">'+htmlEsc(r.organs.join("、"))+'</td></tr>'
- ).join("");
- const cards=data.details.map(r=>'<article class="card reading-card">'
-   +'<h4>'+r.element+'（'+r.digits.join("、")+'） · '+r.count+'次</h4>'
-   +'<p><b>流年位置：</b>'+htmlEsc(r.slots.join("、")||"未出现")+'。'+htmlEsc(r.description)+'</p>'
+ const cards=data.focused.map(r=>{
+   const repeated=r.repeatedDigits.map(x=>x.digit+"号×"+x.count+"（"+x.slots.join("、")+"）").join("、");
+   return '<article class="card reading-card">'
+   +'<h4>'+r.element+'｜'+htmlEsc(repeated)+'</h4>'
+   +'<p><b>重复数字：</b>'+htmlEsc(repeated)+'。'+htmlEsc(r.description)+'</p>'
    +'<p><b>原书对应身体部位：</b>'+joined(r.organs)+'</p>'
    +'<p><b>原书列举的病痛范围（不是本人的疾病）：</b>'+joined(r.courseDiseases)+'</p>'
    +'<p><b>原书列举的不适或征象（不是预测）：</b>'+joined(r.courseSigns)+'</p>'
    +'<p><b>教材出处：</b>'+htmlEsc(r.provenance)+'</p>'
    +'<div class="question-box"><b>Josephine身体关怀白话：</b>'+htmlEsc(r.talk)+'</div>'
-   +'</article>').join("");
- const high=data.details.filter(x=>x.count>=3).map(x=>x.element+" "+x.count+"次").join("、")||"无";
- const absent=data.absent.map(x=>x.element).join("、")||"无";
+   +'</article>';
+ }).join("");
+ const focusLines=data.focused.map(r=>r.element+"："+r.repeatedDigits.map(x=>x.digit+"号在"+x.slots.join("、")+"出现"+x.count+"次").join("、"));
  return '<section class="foundation-block annual-wuxing-health-reference">'
-   +'<div class="card-heading"><div><small>ORIGINAL COURSE REFERENCE · NOT MEDICAL ADVICE</small><h4>⑥ 五行对应身体健康｜原书资料与实际关怀</h4></div><span>'+data.year+'流年</span></div>'
-   +'<div class="formula-note"><b>本年度较集中（≥3次）：</b>'+htmlEsc(high)+'。'
-   +'<b>本年度未出现：</b>'+htmlEsc(absent)+'。'
-   +'<b>关键说明：</b>'+htmlEsc(meta.intro)+' '+htmlEsc(meta.missingRule)+'</div>'
-   +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left">'
-   +'<thead><tr><th>五行／数字</th><th>次数</th><th>教材对应的身体部位</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
-   +'<div class="card-heading"><div><h4>身体部位、原书不适清单与逐项咨询白话</h4></div></div>'
-   +'<div class="reading-grid">'+cards+'</div>'
-   +'<div class="formula-note"><b>读取方法：</b>'+htmlEsc(meta.positionRule)
-   +'<br><b>重要边界：</b>'+htmlEsc(meta.frequentRule)
-   +' 如果顾客确实有持续症状，不能用五行解释病因，应建议正规医疗评估。</div>'
+   +'<div class="card-heading"><div><small>COURSE REFERENCE · NON-MEDICAL</small><h4>⑥ 五行身体对照｜仅关注同号重复2次以上</h4></div><span>'+data.year+'流年</span></div>'
+   +'<div class="formula-note"><b>触发规则：</b>'+htmlEsc(data.threshold)
+   +'<br><b>本年需核对的重复号码：</b>'+htmlEsc(focusLines.join("；")||"无")+'</div>'
+   +(data.focused.length?'<div class="reading-grid">'+cards+'</div>'
+      :'<div class="formula-note">本年度六个位没有同一个数字重复2次或以上，因此不展开任何五行健康身体对照。完整原书五行参考保留在「五行资料」。</div>')
+   +'<div class="formula-note"><b>使用边界：</b>'+htmlEsc(meta.intro)
+   +' 单次出现、同五行不同号码合计、五行缺失均不作为需要特别留意的健康提示。'
+   +' 无论是否有重复数字，持续或严重身体症状都应依据实际情况就医。</div>'
    +'</section>';
 }
 export function buildWuxingHealthLibraryEntries(){
