@@ -47,3 +47,12 @@ test("年份不同，五行补充用对应年份重算",()=>{
  assert.notEqual(renderAnnualFiveElementAnalysis(calculateGoldenYearSnapshot("18/08/1985",2026)),
   renderAnnualFiveElementAnalysis(calculateGoldenYearSnapshot("18/08/1985",2027)));
 });
+
+test("3号和8号各一次，课程五行累计火2次（没有相同数字重复）",()=>{
+ const digits={M:3,N:8,O:1,P:2,Q:4,R:5};
+ const dist=calculateAnnualFiveElementDistribution({year:2027,yearPositions:digits});
+ assert.deepEqual(dist.repeatDigits,[]);
+ const relations=analyzeWuxingCourseRelations(dist);
+ assert.deepEqual(relations.focused.map(x=>[x.label,x.count]),[["火",2]]);
+ assert.equal(relations.healthRisk,null);
+});

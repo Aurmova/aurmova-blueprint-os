@@ -1,8 +1,8 @@
 // AURMOVA 黄金流年五行「位置 × 同号 × 五行 × 生活核对」分析层。
 // 所有叙述是传统数字学课程的探索语言，不是疾病风险测算。
 import { FIVE_ELEMENT_LIBRARY,calculateAnnualFiveElementDistribution } from "./five-elements.js?v=2";
-import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=1";
-import { renderWuxingHealthReference } from "./wuxing-health-course.js?v=1";
+import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=2";
+import { renderWuxingHealthReference } from "./wuxing-health-course.js?v=2";
 
 export const WUXING_ELEMENT_ANALYSIS = {
  metal:{
@@ -84,7 +84,7 @@ export function analyzeAnnualFiveElements(snapshot,childMode=false){
  if(!base)return null;
  const covered=base.rows.filter(r=>r.count>0).map(r=>({...r,guide:WUXING_ELEMENT_ANALYSIS[r.key]}))
    .sort((a,b)=>b.count-a.count||FIVE_ELEMENT_LIBRARY.elements.findIndex(e=>e.key===a.key)-FIVE_ELEMENT_LIBRARY.elements.findIndex(e=>e.key===b.key));
- const highlighted=covered.filter(r=>r.count>=2).slice(0,3);
+ const highlighted=covered.filter(r=>r.count>=2).slice(0,3); // Same five-element counts; 3+8=two Fire positions
  const duplicates=base.repeatDigits.map(r=>{
    const g=WUXING_DIGIT_ANALYSIS[r.digit];
    const cross=r.slots.some(s=>"MNO".includes(s))&&r.slots.some(s=>"PQR".includes(s));
@@ -116,13 +116,13 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
    const sameDigits=r.digits.some(d=>data.frequencies[d]>=2);
    return '<article class="card reading-card"><h4>'+esc(g.title)+' · '+r.count+'次</h4>'
     +'<p><b>本年对应位置：</b>'+esc(r.slots.map((s,i)=>s+"="+r.digits[i]).join("、"))+'</p>'
-    +'<p><b>数量判断：</b>'+esc(r.count>=3?"六个位中此五行相对集中":"六个位中此五行出现较多")
-    +'；'+esc(sameDigits?"其中存在相同号码重复，下方另有位置解读。":"此处为同五行数量累计，不能当成同号码重复。")+'</p>'
+    +'<p><b>同五行累计规则：</b>'+esc(r.count>=3?"六个位中此五行出现"+r.count+"次，列为重点":"六个位中此五行出现"+r.count+"次，列为重点")
+    +'；'+esc(sameDigits?"其中存在相同号码重复，下方另有位置解读。":"即使号码不同也属于同一种五行，例如3与8各出现一次即为火2次，符合重点观察条件；仅同号重复才单列数字重复解读。")+'</p>'
     +'<p><b>课程传统身体对应：</b>'+esc(g.tradition)+'</p>'
     +'<p><b>可以讨论的生活主题：</b>'+esc(childMode?g.child:g.adult)+'</p>'
     +'<div class="question-box"><b>Josephine追问：</b>“'+esc(childMode?g.askChild:g.askAdult)+'”</div>'
     +'<p><b>实际引导：</b>'+esc(childMode?g.actionChild:g.actionAdult)+'</p></article>';
- }).join(""):'<div class="formula-note">五行没有一项在六个位中出现至少两次，不要勉强贴出重点。</div>';
+ }).join(""):'<div class="formula-note">没有一种五行在六个位中累计出现2次以上，不特别展开健康观察。只出现1次的元素作为资料参考即可。</div>';
  const duplicateHtml=data.duplicates.length?data.duplicates.map(r=>
   '<article class="card reading-card"><h4>'+r.digit+'号（'+esc(r.element)+'）重复 '+r.count+'次</h4>'
   +'<p><b>重复位置：</b>'+esc(r.slots.join("、"))+'</p>'
@@ -140,8 +140,8 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
   +'<div class="formula-note"><b>六个位置：</b>'+esc(data.points.map(p=>p.slot+"="+p.digit).join(" · "))
   +'<br><b>结构：</b>MNO '+esc(data.mno)+'（因果）→ MOQ／NOP（过程）→ PQR '+esc(data.pqr)+'（结果）</div>'
   +'<div style="overflow-x:auto"><table style="width:100%;text-align:left;border-collapse:collapse"><thead><tr><th>五行／数字</th><th>次数</th><th>位置</th></tr></thead><tbody>'+rowHtml+'</tbody></table></div>'
-  +'<div class="formula-note"><b>本年统计重点：</b>'+esc(data.focusText)+'。<b>重复号码：</b>'+esc(data.repeatText)+'。</div>'
-  +'<div class="card-heading"><div><h4>① 五行集中主题｜重点白话分析</h4></div></div>'
+  +'<div class="formula-note"><b>五行重点规则：</b>火=3／8、金=1／6、水=2／7、木=4／9、土=5。同一种五行在本年六位累计至少2次，就列为教材观察重点（如3与8各一次＝火2次）；出现1次不用特别理会。<br><b>本年重点：</b>'+esc(data.focusText)+'。<b>另外单独核对的同号重复：</b>'+esc(data.repeatText)+'。</div>'
+  +'<div class="card-heading"><div><h4>① 同种五行出现2次以上｜重点白话分析</h4></div></div>'
   +'<div class="reading-grid">'+elementHtml+'</div>'
   +'<div class="card-heading"><div><h4>② 重复数字｜位置之间如何相互影响</h4></div></div>'
   +'<div class="reading-grid">'+duplicateHtml+'</div>'
