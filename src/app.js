@@ -10,6 +10,7 @@ import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
 import { MATURITY_NUMBER_LIBRARY, BLACK_HOLE_NUMBER_LIBRARY } from "./hole-maturity-library.js?v=1";
 import { FIVE_ELEMENT_LIBRARY } from "./five-elements.js?v=2";
 import { WUXING_ELEMENT_ANALYSIS, WUXING_DIGIT_ANALYSIS, WUXING_POSITION_ROLES } from "./five-elements-analysis.js?v=1";
+import { buildWuxingCourseEntries } from "./wuxing-course-supplement.js?v=1";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 
 const icons = {
@@ -132,6 +133,8 @@ function libraryEntries(){
     keywords:"M N O P Q R 位置 概念 因果 过程 结果 六个位 年盘 流年五行",
     text:Object.entries(WUXING_POSITION_ROLES).map(([key,meaning])=>key+"："+meaning).join("\n")
       +"\n同一号码跨MNO与PQR出现可以作为课堂追问线索，但不能断言事件发生。"});
+  // Additional original course summaries (not scans or literal book copies) with five-vs-six position audit.
+  entries.push(...buildWuxingCourseEntries());
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
   entries.push(...buildStudentCompositeEntries());
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
