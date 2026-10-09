@@ -6,11 +6,12 @@ name = "aurmova-secure-api-staging"
 main = "src/index.js"
 compatibility_date = "2026-10-08"
 workers_dev = true
+keep_vars = true
 
 [vars]
 API_ORIGIN = "https://aurmova-secure-api-staging.xbing5668.workers.dev"
 FRONTEND_LOGIN_URL = "https://aurmova-secure-api-staging.xbing5668.workers.dev/owner-login"
-# GITHUB_CLIENT_ID intentionally omitted until the independent staging OAuth App is created.
+# Keep the GitHub client ID managed in the staging dashboard.
 
 [[d1_databases]]
 binding = "DB"
