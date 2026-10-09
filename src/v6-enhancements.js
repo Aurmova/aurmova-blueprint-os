@@ -1,6 +1,6 @@
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
-import { renderAnnualFiveElementPanel } from "./five-elements.js?v=2";
+import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -634,7 +634,7 @@ function yearSnapshotCard(c,year,label){
     +'<div class="formula-note"><b>AURMOVA唯一结构：</b>这一年只用同一张重排年盘。自身固定读取 <b>MNO → MOQ / NOP → PQR</b>；大环境固定读取 <b>KLN → KNV / LNW → VWX</b>。不再加入外三角三边流年码、直接命中主场、单一大环境数字或人为权重。</div>'
     +'<div class="year-positive-negative"><div><small>O位年度主题 · 正面</small><b>'+esc(p.role)+'</b><p>'+esc(p.summary)+'</p></div><div><small>O位年度主题 · 反模式</small><b>'+esc(p.pit)+'</b><p>'+esc(p.advice)+'</p></div></div>'
     +goldenYearVisual(snap)
-    +renderAnnualFiveElementPanel(snap,false)
+    +renderAnnualFiveElementAnalysis(snap,false)
     +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>因果 → 两个过程 → 结果</p></div><div><small>大环境4组</small><b>'+esc(environmentCodes)+'</b><p>因果 → 两个过程 → 结果</p></div></div>'
     +'<div class="golden-axis-title"><div><small>SELF YEAR AXIS</small><h4>自身流年 · MNO → MOQ / NOP → PQR</h4></div><span>4组全部计算</span></div>'
     +axisGroupsHtml(snap.personalAxis.groups,snap.personalAxis.labels,p.number,false)
@@ -838,7 +838,7 @@ function childYearSnapshotCard(c,year,label){
     +'<div class="formula-note"><b>儿童版固定原则：</b>数字只提示今年值得观察的成长主题，不预测事件。先问真实发生了什么，再把孩子／父母的版本与数字做验证；不符合就跳过，不为了“算准”而硬套。</div>'
     +'<div class="year-positive-negative"><div><small>今年最值得观察</small><b>'+esc(t.title)+'</b><p>'+esc(t.focus)+'</p></div><div><small>家长今年怎么陪</small><b>先观察 · 再沟通</b><p>'+esc(t.guide)+'</p></div></div>'
     +goldenYearVisual(snap)
-    +renderAnnualFiveElementPanel(snap,true)
+    +renderAnnualFiveElementAnalysis(snap,true)
     +'<div class="golden-master-summary"><div><small>自身4组</small><b>'+esc(personalCodes)+'</b><p>孩子自身：因 → 两个过程 → 结果</p></div><div><small>外部环境4组</small><b>'+esc(environmentCodes)+'</b><p>学校／老师／朋友／家庭安排：因 → 两个过程 → 结果</p></div></div>'
     +'<div class="question-box"><b>Josephine 第一段直接对父母讲：</b><br>“今年我不会用大人的事业、客户、赚钱或职场责任来解释。这个 '+n+' 放在孩子身上，我主要看：'+esc(t.focus)+' 我们先用最近三个月真实发生的事情来确认。”</div>'
     +'<div class="question-box"><b>第一题问父母：</b><br>“'+esc(t.parent)+'”</div>'
