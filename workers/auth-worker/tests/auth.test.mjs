@@ -6,7 +6,7 @@ const ORIGIN = "https://aurmova.github.io";
 const API = "https://aurmova-secure-api.example.workers.dev";
 const mockEnvironment = (db = {}) => ({
   API_ORIGIN: API,
-  FRONTEND_LOGIN_URL: ORIGIN + "/aurmova-blueprint-os/secure-login.html",
+  FRONTEND_LOGIN_URL: API + "/owner-login",
   GITHUB_CLIENT_ID: "test-client-id",
   GITHUB_CLIENT_SECRET: "not-a-real-secret",
   OWNER_GITHUB_USER_ID: "1234",
@@ -157,4 +157,67 @@ test("ticket is single-use; private status requires token; logout revokes sessio
   assert.equal(out.status, 200);
   const after = await worker.fetch(securedRequest("/private/status"), env);
   assert.equal(after.status, 401);
+});
+
+
+test("Worker-hosted owner login is served with strict CSP and no secrets", async () => {
+  const html = await worker.fetch(request("/owner-login"), {});
+  assert.equal(html.status, 200);
+  assert.match(html.headers.get("content-type"), /^text\/html/);
+  assert.match(html.headers.get("content-security-policy"), /script-src 'self'/);
+  assert.match(html.headers.get("content-security-policy"), /connect-src 'self'/);
+  assert.match(html.headers.get("x-frame-options"), /DENY/);
+  const body = await html.text();
+  assert.match(body, /私人安全登录/);
+  assert.match(body, /\/owner-login.js/);
+  assert.doesNotMatch(body, /GITHUB_CLIENT_SECRET/);
+
+  const script = await worker.fetch(request("/owner-login.js"), {});
+  assert.equal(script.status, 200);
+  const source = await script.text();
+  assert.match(source, /\/auth\/exchange/);
+  assert.doesNotMatch(source, /localStorage|sessionStorage/);
+  assert.doesNotMatch(source, /GITHUB_CLIENT_SECRET/);
+  assert.doesNotThrow(() => new Function(source));
+
+  const css = await worker.fetch(request("/owner-login.css"), {});
+  assert.equal(css.status, 200);
+  assert.match(css.headers.get("content-type"), /^text\/css/);
+});
+
+test("same-origin owner login can exchange ticket and read private status", async () => {
+  const db = createDb();
+  const env = mockEnvironment(db);
+  const ticket = "b".repeat(64);
+  db.loginTickets.set(await hashed(ticket), {
+    github_user_id: "1234",
+    github_login: "Aurmova",
+    expires_at: Math.floor(Date.now() / 1000) + 80,
+  });
+  const exchange = await worker.fetch(request("/auth/exchange", {
+    method: "POST",
+    headers: { Origin: API, "Content-Type": "application/json" },
+    body: JSON.stringify({ ticket }),
+  }), env);
+  assert.equal(exchange.status, 200);
+  const payload = await exchange.json();
+
+  // A same-origin browser GET commonly does not send an Origin header.
+  const response = await worker.fetch(request("/private/status", {
+    headers: { Authorization: "Bearer " + payload.accessToken },
+  }), env);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).authenticated, true);
+
+  const blocked = await worker.fetch(request("/private/status", {
+    headers: { Origin: "https://untrusted.example", Authorization: "Bearer " + payload.accessToken },
+  }), env);
+  assert.equal(blocked.status, 403);
+
+  const out = await worker.fetch(request("/auth/logout", {
+    method: "POST",
+    headers: { Origin: API, Authorization: "Bearer " + payload.accessToken },
+    body: "{}",
+  }), env);
+  assert.equal(out.status, 200);
 });

@@ -1,10 +1,12 @@
+import { LOGIN_HTML, LOGIN_CSS, LOGIN_SCRIPT } from "./owner-login-page.js";
+
 // AURMOVA secure pilot API.
 // This Worker is NOT part of the public GitHub Pages static bundle.
 // Only this server can validate GitHub identity and issue private API tokens.
 // Tokens, OAuth client secrets, and database connection information never enter GitHub Pages.
 
 const FRONTEND_ORIGIN = "https://aurmova.github.io";
-const LOGIN_PATH = "/aurmova-blueprint-os/secure-login.html";
+const OWNER_LOGIN_PATH = "/owner-login";
 const STATE_TTL_SECONDS = 10 * 60;
 const TICKET_TTL_SECONDS = 2 * 60;
 const SESSION_TTL_SECONDS = 30 * 60;
@@ -57,8 +59,7 @@ function validConfig(env) {
     const login = new URL(env.FRONTEND_LOGIN_URL);
     return api.protocol === "https:" &&
       api.pathname === "/" &&
-      login.origin === FRONTEND_ORIGIN &&
-      login.pathname === LOGIN_PATH &&
+      login.href === api.origin + OWNER_LOGIN_PATH &&
       !!env.DB &&
       !!env.GITHUB_CLIENT_ID &&
       !!env.GITHUB_CLIENT_SECRET &&
@@ -206,6 +207,27 @@ export default {
       return json({ ok: true, service: "aurmova-secure-api", stage: "auth-pilot" }, 200, origin);
     }
 
+// Static, public login shell only; it contains no customer data or secrets.
+    // Real private operations remain behind the GitHub ID allowlist and bearer token.
+    const asset = request.method === "GET" && ({
+      "/owner-login": { body: LOGIN_HTML, mime: "text/html; charset=utf-8" },
+      "/owner-login.css": { body: LOGIN_CSS, mime: "text/css; charset=utf-8" },
+      "/owner-login.js": { body: LOGIN_SCRIPT, mime: "text/javascript; charset=utf-8" },
+    })[url.pathname];
+    if (asset) {
+      const headers = {
+        "Content-Type": asset.mime,
+        "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+      };
+      if (url.pathname === OWNER_LOGIN_PATH) {
+        headers["Content-Security-Policy"] = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+      }
+      return new Response(asset.body, { status: 200, headers });
+    }
+
     if (!validConfig(env)) return json({ error: "Service is not configured" }, 503, origin);
 
     try {
@@ -216,8 +238,13 @@ export default {
         return await callbackGithub(request, env);
       }
 
-      // All non-navigation private operations require our exact GitHub Pages origin.
-      if (origin !== FRONTEND_ORIGIN) return json({ error: "Forbidden origin" }, 403);
+      // Accept our same-origin Worker pilot and the not-yet-published GitHub Pages pilot.
+      // Same-origin browser GETs normally omit Origin; bearer authentication is still required.
+      const apiOrigin = new URL(env.API_ORIGIN).origin;
+      const permittedOrigin = origin === FRONTEND_ORIGIN ||
+        origin === apiOrigin ||
+        (!origin && request.method === "GET" && url.origin === apiOrigin);
+      if (!permittedOrigin) return json({ error: "Forbidden origin" }, 403);
 
       if (request.method === "POST" && url.pathname === "/auth/exchange") {
         return await exchangeTicket(request, env, origin);
