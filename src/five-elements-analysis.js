@@ -2,6 +2,7 @@
 // 所有叙述是传统数字学课程的探索语言，不是疾病风险测算。
 import { FIVE_ELEMENT_LIBRARY,calculateAnnualFiveElementDistribution } from "./five-elements.js?v=2";
 import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=1";
+import { renderWuxingHealthReference } from "./wuxing-health-course.js?v=1";
 
 export const WUXING_ELEMENT_ANALYSIS = {
  metal:{
@@ -147,6 +148,7 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
   +'<div class="question-box"><b>③ Josephine完整咨询白话：</b><p>'+esc(data.speech)+'</p></div>'
   +'<div class="question-box"><b>④ 顾客回答「有／没有／不确定」：</b><p>'+esc(reply)+'</p><p>若不确定，可先观察具体经历；不要用其他号码硬解释到符合为止。</p></div>'
   +renderWuxingCourseRelations(data,childMode)
+  +renderWuxingHealthReference(data,childMode)
   +'<div class="formula-note"><b>专业边界：</b>'+esc(FIVE_ELEMENT_LIBRARY.meta.healthBoundary)
   +' 原始课程器官关联仅属于传统讲义，无法反映任何年份实际的疾病或事故概率。</div>'
   +'</section>';
