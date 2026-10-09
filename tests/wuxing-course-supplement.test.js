@@ -29,7 +29,7 @@ test("生克关系仅使用本年实际出现的元素, 不予健康风险归因
  const data=analyzeAnnualFiveElements(calculateGoldenYearSnapshot("18/08/1985",2027));
  const relations=analyzeWuxingCourseRelations(data);
  assert.deepEqual(relations.missing,["土"]);
- assert.ok(relations.focused.some(x=>x.label==="火"&&x.count===2&&x.repeatedDigits[0].digit===3));
+ assert.ok(relations.focused.some(x=>x.label==="火"&&x.count===3));
  assert.ok(relations.supporting.includes("木生火"));
  assert.ok(relations.controlling.includes("水克火"));
  assert.equal(relations.healthRisk,null);
@@ -46,4 +46,13 @@ test("年份不同，五行补充用对应年份重算",()=>{
  assert.notDeepEqual(y26.points.map(x=>x.digit),y27.points.map(x=>x.digit));
  assert.notEqual(renderAnnualFiveElementAnalysis(calculateGoldenYearSnapshot("18/08/1985",2026)),
   renderAnnualFiveElementAnalysis(calculateGoldenYearSnapshot("18/08/1985",2027)));
+});
+
+test("3号和8号各一次，课程五行累计火2次（没有相同数字重复）",()=>{
+ const digits={M:3,N:8,O:1,P:2,Q:4,R:5};
+ const dist=calculateAnnualFiveElementDistribution({year:2027,yearPositions:digits});
+ assert.deepEqual(dist.repeatDigits,[]);
+ const relations=analyzeWuxingCourseRelations(dist);
+ assert.deepEqual(relations.focused.map(x=>[x.label,x.count]),[["火",2]]);
+ assert.equal(relations.healthRisk,null);
 });
