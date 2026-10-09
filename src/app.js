@@ -6,6 +6,7 @@ import { MAIN_DETAIL, DIGIT_CORE, MODULES, getKnowledge } from "./floot-knowledg
 import { ENERGY_LIBRARY } from "./energy-library.js?v=32";
 import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY } from "./consultation-library.js?v=41";
 import { RESTORED_PRIVATE_LIBRARY } from "./private-library.js?v=65";
+import { CYCLE_ENVIRONMENT_LIBRARY } from "./cycle-environment.js?v=1";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -90,6 +91,17 @@ function simpleZodiac(birthday){
 function libraryEntries(){
   const entries=[];
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
+  const cycleLib=CYCLE_ENVIRONMENT_LIBRARY||{};
+  entries.push({category:"循环数字解读",title:"循环数字｜月·日·年计算与对应阶段",keywords:"第一循环 第二循环 第三循环 环境 家庭 高峰 挑战 1–9",
+    text:[cycleLib.meta?.definition,cycleLib.meta?.formula,cycleLib.meta?.timeline,cycleLib.meta?.boundaries].filter(Boolean).join("\n")});
+  for(let n=1;n<=9;n++){
+    const c=cycleLib.numbers?.[n]||{};
+    entries.push({category:"循环数字解读",title:"循环数字 "+n+" · "+(c.title||""),keywords:"循环数字"+n+" 第一循环"+n+" 第二循环"+n+" 第三循环"+n+" 环境数字"+n+" 家庭亲子",
+      text:["环境主题："+(c.environment||""),"正向支持："+(c.positive||""),"潜在限制："+(c.watch||""),
+        "第一循环家庭视角："+(c.first||""),"Josephine白话："+(c.talk||""),
+        "亲子追问："+(c.parentQuestion||""),"成人追问："+(c.adultQuestion||""),
+        "教材来源："+(cycleLib.meta?.source||""),"重要边界："+(cycleLib.meta?.boundaries||"")].filter(Boolean).join("\n")});
+  }
   (JOINT_DB||[]).forEach(x=>{const first=String(x.code||"").split("/")[0],k=getKnowledge(first)||{};entries.push({category:"81组联合码",title:x.code||x.title||"",keywords:String(x.code||"")+" "+String(x.title||""),text:[
     k.script&&("Josephine白话："+k.script),
     k.logic&&("核心逻辑："+k.logic),
@@ -310,7 +322,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不记录书本页码或拍照页面；只保留可查询的结构化内容、AURMOVA白话和必要的规则说明。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","循环数字解读","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
