@@ -3368,7 +3368,9 @@ function enhanceWorkspace(){
   ensureOpportunityNavigator(c,a);
 
   document.querySelector(".wealth-card")?.style.setProperty("display","none");
-  document.querySelector(".reading-grid")?.style.setProperty("display","none");
+  // Hide only the legacy personality-reading grid directly under #app.
+  // Temperament detail cards also use .reading-grid inside #v6-module-panel and must stay visible.
+  document.querySelector("#app > .reading-grid")?.style.setProperty("display","none");
   document.querySelector(".phases")?.style.setProperty("display","none");
 
   const quick=document.querySelector(".quick-actions");
