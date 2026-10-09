@@ -27,7 +27,7 @@ test("四体1–9咨询资料均包含白话、优势、盲点与验证问题", 
 
 test("隐藏旧主性格区块时不隐藏四体详细解读卡片", () => {
   const source = readFileSync(new URL("../src/v6-enhancements.js", import.meta.url), "utf8");
-  assert.match(source, /'<div class="reading-grid">'+blocks+'<\/div>'/);
+  assert.ok(source.includes(`'<div class="reading-grid">'+blocks+'</div>'`), "Expected temperament reading-card container");
   assert.doesNotMatch(source, /document\.querySelector\("\.reading-grid"\)\?\.style\.setProperty\("display","none"\)/);
 
   const hideLegacyOnly = source.match(/document\.querySelector\("#app > \.reading-grid"\)\?\.style\.setProperty\("display","none"\);/)?.[0];
