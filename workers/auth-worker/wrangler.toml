@@ -1,6 +1,7 @@
 # AURMOVA isolated staging only. Do not deploy to or bind production resources.
 # GitHub Pages main and the existing owner-auth Worker are managed separately.
 # Configure a separate staging GitHub OAuth App and server-side secrets before testing sign-in.
+# Build trigger: isolated staging CI smoke test; comment-only change, no runtime behavior changes.
 name = "aurmova-secure-api-staging"
 main = "src/index.js"
 compatibility_date = "2026-10-08"
