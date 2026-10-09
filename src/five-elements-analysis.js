@@ -1,6 +1,7 @@
 // AURMOVA 黄金流年五行「位置 × 同号 × 五行 × 生活核对」分析层。
 // 所有叙述是传统数字学课程的探索语言，不是疾病风险测算。
 import { FIVE_ELEMENT_LIBRARY,calculateAnnualFiveElementDistribution } from "./five-elements.js?v=2";
+import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=1";
 
 export const WUXING_ELEMENT_ANALYSIS = {
  metal:{
@@ -143,6 +144,7 @@ export function renderAnnualFiveElementAnalysis(snapshot,childMode=false){
   +'<div class="reading-grid">'+elementHtml+'</div>'
   +'<div class="card-heading"><div><h4>② 重复数字｜位置之间如何相互影响</h4></div></div>'
   +'<div class="reading-grid">'+duplicateHtml+'</div>'
+  +renderWuxingCourseRelations(data,childMode)
   +'<div class="question-box"><b>③ Josephine完整咨询白话：</b><p>'+esc(data.speech)+'</p></div>'
   +'<div class="question-box"><b>④ 顾客回答「有／没有／不确定」：</b><p>'+esc(reply)+'</p><p>若不确定，可先观察具体经历；不要用其他号码硬解释到符合为止。</p></div>'
   +'<div class="formula-note"><b>专业边界：</b>'+esc(FIVE_ELEMENT_LIBRARY.meta.healthBoundary)
