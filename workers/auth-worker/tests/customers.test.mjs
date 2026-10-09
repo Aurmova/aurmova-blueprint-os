@@ -55,7 +55,7 @@ const owner = { github_user_id: "1234", github_login: "Aurmova" };
 function req(path, method = "GET", body) {
   return new Request(STAGING + path, {
     method,
-    ...(body ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {})
+    ...(method === "POST" ? { headers: { "Content-Type": "application/json", Origin: STAGING }, ...(body ? { body: JSON.stringify(body) } : {}) } : {})
   });
 }
 function call(db, path, method = "GET", body, customEnv = {}) {
