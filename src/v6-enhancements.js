@@ -1,10 +1,10 @@
-import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=52";
+import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=53";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { EXPRESSION_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=38";
+import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=39";
 import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
@@ -1252,6 +1252,77 @@ function expressionNumberPanel(c,childMode=false){
     +'<div class="formula-note"><b>交叉读取：</b>'+esc(meta.crossRule||"")+'</div><div class="formula-note"><b>边界：</b>'+esc(meta.safety||"")+'</div></div>';
 }
 
+
+function innerDriveNumberPanel(c,childMode=false){
+  const calc=calculateInnerDriveProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
+  const meta=INNER_DRIVE_NUMBER_LIBRARY?.meta||{};
+  if(!calc.canCalculate){
+    const reason=calc.reason==="no-course-vowels"
+      ?"这个姓名按本系统固定规则找不到A/E/I/O/U元音。Y/W不会自动当元音，因此先标记待人工确认，不硬算。"
+      :calc.transitionRule||"姓名暂时无法转换。";
+    return '<div class="foundation-block inner-drive-panel">'
+      +'<div class="card-heading"><div><small>INNER DRIVE · VOWELS</small><h3>内驱数字｜等待姓名确认</h3></div><span>只算 A · E · I · O · U</span></div>'
+      +'<div class="formula-note">'+esc(reason)+'</div>'
+      +'<div class="formula-note"><b>固定算法：</b>'+esc(meta.formula||"")+'</div>'
+      +'</div>';
+  }
+  const x=calc.primary,d=INNER_DRIVE_NUMBER_LIBRARY?.[x.reduced]||{};
+  const nameLine=x.hasHan?(x.input+" → "+x.autoPinyin):x.input;
+  const vowelFormula=x.letters.map(z=>z.char+"="+z.value).join(" + ")+" = "+x.total+" → "+x.path.join(" → ");
+  let consult="";
+  if(childMode){
+    const age=ageFromBirthday(c.birthday), band=expressionAgeBand(age), q=d.childByAge?.[band]||{};
+    consult='<div class="question-box"><b>先问家长：</b><br>“'+esc(q.parent||"孩子比较佩服怎样的人？")+'”</div>'
+      +'<div class="question-box"><b>年龄适合时问孩子：</b><br>“'+esc(q.child||"你最佩服怎样的人？")+'”</div>'
+      +'<p><b>儿童观察：</b>'+esc(d.childFocus||"")+'</p>'
+      +'<div class="formula-note"><b>儿童版：</b>这里只看孩子容易欣赏／模仿的榜样特质，不谈恋爱对象，也不替孩子决定未来关系。</div>';
+  }else{
+    consult='<div class="question-box"><b>Josephine 白话：</b><br>“'+esc(d.talk||"")+'”</div>'
+      +'<div class="question-box"><b>直接验证：</b><br>“'+esc(d.question||"你过去真正欣赏的人，最打动你的是什么？")+'”</div>'
+      +'<div class="answer-branches"><div><b>顾客说「像」</b><p>“'+esc(d.yes||"好，我们继续把吸引点讲具体。")+'”</p></div><div><b>顾客说「不像」</b><p>“'+esc(d.no||"那这条先放下，不硬套。")+'”</p></div><div><b>顾客说「不确定」</b><p>“'+esc(d.unsure||"先回看真实关系和欣赏经验。")+'”</p></div></div>'
+      +'<p><b>3–7天验证：</b>'+esc(d.action||"观察真实吸引与欣赏，不用数字替你决定关系。")+'</p>';
+  }
+  return '<div class="foundation-block inner-drive-panel">'
+    +'<div class="card-heading"><div><small>INNER DRIVE · NAME VOWELS</small><h3>内驱数字｜'+esc(x.compound)+' · '+esc(d.title||"")+'</h3></div><span>基础数 '+x.reduced+'</span></div>'
+    +'<div class="notion-consult-grid"><div><small>姓名来源</small><p>'+esc(nameLine)+'</p></div><div><small>元音</small><p>'+esc(x.letters.map(z=>z.char).join(" · "))+'</p></div><div><small>计算</small><p>'+esc(x.compound)+'</p></div><div><small>姓名规则</small><p>'+esc(calc.transitionRule)+'</p></div></div>'
+    +'<div class="formula-note"><b>元音公式：</b>'+esc(vowelFormula)+'。<br><b>Y/W规则：</b>'+esc(meta.yRule||"")+'</div>'
+    +(x.masterHits?.length?'<div class="formula-note"><b>复合路径：</b>'+esc(x.masterHits.join("、"))+' 出现在加总路径中，系统保留显示 '+esc(x.compound)+'，但本模块仍按基础数 '+x.reduced+' 解读。</div>':'')
+    +'<div class="v23-detail-grid"><article><h4>容易欣赏／被吸引</h4><p>'+esc(d.attraction||"")+'</p></article><article><h4>内在向往</h4><p>'+esc(d.innerWish||"")+'</p></article><article><h4>成熟使用</h4><p>'+esc(d.mature||"")+'</p></article><article><h4>容易误判</h4><p>'+esc(d.shadow||"")+'</p></article></div>'
+    +consult
+    +'<details class="blueprint-expander"><summary>这和表现数字／内心码有什么不同？</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div></details>'
+    +'<div class="formula-note"><b>关系使用边界：</b>'+esc(meta.safety||"")+'</div>'
+    +'</div>';
+}
+
+function innerDriveRelationshipPanel(c,r,b){
+  const aCalc=calculateInnerDriveProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
+  const bCalc=calculateInnerDriveProfile({displayName:r.name});
+  if(!aCalc.canCalculate||!bCalc.canCalculate){
+    return '<div class="foundation-block"><div class="card-heading"><div><small>INNER DRIVE · RELATIONSHIP</small><h3>姓名内驱｜等待双方姓名可计算</h3></div></div><div class="formula-note">双方姓名都可用华文或英文。华文会自动转拼音；本模块只取A/E/I/O/U。姓名没有可用元音时不会硬算。</div></div>';
+  }
+  const an=aCalc.primary.reduced,bn=bCalc.primary.reduced;
+  const ad=INNER_DRIVE_NUMBER_LIBRARY?.[an]||{},bd=INNER_DRIVE_NUMBER_LIBRARY?.[bn]||{};
+  const bMain=Number(b?.mainPersonality||0);
+  const aBlueprint=calculateBlueprint(c.birthday);
+  const aMain=Number(aBlueprint?.mainPersonality||0);
+  const aHitsB=an===bMain, bHitsA=bn===aMain;
+  const resonance=aHitsB&&bHitsA
+    ?"两边都出现“内驱数字＝对方主性格”的同号线索。只代表彼此某些自然特质可能正好落在对方欣赏方向，要用真实相处验证。"
+    :aHitsB
+      ?c.name+"的内驱 "+an+" 与 "+(r.name||"对方")+"主性格 "+bMain+" 同号；可能比较容易觉得对方某些自然特质很对味。"
+      :bHitsA
+        ?(r.name||"对方")+"的内驱 "+bn+" 与 "+c.name+"主性格 "+aMain+" 同号；可能比较容易欣赏 "+c.name+" 某些自然特质。"
+        :"双方内驱与对方主性格没有直接同号，不代表不合；内驱不是配对分数，仍看真实吸引与相处。";
+  return '<div class="foundation-block">'
+    +'<div class="card-heading"><div><small>INNER DRIVE · RELATIONSHIP</small><h3>双方内驱｜彼此容易欣赏什么</h3></div><span>'+aCalc.primary.compound+' × '+bCalc.primary.compound+'</span></div>'
+    +'<div class="notion-consult-grid"><div><small>'+esc(c.name)+'内驱</small><p>'+aCalc.primary.compound+' · '+esc(ad.title||"")+'<br>'+esc(ad.attraction||"")+'</p></div><div><small>'+esc(r.name||"对方")+'内驱</small><p>'+bCalc.primary.compound+' · '+esc(bd.title||"")+'<br>'+esc(bd.attraction||"")+'</p></div></div>'
+    +'<div class="formula-note"><b>交叉观察：</b>'+esc(resonance)+'</div>'
+    +'<div class="question-box"><b>先问 '+esc(c.name)+'：</b><br>“你当初真正被对方哪一个特质吸引？是能力、温柔、有趣、可靠、自由、照顾、深度、实力，还是善良？”</div>'
+    +'<div class="question-box"><b>再问 '+esc(r.name||"对方")+'：</b><br>“你最欣赏 '+esc(c.name)+' 的哪一面？这个特质现在还在吗，还是相处久了你们只剩下在意彼此的缺点？”</div>'
+    +'<div class="formula-note">同号只做验证，不等于天生一对；不同号也不等于不适合。关系判断仍以尊重、安全、沟通和真实行为为准。</div>'
+    +'</div>';
+}
+
 function peakReductionText(raw,reduced){
   return Number(raw)===Number(reduced)?String(reduced):String(raw)+" → "+String(reduced);
 }
@@ -2295,6 +2366,7 @@ function childBlueprintPanel(c){
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
     +birthdayDayPanel(c,a,true)
     +expressionNumberPanel(c,true)
+    +innerDriveNumberPanel(c,true)
     +highPeakPanel(c,true)
     +challengeNumberPanel(c,true)
     +childSeatCodeDeepPanel(a)
@@ -2443,6 +2515,7 @@ function lifeBlueprintPanel(c){
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
     +birthdayDayPanel(c,a,false)
     +expressionNumberPanel(c,false)
+    +innerDriveNumberPanel(c,false)
     +specialNumberPanel(c,a)
     +highPeakPanel(c,false)
     +challengeNumberPanel(c,false)
@@ -2669,7 +2742,7 @@ function relationshipCross(a,b,ctx={}){
       +blueprintSheet({name:bName,birthday:ctx.bBirthday},b,bName+' · 个人依据')
     +'</details>'
 
-    +'<details class="blueprint-expander"><summary>关系结合数字资料状态</summary><div class="formula-note"><b>已接回：</b>双方现有主性格、内心码、潜意识、制约／童年模式、重复／缺失，以及各自81组联合码资料都会进入关系分析。<br><b>不会自行生成：</b>目前不建立未经确认的“A某数字＋B某数字＝新的三位关系码”。等原始关系专属合数公式找回并确认后，再接成独立第二层。</div></details>'
+    +'<details class="blueprint-expander"><summary>关系结合数字资料状态</summary><div class="formula-note"><b>已接回：</b>双方现有主性格、姓名内驱、内心码、潜意识、制约／童年模式、重复／缺失，以及各自81组联合码资料都会进入关系分析。<br><b>不会自行生成：</b>目前不建立未经确认的“A某数字＋B某数字＝新的三位关系码”。等原始关系专属合数公式找回并确认后，再接成独立第二层。</div></details>'
     +'</div>';
 }
 function relationshipPanel(c){
@@ -2679,6 +2752,7 @@ function relationshipPanel(c){
     +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
     +(b
       ?relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
+        +innerDriveRelationshipPanel(c,r,b)
         +relationshipFlowPanel(c,r,a,b)
       :'<div class="foundation-block"><div class="question-box"><b>关系蓝图从两个人开始：</b><br>先填写对方姓名与生日。生成后首页不会重复解释当事人的人生蓝图，而是直接显示：关系核心 → A→B／B→A沟通 → 冲突循环 → 爱与安全感 → 空间边界 → 钱与生活决策 → 共同数字／强缺落差 → 关系流年。</div></div>')
     +'</div>';
