@@ -20,18 +20,22 @@ test("5 original health-course groups are complete and indexed",()=>{
   assert.equal(buildWuxingHealthLibraryEntries().length,6);
 });
 
-test("2027 flow-year six positions render full health-course references, including absent earth",()=>{
+test("2027 health references show only the exact repeated digit 3, not singleton elements",()=>{
   const data=analyzeWuxingHealthReference(fixture(2027));
   assert.equal(data.details.length,5);
   assert.equal(data.details.reduce((n,x)=>n+x.count,0),6);
   assert.equal(data.details.find(x=>x.element==="火").count,3);
   assert.equal(data.details.find(x=>x.element==="土").count,0);
   assert.equal(data.diseasePrediction,false);
+  assert.deepEqual(data.focused.map(x=>x.element),["火"]);
+  assert.deepEqual(data.focused[0].focusDigits,[3]);
   const html=renderWuxingHealthReference(fixture(2027));
-  for(const phrase of ["肺","肾","心脏","肝","脾","小肠","原书列举的病痛范围","原书列举的不适或征象","⑥ 五行对应身体健康"]){
+  for(const phrase of ["心脏","小肠","3号×2","原书列举的病痛范围","原书列举的不适或征象","⑥ 五行身体对照"]){
     assert.ok(html.includes(phrase),phrase);
   }
-  assert.ok(html.includes("未出现（不等于器官问题）"));
+  assert.ok(!html.includes("原书对应身体部位：</b>肺"));
+  assert.ok(!html.includes("原书对应身体部位：</b>肝"));
+  assert.ok(!html.includes("原书对应身体部位：</b>脾"));
   assert.ok(html.includes("不是本人的疾病"));
 });
 
@@ -48,7 +52,7 @@ test("adult and child questions differ and neither claims diagnosis",()=>{
   const child=renderWuxingHealthReference(fixture(2027),true);
   assert.notEqual(adult,child);
   assert.ok(adult.includes("Josephine身体关怀白话"));
-  assert.ok(child.includes("孩子的土数字"));
+  assert.ok(child.includes("不会因为火数字出现多"));
   assert.ok(child.includes("由医生"));
   assert.ok(WUXING_HEALTH_COURSE.frequentRule.includes("无法判断"));
   assert.ok(WUXING_HEALTH_COURSE.missingRule.includes("不表示"));
