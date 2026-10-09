@@ -1,5 +1,6 @@
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
+import { renderFiveElementPanel } from "./five-elements.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -2493,6 +2494,7 @@ function childBlueprintPanel(c){
     +'<div class="blueprint-audience-switch"><button type="button" data-blueprint-audience="adult">成人蓝图</button><button type="button" class="active" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +'<div class="formula-note"><b>儿童模式现在固定分层：</b>坐镇码因→过程→结果／主性格 → <b>童年模式 → 制约数字</b> → 内心码 → 潜意识码 → 学习考试 → 说话方式 → 压力反应 → 家长怎么带 → 其他联合码儿童版。成人事业、财富、婚姻话术不会直接带进来。</div>'
     +blueprintSheet(c,a,"小朋友蓝图 · "+c.name)
+    +renderFiveElementPanel(a,true)
     +birthdayDayPanel(c,a,true)
     +expressionNumberPanel(c,true)
     +innerDriveNumberPanel(c,true)
@@ -2645,6 +2647,7 @@ function lifeBlueprintPanel(c){
     +'<div class="blueprint-audience-switch"><button type="button" class="active" data-blueprint-audience="adult">成人蓝图</button><button type="button" data-blueprint-audience="child">小朋友蓝图</button></div>'
     +consultationStartPanel(c,a)
     +blueprintSheet(c,a,"人生蓝图 · "+c.name)
+    +renderFiveElementPanel(a,false)
     +birthdayDayPanel(c,a,false)
     +expressionNumberPanel(c,false)
     +innerDriveNumberPanel(c,false)
