@@ -39,6 +39,12 @@ export const WUXING_HEALTH_COURSE = Object.freeze({
      consultChild:"“孩子的土数字是否出现，无法反映消化系统健康。若饮食、排便或体重出现持续异常，请依据实际情况咨询医生。”"}
   ]
 });
+// 五行脏腑传统配对经公开传统医学综述与WHO资料核对。
+// 数字配对是AURMOVA课程规则，不能误认为传统河图通用数字配对。
+export const WUXING_TRADITIONAL_ORGAN_PAIRS = Object.freeze({
+  metal:["肺","大肠"],water:["肾","膀胱"],fire:["心","小肠"],
+  wood:["肝","胆"],earth:["脾","胃"]
+});
 const htmlEsc=x=>String(x??"").replace(/[&<>"']/g,k=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[k]));
 const joined=a=>a.map(htmlEsc).join("、");
 
@@ -75,7 +81,8 @@ export function renderWuxingHealthReference(annualDistribution,childMode=false){
      +'<h4>'+r.element+'五行｜'+r.count+'次（'+htmlEsc(digitList)+'）</h4>'
      +'<p><b>流年六位核对：</b>'+htmlEsc(positions)+'</p>'
      +'<p><b>为何列入重点：</b>'+htmlEsc(r.description)+'。同五行下的小号与大号一起累计。</p>'
-     +'<p><b>原书传统身体部位：</b>'+joined(r.organs)+'</p>'
+     +'<p><b>传统五行脏腑主对应：</b>'+joined(WUXING_TRADITIONAL_ORGAN_PAIRS[r.key])+'</p>'
+     +'<p><b>课程延伸身体主题：</b>'+joined(r.organs)+'</p>'
      +'<p><b>原书列举的病痛范围（不是本人的疾病）：</b>'+joined(r.courseDiseases)+'</p>'
      +'<p><b>原书列举的不适或征象（不是预测）：</b>'+joined(r.courseSigns)+'</p>'
      +'<p><b>教材出处：</b>'+htmlEsc(r.provenance)+'</p>'
