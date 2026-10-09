@@ -1,8 +1,8 @@
 // AURMOVA 黄金流年五行「位置 × 同号 × 五行 × 生活核对」分析层。
 // 所有叙述是传统数字学课程的探索语言，不是疾病风险测算。
 import { FIVE_ELEMENT_LIBRARY,calculateAnnualFiveElementDistribution } from "./five-elements.js?v=2";
-import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=1";
-import { renderWuxingHealthReference } from "./wuxing-health-course.js?v=1";
+import { renderWuxingCourseRelations } from "./wuxing-course-supplement.js?v=2";
+import { renderWuxingHealthReference } from "./wuxing-health-course.js?v=2";
 
 export const WUXING_ELEMENT_ANALYSIS = {
  metal:{
