@@ -72,8 +72,10 @@ function escapeLike(value) {
 
 export async function handlePrivateCustomers(request, env, owner, path, send) {
   // Fail closed, even if this module is accidentally included in a production Worker.
+  const stagingHost = "aurmova-secure-api-staging.xbing5668.workers.dev";
   const configured = new URL(env.API_ORIGIN).hostname;
-  if (configured !== "aurmova-secure-api-staging.xbing5668.workers.dev") {
+  const requested = new URL(request.url).hostname;
+  if (configured !== stagingHost || requested !== stagingHost) {
     return send({ error: "Staging only" }, 403);
   }
   const ownerId = String(owner.github_user_id || "");
