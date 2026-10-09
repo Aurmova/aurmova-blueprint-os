@@ -4,7 +4,7 @@ import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
 import { findJointCode, CHILD } from "./aurmova-knowledge.js?v=28";
 import { getKnowledge as getFlootKnowledge, MAIN_DETAIL, DIGIT_CORE, TALK_QUESTIONS } from "./floot-knowledge.js?v=28";
 import { getTrianglePattern, getDensityReading, getInnerOuterAlignment } from "./triangle-pattern-library.js?v=28";
-import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=40";
+import { EXPRESSION_NUMBER_LIBRARY, INNER_DRIVE_NUMBER_LIBRARY, TEMPERAMENT_NUMBER_LIBRARY, CHALLENGE_NUMBER_LIBRARY, HIGH_PEAK_LIBRARY, SPECIAL_NUMBER_LIBRARY, BIRTHDAY_DAY_PROFILES, M_CONSTRAINT_MASTER, CONSTRAINT_NOTES, CHILDHOOD_MODES, INNER_DIGIT_POLARITY, PERSONALITY_QUESTIONS, YEAR_TEACHING_ANALOGIES, ENVIRONMENT_YEAR_EXAMPLES } from "./consultation-library.js?v=41";
 import { buildOpportunityNavigator } from "./opportunity-navigator.js?v=2";
 
 const DIGITS=[1,2,3,4,5,6,7,8,9];
@@ -873,6 +873,7 @@ function childYearPanel(c,target){
     +'<div class="golden-support-grid">'+mini+'</div>'
     +childYearSnapshotCard(c,year,"当前查看")
     +challengeFlowBridge(c,year,true)
+    +temperamentYearContext(c,true)
     +'</div>';
 }
 
@@ -898,6 +899,7 @@ function yearPanel(c,target){
     +yearTeachingPanel()
     +yearSnapshotCard(c,year,"当前查看")
     +challengeFlowBridge(c,year,false)
+    +temperamentYearContext(c,false)
     +'</div>';
 }
 
@@ -911,11 +913,13 @@ function partnerRow(p,i){
 }
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
+  const temperamentPairs=ps.filter(p=>String(p?.name||"").trim()).map(p=>temperamentRelationshipPanel(c,p,"cooperation")).join("");
   return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div>'
     +blueprintSheet(c,a,"合作蓝图 · "+c.name)
     +plainLanguagePanel(a)
-    +'<p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。</p>'
+    +'<p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。姓名性情数字只用来补充沟通与分工节奏，不作搭档评分。</p>'
     +'<div id="v6-partners">'+(ps.length?ps.map(partnerRow).join(""):'<div class="empty-mini">还没有合作伙伴。</div>')+'</div>'
+    +temperamentPairs
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v6-add-partner">＋ 增加合作伙伴</button><button type="button" class="btn btn-light" id="v6-save-partners">保存合作伙伴</button></div></div>';
 }
 
@@ -1396,6 +1400,12 @@ function temperamentNumberPanel(c,childMode=false){
   const dist=planeKeys.map(k=>'<div><small>'+labels[k]+' · '+TEMPERAMENT_PLANE_META[k].digits+'</small><p><b>'+x.counts[k]+'次</b> · '+x.ratios[k]+'%</p></div>').join("");
   const dominant=(x.dominant||[]).map(k=>labels[k]).join("／"),least=(x.least||[]).map(k=>labels[k]).join("／");
   const breakdown=x.letters.map(z=>z.char+"="+z.value).join(" · ");
+  const nameCompare=(calc.current?.valid&&calc.former?.valid)
+    ?('<div class="formula-note"><b>现名／曾用名四体对照：</b><br>'
+      +'现名 '+esc(calc.current.input)+'：头'+calc.current.counts.mind+' · 身'+calc.current.counts.body+' · 情'+calc.current.counts.emotion+' · 直'+calc.current.counts.intuition
+      +'<br>曾用名 '+esc(calc.former.input)+'：头'+calc.former.counts.mind+' · 身'+calc.former.counts.body+' · 情'+calc.former.counts.emotion+' · 直'+calc.former.counts.intuition
+      +'<br><small>'+esc(meta.nameChangeRule||"姓名版本差异只作结构对照，不解释成命运变化。")+'</small></div>')
+    :'';
   const blocks=planeKeys.map(k=>temperamentValueBlock(k,x.counts[k],TEMPERAMENT_NUMBER_LIBRARY?.[k]?.[x.counts[k]],x,childMode,c)).join("");
   return '<div class="foundation-block temperament-panel">'
     +'<div class="card-heading"><div><small>TEMPERAMENT · COUNT, NOT SUM</small><h3>姓名性情数字｜四体分布</h3></div><span>'+x.totalLetters+' 个字母 · 校验 '+(x.sumCheck?"通过":"异常")+'</span></div>'
@@ -1404,20 +1414,36 @@ function temperamentNumberPanel(c,childMode=false){
     +'<div class="formula-note"><b>相对分布：</b>当前姓名较高：'+esc(dominant||"—")+'；较低：'+esc(least||"—")+'。这里只比较同一个姓名里的比例，不把“多”说成好、“少”说成差。姓名较长时次数自然更高，所以同时看百分比。</div>'
     +'<details class="blueprint-expander"><summary>查看字母→数字与计数校验</summary><div class="formula-note">'+esc(breakdown)+'</div><div class="formula-note">头脑 '+x.counts.mind+' + 身体 '+x.counts.body+' + 情绪 '+x.counts.emotion+' + 直觉 '+x.counts.intuition+' = '+(x.counts.mind+x.counts.body+x.counts.emotion+x.counts.intuition)+'；姓名字母总数 '+x.totalLetters+'。</div></details>'
     +'<div class="reading-grid">'+blocks+'</div>'
-    +'<details class="blueprint-expander"><summary>与表现数字／内驱数字／出生盘的区别</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div><div class="formula-note"><b>跨流派：</b>'+esc(meta.crossSchool||"")+'</div><div class="formula-note"><b>0与10+：</b>'+esc(meta.rangeRule||"")+'</div></details>'
+    +nameCompare
+    +'<details class="blueprint-expander"><summary>与表现数字／内驱数字／出生盘的区别</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div><div class="formula-note"><b>跨流派：</b>'+esc(meta.crossSchool||"")+'</div><div class="formula-note"><b>0与10+：</b>'+esc(meta.rangeRule||"")+'</div><div class="formula-note"><b>验证原则：</b>'+esc(meta.evidenceBoundary||"")+'</div></details>'
     +'<div class="formula-note"><b>安全边界：</b>'+esc(meta.safety||"")+'</div>'
     +'</div>';
 }
-function temperamentRelationshipPanel(c,r){
+function temperamentRelationshipPanel(c,r,mode="relationship"){
   const a=calculateTemperamentProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
   const b=calculateTemperamentProfile({displayName:r.name,officialName:r.officialName,formerName:r.formerName,nameChangedYear:r.nameChangedYear});
   if(!a.canCalculate||!b.canCalculate)return "";
   const labels={mind:"头脑",body:"身体",emotion:"情绪",intuition:"直觉"};
   const rows=["mind","body","emotion","intuition"].map(k=>{
     const av=a.primary.counts[k],bv=b.primary.counts[k],gap=Math.abs(av-bv);
-    return '<div><small>'+labels[k]+'</small><p>'+esc(c.name)+' '+av+'次 ('+a.primary.ratios[k]+'%) · '+esc(r.name||"对方")+' '+bv+'次 ('+b.primary.ratios[k]+'%)</p><span>次数差 '+gap+'；先问真实相处，不作配对分数。</span></div>';
+    return '<div><small>'+labels[k]+'</small><p>'+esc(c.name)+' '+av+'次 ('+a.primary.ratios[k]+'%) · '+esc(r.name||"对方")+' '+bv+'次 ('+b.primary.ratios[k]+'%)</p><span>次数差 '+gap+'；先问真实互动，不作评分。</span></div>';
   }).join("");
-  return '<div class="foundation-block"><div class="card-heading"><div><small>TEMPERAMENT · RELATIONSHIP</small><h3>双方四体分布｜不是合不合评分</h3></div></div><div class="notion-consult-grid">'+rows+'</div><div class="question-box"><b>关系验证：</b><br>“你们遇到同一件事时，谁更先想、谁更先动、谁更需要表达情绪、谁更相信自己的感觉？这四种不同有没有变成误会？”</div><div class="formula-note">差异只用来找沟通方式，不代表谁更成熟、谁比较爱谁，也不能预测关系结果。</div></div>';
+  const copy=mode==="cooperation"
+    ?{small:"TEMPERAMENT · COOPERATION",title:"合作四体对照｜不是搭档评分",question:"你们一起做项目时，谁比较先分析、谁比较先动手、谁会先处理团队情绪、谁比较相信现场感觉？这些差异有没有让分工变顺，还是变成互相嫌弃？",foot:"差异只用来安排沟通、分工与决策流程，不代表谁更能赚钱、谁更适合当老板。"}
+    :mode==="family"
+      ?{small:"TEMPERAMENT · FAMILY",title:"家庭四体对照｜不是谁比较好带",question:"同一件家庭事情发生时，你们谁会先讲道理、谁先行动、谁先有情绪反应、谁先凭感觉判断？这些差异有没有被误解成不听话、太敏感或不负责任？",foot:"家庭差异只用来理解沟通节奏；儿童尤其不据此诊断、贴标签或预测未来。"}
+      :{small:"TEMPERAMENT · RELATIONSHIP",title:"双方四体分布｜不是合不合评分",question:"你们遇到同一件事时，谁更先想、谁更先动、谁更需要表达情绪、谁更相信自己的感觉？这四种不同有没有变成误会？",foot:"差异只用来找沟通方式，不代表谁更成熟、谁比较爱谁，也不能预测关系结果。"};
+  return '<div class="foundation-block"><div class="card-heading"><div><small>'+copy.small+'</small><h3>'+copy.title+'</h3></div></div><div class="notion-consult-grid">'+rows+'</div><div class="question-box"><b>现实验证：</b><br>“'+copy.question+'”</div><div class="formula-note">'+copy.foot+'</div></div>';
+}
+
+function temperamentYearContext(c,childMode=false){
+  const t=calculateTemperamentProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
+  if(!t.canCalculate)return "";
+  const x=t.primary;
+  const question=childMode
+    ?"这一年如果孩子遇到变化，先观察他比较常从‘想、动、情绪、感觉’哪一条通道回应；不要把流年变化解释成身体或心理疾病。"
+    :"流年只改变今年讨论的现实主题；姓名性情数字不会每年重算。可以观察今年压力来时，你更常先想、先行动、先有情绪，还是先凭感觉。";
+  return '<div class="foundation-block temperament-year-context"><div class="card-heading"><div><small>TEMPERAMENT × YEAR CONTEXT</small><h3>性情数字｜今年只做回应方式参考</h3></div><span>姓名固定 · 不随流年重算</span></div><div class="notion-consult-grid"><div><small>头脑</small><p>'+x.counts.mind+'次 · '+x.ratios.mind+'%</p></div><div><small>身体</small><p>'+x.counts.body+'次 · '+x.ratios.body+'%</p></div><div><small>情绪</small><p>'+x.counts.emotion+'次 · '+x.ratios.emotion+'%</p></div><div><small>直觉</small><p>'+x.counts.intuition+'次 · '+x.ratios.intuition+'%</p></div></div><div class="question-box"><b>今年怎么用：</b><br>“'+question+'”</div></div>';
 }
 
 function peakReductionText(raw,reduced){
@@ -2866,6 +2892,11 @@ function familyPanel(c){
   const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(ch)+'</article>').join("");
   const adults=[f.father?.birthday?calculateBlueprint(f.father.birthday):null,f.mother?.birthday?calculateBlueprint(f.mother.birthday):null].filter(Boolean);
   const kids=(f.children||[]).map(x=>x.birthday?calculateBlueprint(x.birthday):null).filter(Boolean);
+  const temperamentFamily=[
+    f.father?.name?temperamentRelationshipPanel(c,f.father,"family"):"",
+    f.mother?.name?temperamentRelationshipPanel(c,f.mother,"family"):"",
+    ...(f.children||[]).filter(x=>String(x?.name||"").trim()).map(x=>temperamentRelationshipPanel(c,x,"family"))
+  ].filter(Boolean).join("");
   let familyInsight='<div class="empty-mini">填写爸爸、妈妈和孩子资料后，系统会把全家的蓝图放在一起看。</div>';
   if(adults.length&&kids.length){
     const parentMains=adults.map(x=>x.mainPersonality).join(" / ");
@@ -2880,6 +2911,7 @@ function familyPanel(c){
     +plainLanguagePanel(selfA)
     +'<div class="family-grid">'+familyMemberCard("爸爸","father",f.father||{})+familyMemberCard("妈妈","mother",f.mother||{})+childCards+'</div>'
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v20-add-child">＋ 增加孩子</button><button type="button" class="btn btn-light" id="v20-save-family">保存并重新解析全家</button></div>'
+    +temperamentFamily
     +familyInsight+'</div>';
 }
 
