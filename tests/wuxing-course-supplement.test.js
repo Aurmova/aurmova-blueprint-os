@@ -29,7 +29,7 @@ test("生克关系仅使用本年实际出现的元素, 不予健康风险归因
  const data=analyzeAnnualFiveElements(calculateGoldenYearSnapshot("18/08/1985",2027));
  const relations=analyzeWuxingCourseRelations(data);
  assert.deepEqual(relations.missing,["土"]);
- assert.ok(relations.focused.some(x=>x.label==="火"&&x.count===3));
+ assert.ok(relations.focused.some(x=>x.label==="火"&&x.count===2&&x.repeatedDigits[0].digit===3));
  assert.ok(relations.supporting.includes("木生火"));
  assert.ok(relations.controlling.includes("水克火"));
  assert.equal(relations.healthRisk,null);
