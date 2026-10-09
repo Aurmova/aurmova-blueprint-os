@@ -1,4 +1,4 @@
-# Deployment is intentionally NOT automatic. GitHub Pages remains untouched.
+# Cloudflare builds track the dedicated security branch; GitHub Pages main stays untouched.
 # OAuth credentials are configured as server-side secrets, never committed.
 name = "aurmova-secure-api"
 main = "src/index.js"
