@@ -1,0 +1,18 @@
+# Cloudflare builds track the dedicated security branch; GitHub Pages main stays untouched.
+# OAuth credentials are configured as server-side secrets, never committed.
+name = "aurmova-secure-api"
+main = "src/index.js"
+compatibility_date = "2026-10-08"
+workers_dev = true
+
+[vars]
+# Update after confirming the live workers.dev domain in Cloudflare.
+API_ORIGIN = "https://aurmova-secure-api.xbing5668.workers.dev"
+FRONTEND_LOGIN_URL = "https://aurmova-secure-api.xbing5668.workers.dev/owner-login"
+GITHUB_CLIENT_ID = "Ov23liedj1R6nncwWSFg"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aurmova-private"
+database_id = "b053d2e2-6394-4e34-90b0-3a5dab0b28e5"
+migrations_dir = "migrations"
