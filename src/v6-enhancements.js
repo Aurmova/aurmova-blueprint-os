@@ -1402,9 +1402,9 @@ function temperamentNumberPanel(c,childMode=false){
   const breakdown=x.letters.map(z=>z.char+"="+z.value).join(" · ");
   const nameCompare=(calc.current?.valid&&calc.former?.valid)
     ?('<div class="formula-note"><b>现名／曾用名四体对照：</b><br>'
-      +'现名 '+esc(calc.current.input)+'：头'+calc.current.counts.mind+' · 身'+calc.current.counts.body+' · 情'+calc.current.counts.emotion+' · 直'+calc.current.counts.intuition
-      +'<br>曾用名 '+esc(calc.former.input)+'：头'+calc.former.counts.mind+' · 身'+calc.former.counts.body+' · 情'+calc.former.counts.emotion+' · 直'+calc.former.counts.intuition
-      +'<br><small>'+esc(meta.nameChangeRule||"姓名版本差异只作结构对照，不解释成命运变化。")+'</small></div>')
+      +'现名 '+esc(calc.current.input)+'：头'+calc.current.counts.mind+' ('+calc.current.ratios.mind+'%) · 身'+calc.current.counts.body+' ('+calc.current.ratios.body+'%) · 情'+calc.current.counts.emotion+' ('+calc.current.ratios.emotion+'%) · 直'+calc.current.counts.intuition+' ('+calc.current.ratios.intuition+'%)'
+      +'<br>曾用名 '+esc(calc.former.input)+'：头'+calc.former.counts.mind+' ('+calc.former.ratios.mind+'%) · 身'+calc.former.counts.body+' ('+calc.former.ratios.body+'%) · 情'+calc.former.counts.emotion+' ('+calc.former.ratios.emotion+'%) · 直'+calc.former.counts.intuition+' ('+calc.former.ratios.intuition+'%)'
+      +'<br><small>'+esc(meta.comparisonRule||meta.nameChangeRule||"姓名版本差异只作结构对照，不解释成命运变化。")+'</small></div>')
     :'';
   const blocks=planeKeys.map(k=>temperamentValueBlock(k,x.counts[k],TEMPERAMENT_NUMBER_LIBRARY?.[k]?.[x.counts[k]],x,childMode,c)).join("");
   return '<div class="foundation-block temperament-panel">'
@@ -1412,10 +1412,12 @@ function temperamentNumberPanel(c,childMode=false){
     +'<div class="formula-note"><b>姓名：</b>'+esc(nameLine)+'<br><b>固定算法：</b>'+esc(meta.formula||"")+'</div>'
     +'<div class="notion-consult-grid">'+dist+'</div>'
     +'<div class="formula-note"><b>相对分布：</b>当前姓名较高：'+esc(dominant||"—")+'；较低：'+esc(least||"—")+'。这里只比较同一个姓名里的比例，不把“多”说成好、“少”说成差。姓名较长时次数自然更高，所以同时看百分比。</div>'
+    +'<div class="question-box"><b>Josephine 先不要念数字，先问：</b><br>“一件事情突然发生时，你通常比较像哪一种：先想清楚、先动手处理、先有情绪感受，还是先凭一个感觉判断？”<br><small>顾客回答以后，再用四体次数与1–9条目验证，不对答案就不硬套。</small></div>'
+    +'<div class="formula-note"><b>读取顺序：</b>'+esc(meta.consultOrder||"先看次数，再看比例，再读条目，最后用真实事件验证。")+'</div>'
     +'<details class="blueprint-expander"><summary>查看字母→数字与计数校验</summary><div class="formula-note">'+esc(breakdown)+'</div><div class="formula-note">头脑 '+x.counts.mind+' + 身体 '+x.counts.body+' + 情绪 '+x.counts.emotion+' + 直觉 '+x.counts.intuition+' = '+(x.counts.mind+x.counts.body+x.counts.emotion+x.counts.intuition)+'；姓名字母总数 '+x.totalLetters+'。</div></details>'
     +'<div class="reading-grid">'+blocks+'</div>'
     +nameCompare
-    +'<details class="blueprint-expander"><summary>与表现数字／内驱数字／出生盘的区别</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div><div class="formula-note"><b>跨流派：</b>'+esc(meta.crossSchool||"")+'</div><div class="formula-note"><b>0与10+：</b>'+esc(meta.rangeRule||"")+'</div><div class="formula-note"><b>验证原则：</b>'+esc(meta.evidenceBoundary||"")+'</div></details>'
+    +'<details class="blueprint-expander"><summary>与表现数字／内驱数字／出生盘的区别</summary><div class="formula-note">'+esc(meta.distinction||"")+'</div><div class="formula-note"><b>跨流派：</b>'+esc(meta.crossSchool||"")+'</div><div class="formula-note"><b>0与10+：</b>'+esc(meta.rangeRule||"")+'</div><div class="formula-note"><b>不同姓名长度：</b>'+esc(meta.comparisonRule||"")+'</div><div class="formula-note"><b>儿童规则：</b>'+esc(meta.childRule||"")+'</div><div class="formula-note"><b>验证原则：</b>'+esc(meta.evidenceBoundary||"")+'</div></details>'
     +'<div class="formula-note"><b>安全边界：</b>'+esc(meta.safety||"")+'</div>'
     +'</div>';
 }
@@ -1425,8 +1427,10 @@ function temperamentRelationshipPanel(c,r,mode="relationship"){
   if(!a.canCalculate||!b.canCalculate)return "";
   const labels={mind:"头脑",body:"身体",emotion:"情绪",intuition:"直觉"};
   const rows=["mind","body","emotion","intuition"].map(k=>{
-    const av=a.primary.counts[k],bv=b.primary.counts[k],gap=Math.abs(av-bv);
-    return '<div><small>'+labels[k]+'</small><p>'+esc(c.name)+' '+av+'次 ('+a.primary.ratios[k]+'%) · '+esc(r.name||"对方")+' '+bv+'次 ('+b.primary.ratios[k]+'%)</p><span>次数差 '+gap+'；先问真实互动，不作评分。</span></div>';
+    const av=a.primary.counts[k],bv=b.primary.counts[k];
+    const ar=Number(a.primary.ratios[k]||0),br=Number(b.primary.ratios[k]||0);
+    const ratioGap=Math.round(Math.abs(ar-br)*10)/10;
+    return '<div><small>'+labels[k]+'</small><p>'+esc(c.name)+' '+av+'次 ('+ar+'%) · '+esc(r.name||"对方")+' '+bv+'次 ('+br+'%)</p><span>比例差 '+ratioGap+' 个百分点；姓名长度不同，不直接用原始次数判高低，也不作评分。</span></div>';
   }).join("");
   const copy=mode==="cooperation"
     ?{small:"TEMPERAMENT · COOPERATION",title:"合作四体对照｜不是搭档评分",question:"你们一起做项目时，谁比较先分析、谁比较先动手、谁会先处理团队情绪、谁比较相信现场感觉？这些差异有没有让分工变顺，还是变成互相嫌弃？",foot:"差异只用来安排沟通、分工与决策流程，不代表谁更能赚钱、谁更适合当老板。"}
