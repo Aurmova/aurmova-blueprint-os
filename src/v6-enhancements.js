@@ -286,7 +286,7 @@ function jointBlock(c,label){
       +(structured.order?'<p><b>排列顺序差异：</b>'+esc(structured.order)+'</p>':"")
       +'<div class="position-explain"><b>⑤ 这个位置怎么解｜'+esc(label)+'</b><p>'+esc(white.position)+'</p></div>'
       +(structured.positions?'<p><b>原始／位置资料：</b>'+esc(structured.positions)+'</p>':"")
-      +'<div class="ai-supplement"><div class="source-tag">AI整合补充｜不是原书原句</div>'
+      +'<div class="ai-supplement"><div class="source-tag">AI整合补充｜非课程原句</div>'
         +'<p><b>生活里会怎么表现：</b>'+esc(white.scene)+'</p>'
         +(white.work?'<p><b>事业／工作：</b>'+esc(white.work)+'</p>':"")
         +'<p><b>关系／沟通：</b>'+esc(white.relationship)+'</p>'
@@ -304,11 +304,11 @@ function jointBlock(c,label){
   }else{
     const empty={logic:"",strengths:"",challenges:"",growth:"",script:""};
     const white=jointWhiteBundle(c,empty,label);
-    source="AI结构补充｜原书来源待核对";
+    source="AI结构补充｜原始规则待核对";
     body='<div class="ai-supplement"><p><b>数字结构：</b>'+esc(white.digitLine)+'</p><p><b>位置：</b>'+esc(white.position)+'</p></div>'
       +'<div class="question-box"><b>Josephine 可直接照读：</b><br>'+white.script+'</div>'
       +'<p><b>验证：</b>'+esc(white.questions[0])+'</p>'
-      +'<div class="formula-note">这部分是AI根据数字结构与位置生成的咨询补充，不冒充原书。后续找到原始课程内容时，以原书为底稿再更新。</div>';
+      +'<div class="formula-note">这部分是AI根据数字结构与位置生成的咨询补充，不冒充原书。后续找到原始课程内容时，再以确认后的规则更新。</div>';
   }
   body+=salesSceneSupplement(c);
   const preview=structured?.script||legacy?.text?.split("\n")[0]||"点击展开查看白话、卡点、追问与开解";
@@ -1188,16 +1188,16 @@ function specialNumberPanel(c,a){
     ?'AURMOVA核心卓越数命中：'+coreMasters.join("、")+'。按照你确认的规则，这里停止继续把该卓越数当普通个位数解释。'
     :'本次生命数字计算链没有命中11／22／33核心卓越数。';
   return '<div class="foundation-block special-number-panel">'
-    +'<div class="card-heading"><div><small>SPECIAL NUMBERS · SOURCE RESTORED</small><h3>特别数字｜卓越数 × 业力数字</h3></div><span>原书资料已保存</span></div>'
+    +'<div class="card-heading"><div><small>SPECIAL NUMBERS · VERIFIED RULES</small><h3>特别数字｜卓越数 × 业力数字</h3></div><span>完整规则已保存</span></div>'
     +'<div class="formula-note"><b>生命数字计算链：</b>'+esc(calc.digits.join("+"))+' → '+esc(calc.path.join(" → "))+'。<br><b>'+esc(coreText)+'</b></div>'
     +'<div class="question-box"><b>核心规则不会被覆盖：</b><br>'+esc(lib.policy?.coreMasterRule||"")+'</div>'
-    +'<details class="blueprint-expander"><summary>查看原书完整版“卓越数字／大器晚成”规则</summary>'
+    +'<details class="blueprint-expander"><summary>查看完整版“卓越数字／大器晚成”规则</summary>'
       +'<div class="formula-note">'+esc(lib.policy?.bookExtension||"")+'</div>'
       +'<div class="formula-note">'+esc(lib.policy?.maturity||"")+'</div>'
       +'<div class="formula-note">'+esc(lib.policy?.positions||"")+'</div>'
     +'</details>'
-    +(masterCards?'<div class="v23-detail-grid">'+masterCards+'</div>':'<div class="empty-mini">这条生命数字计算链暂未命中原书第一类／第二类卓越数字；资料仍完整保存在资料库中。</div>')
-    +(karmaCards?'<div class="v23-detail-grid">'+karmaCards+'</div>':'<div class="formula-note"><b>业力数字：</b>生命数字计算链目前没有经过13／14／16。原书还说明业力数字可来自特定位置或派生组合；对应公式未完全确认前，系统不会自行造公式。</div>')
+    +(masterCards?'<div class="v23-detail-grid">'+masterCards+'</div>':'<div class="empty-mini">这条生命数字计算链暂未命中第一类／第二类卓越数字；相关规则仍完整保存在资料库中。</div>')
+    +(karmaCards?'<div class="v23-detail-grid">'+karmaCards+'</div>':'<div class="formula-note"><b>业力数字：</b>生命数字计算链目前没有经过13／14／16。现有课程规则还提到业力数字可来自特定位置或派生组合；对应公式未完全确认前，系统不会自行造公式。</div>')
     +'<div class="question-box"><b>Josephine 白话：</b><br>“特别数字不是说你一定比别人厉害，也不是一定比较辛苦。它比较像某一股能量被放大：用得顺时会很有潜力，用过头时卡点也会被放大。所以我会看它出现在哪一层，再用你真实经历验证。”</div>'
     +'<div class="question-box"><b>验证顾客：</b><br>“你有没有一种感觉：某一项能力你其实很强，但真正学会稳定使用它，反而花了比别人更长时间？”</div>'
     +'<div class="formula-note">'+esc(lib.safety||"")+'</div>'
@@ -1245,7 +1245,7 @@ function expressionNumberPanel(c,childMode=false){
     +'<div class="formula-note"><b>原书定位：</b>'+esc(meta.sourceMeaning||"")+'</div>'
     +'<div class="notion-consult-grid"><div><small>当前正式姓名</small><p>'+esc(currentLine)+'</p></div><div><small>曾用／最初正式姓名</small><p>'+esc(formerLine)+'</p></div><div><small>当前主用规则</small><p>'+esc(calc.transitionRule)+'</p></div><div><small>本次表现数</small><p>'+esc(x.compound)+' · 基础数 '+x.reduced+'</p></div></div>'
     +'<div class="formula-note"><b>字母公式：</b>'+esc(formula)+'</div>'
-    +(x.masterHits?.length?'<div class="formula-note"><b>路径中出现卓越数：</b>'+esc(x.masterHits.join("、"))+'。网页保留这个层级，但本章1–9表现解读仍以最终基础数 '+x.reduced+' 为主，不与生命数字卓越数算法混算。</div>':'')
+    +(x.masterHits?.length?'<div class="formula-note"><b>路径中出现卓越数：</b>'+esc(x.masterHits.join("、"))+'。网页保留这个层级，但1–9表现解读仍以最终基础数 '+x.reduced+' 为主，不与生命数字卓越数算法混算。</div>':'')
     +'<details class="blueprint-expander"><summary>查看姓名换算规则与改名规则</summary><div class="formula-note">'+esc(meta.formula||"")+'</div><div class="formula-note">'+esc(meta.namingRule||"")+'</div><div class="formula-note">'+esc(meta.multilingual||"")+'</div></details>'
     +'<div class="v23-detail-grid"><article><h4>核心工作方式</h4><p>'+esc(d.core||"")+'</p><p><b>优势：</b>'+esc(d.strengths||"")+'</p></article><article><h4>比较自然的任务</h4><p>'+esc(d.workTasks||"")+'</p><p><b>环境：</b>'+esc(d.workEnvironment||"")+'</p></article><article><h4>用过头／盲点</h4><p>'+esc(d.watch||"")+'</p><small>这不是“不能做什么行业”，而是要观察什么环境更耗能。</small></article></div>'
     +context+consult
@@ -1438,7 +1438,7 @@ function energy679Panel(a){
   return '<div class="foundation-block"><div class="card-heading"><div><small>679 · SOURCE RETAINED</small><h3>679综合</h3></div><span>原资料保留 · 不再用错误计数法</span></div>'
     +'<div class="formula-note"><b>已找回的课程索引：</b>现有资料曾记录“679是人生的福禄寿”，并保留6／7／9分别与财富敏锐度、人缘贵人、机会认同有关的基础关键词；但同一段原文又出现“两个7一个9”的矛盾句，因此不能把它简化成“数一数6、7、9出现几次就下结论”。</div>'
     +'<div class="question-box"><b>Josephine 目前可这样说：</b><br>“679这一组我会看资源、人际和机会怎样互相承接，但不会只凭某个数字出现几次就断定好坏。这里要配合它落在哪个位置、跟哪些组合一起出现，再回到你的真实经历验证。”</div>'
-    +'<p class="panel-note">原拍照页的完整判断条件仍标记为“待找回原页逐条复核”，不会再用旧版简化规则顶替。</p></div>';
+    +'<p class="panel-note">完整判断条件仍标记为“待逐条复核”，不会再用旧版简化规则顶替。</p></div>';
 }
 
 function unifiedJointCodes(a){
