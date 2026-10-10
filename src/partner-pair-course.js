@@ -49,8 +49,7 @@ const PAIR_SOURCE_ROWS=String.raw`
 89^241^9号能想象远景、8号擅长推进现实目标，互补时可以各取所长。^9号受不了8号的压力和高要求，8号则可能认为9号太不切实际。^先约定共同目标，再让8号评估执行与资源，9号说明不希望失去的价值。^你们的理想与实际目标之间，哪一步最难协调？
 99^241^两人都重理想与包容，可互相理解价值追求和感受。^如果都停留在愿景、不处理现实决定，生活或合作容易越来越混乱。^把梦想分成时间、预算、负责人和验收标准，按月检视一项成果。^你们是否共同期待很多，却很少明确谁来落实？
 `;
-const PAIR_ROWS=PAIR_SOURCE_ROWS.trim().split(/
-/).map(line=>{
+const PAIR_ROWS=PAIR_SOURCE_ROWS.trim().split(/\n/).map(line=>{
  const [code,page,positive,challenge,action,question]=line.split("^");
  if(!/^[1-9][1-9]$/.test(code)||Number(code[0])>Number(code[1])||![page,positive,challenge,action,question].every(Boolean))throw Error("合作组合课程资料无效："+line.slice(0,35));
  return Object.freeze({key:code,a:Number(code[0]),b:Number(code[1]),page,positive,challenge,action,question});
@@ -132,8 +131,6 @@ export function buildPartnerPairCourseEntries(){
      "【来源】"+PARTNER_PAIR_COURSE.meta.source+"，第"+p.page+"页。",
      "【避免混淆】"+PARTNER_PAIR_COURSE.meta.rule,
      "【限制】"+PARTNER_PAIR_COURSE.meta.safeguard
-   ].join("
-
-")
+   ].join("\n\n")
  }));
 }
