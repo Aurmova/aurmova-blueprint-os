@@ -1,3 +1,4 @@
+import {GUIDED_QUESTIONS,buildGuidedReply,guidedRecordKey} from "./guided-consultation-replies.js?v=1";
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4";
@@ -985,6 +986,7 @@ function cooperationPanel(c){
     +'<p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。姓名性情数字只用来补充沟通与分工节奏，不作搭档评分。</p>'
     +'<div id="v6-partners">'+(ps.length?ps.map(partnerRow).join(""):'<div class="empty-mini">还没有合作伙伴。</div>')+'</div>'
     +temperamentPairs
+    +guidedReplyPanel("cooperation",c)
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v6-add-partner">＋ 增加合作伙伴</button><button type="button" class="btn btn-light" id="v6-save-partners">保存合作伙伴</button></div></div>';
 }
 
@@ -2960,6 +2962,7 @@ function relationshipPanel(c){
         +temperamentRelationshipPanel(c,r)
         +relationshipFlowPanel(c,r,a,b)
       :'<div class="foundation-block"><div class="question-box"><b>关系蓝图从两个人开始：</b><br>先填写对方姓名与生日。生成后首页不会重复解释当事人的人生蓝图，而是直接显示：关系核心 → A→B／B→A沟通 → 冲突循环 → 爱与安全感 → 空间边界 → 钱与生活决策 → 共同数字／强缺落差 → 关系流年。</div></div>')
+    +guidedReplyPanel("relationship",c)
     +'</div>';
 }
 function familyMemberCard(role,prefix,person){
@@ -3005,8 +3008,111 @@ function familyPanel(c){
     +familyNamePairs
     +temperamentFamily
     +familyInsight
-    +parentChildMagnetics+'</div>';
+    +parentChildMagnetics+guidedReplyPanel("family",c)+'</div>';
 }
+
+
+function guidedContexts(mode,c){
+ if(mode==="relationship"){
+ const r=loadRelationship(c.id);
+ return [{a:c,b:r,label:(c.name||"当事人")+" × "+(r.name||"对方")}];
+ }
+ if(mode==="cooperation")return loadPartners(c.id).map(p=>({a:c,b:p,label:(c.name||"当事人")+" × "+(p.name||"合作伙伴")}));
+ const f=loadFamily(c.id),kids=(f.children||[]).filter(p=>p.name||p.officialName||p.birthday);
+ const parents=[f.father,f.mother].filter(p=>p&&(p.name||p.officialName||p.birthday));
+ if(parents.length&&kids.length)return parents.flatMap(p=>kids.map(child=>({a:p,b:child,label:(p.name||"家长")+" × "+(child.name||"孩子")})));
+ if(kids.length)return kids.map(p=>({a:c,b:p,label:(c.name||"家长")+" × "+(p.name||"孩子")}));
+ return [{a:c,b:{},label:"家长 × 孩子（资料待补）"}];
+}
+function guidedContextIdentity(ctx){
+ return JSON.stringify([ctx.a?.name||"",ctx.a?.birthday||"",ctx.b?.name||"",ctx.b?.birthday||""]);
+}
+function loadGuidedState(c){
+ try{const raw=JSON.parse(localStorage.getItem("aurmova.guidedReplies."+c.id)||"{}");return raw&&typeof raw==="object"?raw:{};}catch{return {};}
+}
+function saveGuidedState(c,data){
+ localStorage.setItem("aurmova.guidedReplies."+c.id,JSON.stringify(data));
+}
+function guidedSaveDraft(panel,c){
+ const data=loadGuidedState(c),key=panel.dataset.guidedRecord;
+ if(!key)return;
+ data.records=data.records||{};
+ const old=data.records[key]||{};
+ data.records[key]={...old,answer:panel.querySelector("[data-guided-answer]")?.value||"",question:panel.querySelector("[data-guided-question]")?.value||"",respondent:panel.querySelector("[data-guided-respondent]")?.value||"",updatedAt:new Date().toISOString()};
+ saveGuidedState(c,data);
+}
+function guidedResultHtml(reply){
+ if(!reply?.valid)return "";
+ const basis=(reply.basis||[]).map(p=>'<div><small>'+esc(p.name)+'</small><p>'+esc([
+ p.main?"主性格 "+p.main:"",p.seat?"坐镇码 "+p.seat:"",
+ p.expression?"表现 "+p.expression:"",p.innerDrive?"内驱 "+p.innerDrive:"",
+ p.temperament?"性情：头脑 "+p.temperament.mind+"／身体 "+p.temperament.body+"／情绪 "+p.temperament.emotion+"／直觉 "+p.temperament.intuition:""
+ ].filter(Boolean).join(" · ")||"资料待补")+'</p></div>').join("");
+ return '<div class="notion-consult-grid">'+basis+'</div><p class="panel-note">回答者：'+esc(reply.respondent)+' · 当前话题：'+esc(reply.title)+'</p>'+
+ reply.parts.map(([title,body])=>'<div class="question-box"><b>'+esc(title)+'</b><p style="white-space:pre-wrap">'+esc(body)+'</p></div>').join("")+
+ '<button type="button" class="btn btn-light" data-guided-copy>复制整段照读话术</button><p class="panel-note">'+esc(reply.method)+'</p>';
+}
+function guidedReplyPanel(mode,c){
+ const contexts=guidedContexts(mode,c);
+ if(!contexts.length)return '<section class="foundation-block"><h3>顾客回答后的现场回应</h3><p>先保存至少一位合作伙伴资料，再生成双方回应。</p></section>';
+ const state=loadGuidedState(c),selection=state.selection?.[mode]||{};
+ const selectedContext=Math.max(0,contexts.findIndex(ctx=>guidedContextIdentity(ctx)===selection.context));
+ const ctx=contexts[selectedContext],list=GUIDED_QUESTIONS[mode],topicId=list.some(q=>q.id===selection.topic)||selection.topic==="auto"?selection.topic:list[0].id;
+ const topic=list.find(q=>q.id===topicId)||list[0],identity=guidedContextIdentity(ctx);
+ const recordKey=guidedRecordKey(mode,identity,topicId),record=state.records?.[recordKey]||{};
+ if(record.reply&&record.answer){
+ record.reply=buildGuidedReply({mode,topicId,question:record.question,answer:record.answer,respondent:record.respondent,a:ctx.a,b:ctx.b});
+ if(state.records?.[recordKey]){state.records[recordKey].reply=record.reply;saveGuidedState(c,state);}
+ }
+ const names=mode==="family"?[ctx.a.name||"家长",(ctx.b.name||"孩子")+"（本人回答）",(ctx.a.name||"家长")+"（代述孩子）"]:[ctx.a.name||"当事人",ctx.b.name||"对方","双方分别回答"];
+ const respondent=names.includes(record.respondent)?record.respondent:names[0];
+ return '<style>.guided-reply-panel label{display:grid;gap:6px;margin:14px 0;font-size:14px}.guided-reply-panel select,.guided-reply-panel textarea{width:100%;box-sizing:border-box;max-width:100%;padding:10px;border:1px solid #d6c39b;border-radius:8px;background:#fffdf8;color:#292621;font:inherit}.guided-reply-panel .question-box p{overflow-wrap:anywhere}</style><section class="foundation-block guided-reply-panel" data-guided-mode="'+mode+'" data-guided-record="'+esc(recordKey)+'"><div class="card-heading"><div><small>CONSULTATION RESPONSE</small><h3>顾客回答后｜Josephine现场回应</h3></div></div>'+
+ '<p class="panel-note">先保存双方最新资料。选好对象和问题，记录实际回答，再生成照读回应。回答与话术保存在当前浏览器的顾客档案内。</p>'+
+ '<label>这次回应哪两个人<select data-guided-context>'+contexts.map((pair,i)=>'<option value="'+i+'" '+(i===selectedContext?"selected":"")+'>'+esc(pair.label)+'</option>').join("")+'</select></label>'+
+ '<label>咨询问题<select data-guided-topic>'+list.map(q=>'<option value="'+q.id+'" '+(q.id===topicId?"selected":"")+'>'+esc(q.title)+'</option>').join("")+'<option value="auto" '+(topicId==="auto"?"selected":"")+'>自订问题／按回答识别主题</option></select></label>'+
+ '<label>你实际问的问题<textarea rows="3" data-guided-question style="width:100%;box-sizing:border-box">'+esc(record.question||(topicId==="auto"?"":topic.question))+'</textarea></label>'+
+ '<label>谁在回答<select data-guided-respondent>'+names.map(n=>'<option '+(n===respondent?"selected":"")+'>'+esc(n)+'</option>').join("")+'</select></label>'+
+ '<label>顾客原话<textarea rows="4" data-guided-answer style="width:100%;box-sizing:border-box" placeholder="记录具体回答；也可以写没有、不确定，系统会改用对应追问。">'+esc(record.answer||"")+'</textarea></label>'+
+ '<div class="actions"><button type="button" class="btn btn-primary" data-guided-generate>生成我的现场回应</button></div><p data-guided-status role="status" aria-live="polite"></p>'+
+ '<div data-guided-output>'+guidedResultHtml(record.reply)+'</div></section>';
+}
+document.addEventListener("input",event=>{
+ const panel=event.target.closest(".guided-reply-panel");if(!panel)return;
+ if(!event.target.matches("[data-guided-question],[data-guided-answer]"))return;
+ const c=currentCustomer();if(!c)return;guidedSaveDraft(panel,c);
+ panel.querySelector("[data-guided-status]").textContent="已保存修改；请重新生成回应。";
+ panel.querySelector("[data-guided-output]").replaceChildren();
+ const data=loadGuidedState(c);if(data.records?.[panel.dataset.guidedRecord]){delete data.records[panel.dataset.guidedRecord].reply;saveGuidedState(c,data);}
+});
+document.addEventListener("change",event=>{
+ const panel=event.target.closest(".guided-reply-panel");if(!panel)return;
+ const c=currentCustomer();if(!c)return;guidedSaveDraft(panel,c);
+ if(event.target.matches("[data-guided-respondent]")){
+ panel.querySelector("[data-guided-output]").replaceChildren();
+ const data=loadGuidedState(c);delete data.records[panel.dataset.guidedRecord].reply;saveGuidedState(c,data);return;
+ }
+ if(!event.target.matches("[data-guided-topic],[data-guided-context]"))return;
+ const mode=panel.dataset.guidedMode,contexts=guidedContexts(mode,c);
+ const ctx=contexts[Number(panel.querySelector("[data-guided-context]").value)];
+ const data=loadGuidedState(c);data.selection=data.selection||{};data.selection[mode]={context:guidedContextIdentity(ctx),topic:panel.querySelector("[data-guided-topic]").value};saveGuidedState(c,data);
+ panel.outerHTML=guidedReplyPanel(mode,c);
+});
+document.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-guided-generate],[data-guided-copy]");if(!button)return;
+ const panel=button.closest(".guided-reply-panel"),c=currentCustomer();if(!panel||!c)return;
+ const status=panel.querySelector("[data-guided-status]");
+ if(button.matches("[data-guided-copy]")){
+ const reply=loadGuidedState(c).records?.[panel.dataset.guidedRecord]?.reply;
+ if(!reply)return;
+ try{await navigator.clipboard.writeText(reply.readText);status.textContent="照读话术已复制。";}catch{status.textContent="当前浏览器无法自动复制，请长按上方话术复制。";}return;
+ }
+ guidedSaveDraft(panel,c);
+ const mode=panel.dataset.guidedMode,ctx=guidedContexts(mode,c)[Number(panel.querySelector("[data-guided-context]").value)];
+ const reply=buildGuidedReply({mode,topicId:panel.querySelector("[data-guided-topic]").value,question:panel.querySelector("[data-guided-question]").value,answer:panel.querySelector("[data-guided-answer]").value,respondent:panel.querySelector("[data-guided-respondent]").value,a:ctx.a,b:ctx.b});
+ if(!reply.valid){status.textContent=reply.message;return;}
+ const data=loadGuidedState(c);data.records[panel.dataset.guidedRecord].reply=reply;saveGuidedState(c,data);
+ panel.querySelector("[data-guided-output]").innerHTML=guidedResultHtml(reply);status.textContent="已生成并保存，请核对回答意思后照读。";
+});
 
 function renderModule(key,c){
   const panel=document.querySelector("#v6-module-panel");
