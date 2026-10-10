@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { calculateHighPeakProfile, calculateBlueprint } from "../src/engine/blueprint.js";
 import {
- COOP_MAGNETIC_META, COOP_MAGNETIC_GUIDES, COOP_MAGNETIC_PARENT_CHILD_GUIDES,
+ COOP_MAGNETIC_META, COOP_MAGNETIC_GUIDES, COOP_MAGNETIC_PARENT_CHILD_GUIDES, COOP_MAGNETIC_FRIEND_GUIDES,
  calculateMagneticNumber, prepareCooperationMagneticField, renderCooperationMagneticField, buildCooperationMagneticEntries
 } from "../src/cooperation-magnetic-field.js";
 
@@ -41,6 +41,7 @@ test("Year 2000 has divergent AURMOVA O code, so use life number and show differ
 test("All nine sourced code summaries plus nine original parent-child rewrites exist",()=>{
  assert.deepEqual(Object.keys(COOP_MAGNETIC_GUIDES),["1","2","3","4","5","6","7","8","9"]);
  assert.deepEqual(Object.keys(COOP_MAGNETIC_PARENT_CHILD_GUIDES),["1","2","3","4","5","6","7","8","9"]);
+ assert.deepEqual(Object.keys(COOP_MAGNETIC_FRIEND_GUIDES),["1","2","3","4","5","6","7","8","9"]);
  assert.equal(buildCooperationMagneticEntries().length,10);
  for(let n=1;n<=9;n++){
   const a=COOP_MAGNETIC_GUIDES[n],b=COOP_MAGNETIC_PARENT_CHILD_GUIDES[n];
@@ -68,6 +69,9 @@ test("Friend and partners use the same life method but context-specific advice",
  const b=renderCooperationMagneticField("01/01/2000","21/11/1995","friendship",{aName:"Alpha",bName:"Beta"});
  assert.ok(a.includes("合作版提醒"));
  assert.ok(b.includes("朋友版提醒"));
+ assert.ok(b.includes("关怀与相互付出"));
+ assert.ok(b.includes("朋友关系合成6"));
+ assert.ok(!b.includes("原书简写为「合财，能见钱」"));
  assert.ok(a.includes("合作密码（性格磁场）6号"));
  assert.ok(b.includes("朋友关系"));
  assert.ok(a.includes("与45组配对区别"));
