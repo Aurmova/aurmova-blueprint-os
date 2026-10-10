@@ -119,6 +119,18 @@ export const COOP_MAGNETIC_PARENT_CHILD_GUIDES=Object.freeze({
  8:{title:"成长目标与压力分担",meaning:"有目标的同时留意儿童可承受的学习和情绪压力",script:"“亲子版8不讲做大平台或发财，而是看目标和压力。我们可以一起确认家庭对成绩、比赛或表现的期待，是否超过孩子当前能承担的程度。鼓励努力，也要允许他休息。”",question:"孩子最近是不是特别担心自己达不到家长的期待？",action:"共同选一个可实现的小目标并预留休息。"},
  9:{title:"共同梦想与实践",meaning:"把想象和期待变成孩子真正感兴趣的适龄活动",script:"“亲子版9可以讨论梦想和创作，但不是说孩子注定成功。我们可以鼓励孩子讲讲自己的愿望，再陪他做一个很小的尝试。重要的是理解他的真实兴趣，不是用大人的目标代替孩子的选择。”",question:"孩子最想尝试的一件事，是否出于他自己的兴趣？",action:"陪孩子把一个愿望转成一项有趣的小行动。"}
 });
+// 友情版不套用企业营收、合同、平台扩张等成人商业主题。
+export const COOP_MAGNETIC_FRIEND_GUIDES=Object.freeze({
+ 1:{title:"创意与彼此空间",meaning:"一起尝试活动，也尊重各自爱好。",watch:"如果双方都想按自己的方式安排，可能需要协调彼此的时间。",script:"“朋友之间的合成1，我们可以讨论你们会不会互相带来新点子，也能不能保留自己的空间。这不是说友情一定会成功，更不会因1号就有钱。先问你们一起做什么最开心，以及不同意见怎么沟通。”",question:"一方想尝试新活动、另一方不想时通常怎样商量？",action:"共同决定一项双方愿意尝试的小活动。"},
+ 2:{title:"倾听与聊天",meaning:"一起聊天分享感受，重点是有没有真正互相倾听。",watch:"可能说了很多，却没有听清彼此真正需要什么。",script:"“朋友的合成2，可以观察你们是不是有很多共同话题。但朋友聊得投机也要注意，是不是双方都能好好说话、认真听，不需要每次都给建议。”",question:"你想倾诉时，对方会耐心听还是急着下判断？",action:"一次聊天中让彼此各说完一件重要的事。"},
+ 3:{title:"活跃与尊重节奏",meaning:"朋友一起做事有活力，也要尊重对方是否准备好。",watch:"如果活动临时决定太快，可能使人不舒服。",script:"“朋友之间合成3，可以谈你们有没有一起行动的活力；不过一方想马上出门，另一方需要先安排，也很正常。尊重彼此节奏比配对数字更重要。”",question:"有没有因为临时邀约而产生误会？",action:"下次安排活动时先问双方时间和意愿。"},
+ 4:{title:"可靠与相互承诺",meaning:"重视稳定的友情与合理的承诺。",watch:"如果太在意规则，可能把一次临时改变看成不重视。",script:"“朋友的合成4可以谈可靠和信任。你们可能希望对方答应的事情能做到，但偶尔临时有事也需要沟通。真正重要的是遇到变化时怎样互相理解。”",question:"朋友临时改约时，你通常怎么想？",action:"清楚约定一次聚会安排和可以变更的范围。"},
+ 5:{title:"杂事与联络节奏",meaning:"生活事情多时学习筛选活动与维持联系。",watch:"联系减少不代表友谊一定变坏，先核对现实原因。",script:"“朋友的合成5可以当作忙碌与分心的提醒。我们不会说你们一定有阻碍，而是看看双方工作和生活杂事是不是让联系变少了。如果是，可以找一个双方都没有负担的方式维持关系。”",question:"最近是不是双方太忙，想联系却一直拖延？",action:"用双方都方便的方式安排一次简单联系。"},
+ 6:{title:"关怀与相互付出",meaning:"强调支持与照顾，不把课程「合财」当成友情赚钱预言。",watch:"过度付出或期待对方随时回应，容易消耗关系。",script:"“朋友关系合成6，我们只讨论支持和付出：你们在困难时愿不愿意互相帮忙，也懂不懂拒绝超出能力的请求。原书的合财是商业语境，不代表朋友一定会带财。好的友情也需要边界。”",question:"帮助朋友的时候，你是否也能说出自己做不到的部分？",action:"练习一次真诚表达需要或界线。"},
+ 7:{title:"朋友资源与信任",meaning:"通过朋友接触不同见解，同时保护隐私和信任。",watch:"朋友认识的人多，不代表一定能为你解决问题。",script:"“朋友的合成7可以讨论人际连接。你们也许能分享不同的生活见闻，但并不代表朋友多就一定有贵人。介绍任何人的联系方式前都要先得到同意。”",question:"你们的关系中哪些互相帮助是双方真正同意的？",action:"分享一条对双方都有帮助、且不涉及他人隐私的信息。"},
+ 8:{title:"一起成长与压力界线",meaning:"朋友可以鼓励彼此进步，但不需要比较成就。",watch:"若一方不断催促另一方改变，会带来压力。",script:"“朋友的合成8不是说你们会一起做大生意，而是看看两个人会不会互相激励，也会不会因比较而累。朋友可以互相支持成长，但每个人的节奏要自己决定。”",question:"当朋友做得更好时，你是被鼓舞还是会感到压力？",action:"各自分享一个目标，用支持代替比较。"},
+ 9:{title:"共同理想与现实陪伴",meaning:"朋友可以一起讨论梦想，也能互相支持小小实践。",watch:"理想不完全一致，不代表友情不值得保留。",script:"“朋友合成9可以谈共同的兴趣和理想。你们也许喜欢一起聊未来，但不需要每个梦想都一样。真正的友谊还包括尊重不同意见，以及在现实生活里愿意互相支持。”",question:"你们的梦想不同的时候，能不能仍然为对方开心？",action:"互相了解一件对方在乎的事，并给予尊重。"}
+});
 const htmlEscape=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const digits=number=>[...String(number)].map(Number);
 const strictBirthday=raw=>{
@@ -158,6 +170,8 @@ export function renderCooperationMagneticField(birthdayA,birthdayB,kind="coopera
  const p=prepareCooperationMagneticField(birthdayA,birthdayB,kind,ctx);if(!p)return "";
  const g=p.guide,e=htmlEscape,n=p.numberInfo;
  const cg=kind==="parentChild"?COOP_MAGNETIC_PARENT_CHILD_GUIDES[n.number]:null;
+ const fg=kind==="friendship"?COOP_MAGNETIC_FRIEND_GUIDES[n.number]:null;
+ const guideForContext=cg||fg;
  const label=kind==="cooperation"?"合作伙伴":kind==="friendship"?"朋友关系":"亲子互动";
  const collapsed=ctx.collapsed?"":" open";
  const scripts=kind==="parentChild"
@@ -167,19 +181,19 @@ export function renderCooperationMagneticField(birthdayA,birthdayB,kind="coopera
      :"合作版提醒：进一步核对项目、合同、出资、角色分工、金钱往来和双方退出安排。";
  const sumFormula=n.formula;
  const aSource=p.lifeA.raw+"/"+p.lifeA.number,bSource=p.lifeB.raw+"/"+p.lifeB.number;
- const questionHtml=(cg?[cg.question]:g.questions).map(q=>"<li>"+e(q)+"</li>").join("");
+ const questionHtml=(guideForContext?[guideForContext.question]:g.questions).map(q=>"<li>"+e(q)+"</li>").join("");
  const warn=p.isSameAsMainPersonality===false
    ?"<div class=\"formula-note\"><b>数字来源差异：</b>其中一人的生命数与主性格O不同，本模块严格使用生命数；既有45组主性格配对仍按O位计算，不能互相覆盖。</div>":"";
  return '<details class="foundation-block coop-magnetic-reading"'+collapsed+'>'
-  +'<summary style="cursor:pointer;font-weight:700;padding:4px 0">性格磁场｜'+e(p.aName)+' × '+e(p.bName)+'｜合成'+n.number+'号 · '+e(cg?cg.title:g.title)+'</summary>'
+  +'<summary style="cursor:pointer;font-weight:700;padding:4px 0">性格磁场｜'+e(p.aName)+' × '+e(p.bName)+'｜合成'+n.number+'号 · '+e(guideForContext?guideForContext.title:g.title)+'</summary>'
   +'<div class="card-heading"><div><small>COOPERATION MAGNETIC FIELD · DIFFERENT FROM 45 PAIRS</small><h3>'+e(label)+'｜合作密码（性格磁场）'+n.number+'号</h3></div></div>'
   +'<div class="formula-note"><b>双方各自生命数：</b>'+e(p.aName)+' '+e(aSource)+'（路径'+e(p.lifeA.path.join("→"))+'）＋'+e(p.bName)+' '+e(bSource)+'（路径'+e(p.lifeB.path.join("→"))+'）。<br><b>合成公式：</b>'+e(sumFormula)+'。<br><b>与45组配对区别：</b>'+e(COOP_MAGNETIC_META.difference)+'</div>'
   +warn
-  +'<article class="card reading-card"><h4>① 课程主题参考</h4><p>'+e(cg?cg.meaning:g.sourceMeaning)+'</p><small>原书参考：'+e(g.page)+'</small></article>'
-  +'<article class="card reading-card"><h4>② 可能的合作／相处优势</h4><p>'+e(cg?cg.meaning:g.possibleStrength)+'</p></article>'
-  +'<article class="card reading-card"><h4>③ 需要现实核对的摩擦</h4><p>'+e(cg?"是否有过高期待、没有说清需求或无法兼顾各自界线；应以孩子真实感受为主。":g.friction)+'</p></article>'
-  +'<article class="card reading-card"><h4>④ AURMOVA行动建议</h4><p>'+e(cg?cg.action:g.advice)+'</p><p><b>本周可做：</b>'+e(cg?cg.action:g.action)+'</p></article>'
-  +'<div class="question-box"><b>⑤ Josephine可照读白话</b><p>'+e(cg?cg.script:g.script)+'</p><p>'+e(scripts)+'</p></div>'
+  +'<article class="card reading-card"><h4>① 课程主题参考</h4><p>'+e(guideForContext?guideForContext.meaning:g.sourceMeaning)+'</p><small>原书参考：'+e(g.page)+'</small></article>'
+  +'<article class="card reading-card"><h4>② 可能的合作／相处优势</h4><p>'+e(guideForContext?guideForContext.meaning:g.possibleStrength)+'</p></article>'
+  +'<article class="card reading-card"><h4>③ 需要现实核对的摩擦</h4><p>'+e(cg?"是否有过高期待、没有说清需求或无法兼顾各自界线；应以孩子真实感受为主。":fg?fg.watch:g.friction)+'</p></article>'
+  +'<article class="card reading-card"><h4>④ AURMOVA行动建议</h4><p>'+e(guideForContext?guideForContext.action:g.advice)+'</p><p><b>本周可做：</b>'+e(guideForContext?guideForContext.action:g.action)+'</p></article>'
+  +'<div class="question-box"><b>⑤ Josephine可照读白话</b><p>'+e(guideForContext?guideForContext.script:g.script)+'</p><p>'+e(scripts)+'</p></div>'
   +'<div class="question-box"><b>⑥ 两人咨询追问</b><ul>'+questionHtml+'</ul><p><b>回答有：</b>请各自举一个真实场景，了解是否有协商空间。<b>回答没有：</b>不强行套用教材标签，继续核对实际情况。</p></div>'
   +'<div class="formula-note"><b>来源：</b>'+e(COOP_MAGNETIC_META.source)+'。<b>适用范围：</b>'+e(COOP_MAGNETIC_META.scope)+'<br><b>专业界线：</b>'+e(COOP_MAGNETIC_META.agency)+'</div>'
   +'</details>';
