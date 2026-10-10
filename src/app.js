@@ -15,7 +15,7 @@ import { buildWuxingHealthLibraryEntries } from "./wuxing-health-course.js?v=2";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 import { buildAnnualYearGuidanceEntries } from "./annual-year-guidance.js?v=1";
 import { buildPartnerPairCourseEntries } from "./partner-pair-course.js?v=1";
-import { buildCooperationMagneticEntries } from "./cooperation-magnetic-field.js?v=1";
+import { buildCooperationMagneticEntries } from "./cooperation-magnetic-field.js?v=2";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -145,7 +145,7 @@ function libraryEntries(){
   entries.push(...buildAnnualYearGuidanceEntries());
   // 1–9 共45组合作与结合密码课堂摘要；不生成新关系联合码。
   entries.push(...buildPartnerPairCourseEntries());
-  // 合作磁场另按两人的生命数求和；原书排除夫妻，与O位45组配对分开。
+  // AURMOVA合作磁场按两人的主性格O位求和；原书生命数算法仅供课程存档，不生成第二个结果。
   entries.push(...buildCooperationMagneticEntries());
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
   entries.push(...buildStudentCompositeEntries());
