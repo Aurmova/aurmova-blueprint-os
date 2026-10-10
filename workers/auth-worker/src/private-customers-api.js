@@ -9,6 +9,9 @@ const FIELDS = [
   "occupation", "consultationTheme", "customerQuestion", "consultationFocus"
 ];
 const MAX_JSON_BYTES = 16000;
+const MAX_MEMBERS = 10;
+const GROUP_TYPES = new Set(["关系蓝图解析", "亲子蓝图解析", "合作蓝图解析"]);
+const STATUS_TYPES = new Set(["准备中", "咨询中", "已完成"]);
 const MAX_RESULTS = 30;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 
@@ -42,7 +45,21 @@ export function normalizePrivateCustomer(body) {
     throw new Error("请选择有效的咨询项目");
   }
   const consultationTypes = [...new Set(rawTypes)];
-  const profile = { name, gender, birthday, whatsapp, consultationTypes, consultationType: consultationTypes[0], status: "准备中" };
+  const status = body.status === undefined ? "准备中" : cleanText(body.status, 20);
+  if (!STATUS_TYPES.has(status)) throw new Error("档案状态无效");
+  const profile = { name, gender, birthday, whatsapp, consultationTypes, consultationType: consultationTypes[0], status };
+  const rawMembers = body.members === undefined ? [] : body.members;
+  if (!Array.isArray(rawMembers) || rawMembers.length > MAX_MEMBERS) throw new Error("成员资料无效");
+  if (rawMembers.length && !consultationTypes.some(t => GROUP_TYPES.has(t))) throw new Error("咨询项目不支持添加成员");
+  profile.members = rawMembers.map(member => {
+    if (!member || typeof member !== "object" || Array.isArray(member)) throw new Error("成员资料无效");
+    const mName = cleanText(member.name, 100);
+    const mGender = cleanText(member.gender, 30);
+    const mBirthday = cleanText(member.birthday, 10);
+    const mRole = cleanText(member.role, 40);
+    if (!mName || !mGender || !validBirthday(mBirthday)) throw new Error("请填写每位成员的姓名、性别和有效生日");
+    return { name: mName, gender: mGender, birthday: mBirthday, role: mRole };
+  });
   for (const field of FIELDS) {
     if (field === "consultationFocus") {
       if (body[field] !== undefined && (!Array.isArray(body[field]) || body[field].length > 10 ||
@@ -82,7 +99,7 @@ export async function handlePrivateCustomers(request, env, owner, path, send) {
   if (!/^\d+$/.test(ownerId) || ownerId !== String(env.OWNER_GITHUB_USER_ID)) {
     return send({ error: "Authentication required" }, 401);
   }
-  const route = /^\/private\/customers(?:\/([a-f0-9-]{36}|search))?$/.exec(path);
+  const route = /^\/private\/customers(?:\/([a-f0-9-]{36}|search)(?:\/(update))?)?$/.exec(path);
   if (!route) return send({ error: "Not found" }, 404);
   const suffix = route[1] || "";
   try {
@@ -114,7 +131,37 @@ export async function handlePrivateCustomers(request, env, owner, path, send) {
       ).bind(ownerId, search, search, MAX_RESULTS).all();
       return send({ customers: (data.results || []).map(viewRow), limit: MAX_RESULTS }, 200);
     }
-    if (request.method === "GET" && UUID.test(suffix)) {
+    if (request.method === "POST" && UUID.test(suffix) && route[2] === "update") {
+      const body = await parseBody(request);
+      const existing = await env.DB.prepare(
+        "SELECT profile_json, updated_at FROM private_customers WHERE id = ? AND owner_github_id = ?"
+      ).bind(suffix, ownerId).first();
+      if (!existing) return send({ error: "Not found" }, 404);
+      if (!body || typeof body !== "object" || Array.isArray(body) ||
+          typeof body.updatedAt !== "string" || body.updatedAt !== existing.updated_at) {
+        return send({ error: "档案已被修改或版本过期，请重新读取后再编辑" }, 409);
+      }
+      const previous = JSON.parse(existing.profile_json);
+      const merged = { ...previous, ...body };
+      if (body.consultationType && !Object.prototype.hasOwnProperty.call(body, "consultationTypes")) {
+        merged.consultationTypes = [body.consultationType];
+      }
+      const normalized = normalizePrivateCustomer(merged);
+      const updatedAt = new Date(Math.max(Date.now(), Date.parse(existing.updated_at) + 1)).toISOString();
+      const updated = {
+        ...previous, ...normalized, id: suffix, createdAt: previous.createdAt,
+        updatedAt
+      };
+      const result = await env.DB.prepare(
+        "UPDATE private_customers SET name = ?, birthday = ?, gender = ?, whatsapp = ?, consultation_type = ?, profile_json = ?, updated_at = ? WHERE id = ? AND owner_github_id = ? AND updated_at = ?"
+      ).bind(updated.name, updated.birthday, updated.gender, updated.whatsapp,
+        updated.consultationType, JSON.stringify(updated), updatedAt, suffix, ownerId, existing.updated_at).run();
+      if (result.meta?.changes !== 1) {
+        return send({ error: "档案已被修改，请重新读取后重试" }, 409);
+      }
+      return send({ customer: updated }, 200);
+    }
+    if (request.method === "GET" && UUID.test(suffix) && !route[2]) {
       const row = await env.DB.prepare(
         "SELECT profile_json FROM private_customers WHERE id = ? AND owner_github_id = ?"
       ).bind(suffix, ownerId).first();
@@ -122,7 +169,7 @@ export async function handlePrivateCustomers(request, env, owner, path, send) {
     }
     return send({ error: "Method not allowed" }, 405);
   } catch (error) {
-    if (error instanceof Error && /^(档案格式无效|字段必须是文字|字段内容过长|请填写有效|请选择有效|咨询重点格式无效|请求内容过长|JSON 格式无效)/.test(error.message)) {
+    if (error instanceof Error && /^(档案格式无效|字段必须是文字|字段内容过长|请填写有效|请选择有效|咨询重点格式无效|成员资料无效|请填写每位成员|咨询项目不支持添加成员|档案状态无效|请求内容过长|JSON 格式无效)/.test(error.message)) {
       return send({ error: error.message }, 400);
     }
     // Avoid accidentally exposing PII, D1 SQL errors, or tokens.
