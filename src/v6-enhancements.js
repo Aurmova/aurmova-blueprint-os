@@ -4,6 +4,7 @@ import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4
 import { renderAnnualYearGuidance } from "./annual-year-guidance.js?v=1";
 import { renderPartnerPairReading } from "./partner-pair-course.js?v=1";
 import { renderCooperationMagneticField } from "./cooperation-magnetic-field.js?v=2";
+import { renderSpouseCombination } from "./spouse-combination-course.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -2907,12 +2908,13 @@ function relationshipCross(a,b,ctx={}){
 function relationshipPanel(c){
   const r=loadRelationship(c.id), a=calculateBlueprint(c.birthday), b=r.birthday?calculateBlueprint(r.birthday):null;
   return '<div class="module-render relationship-system-mode">'
-    +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>夫妻／情侣 · 互动合盘</span></div>'
-    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
+    +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>'+esc(r.type||"伴侣／感情")+' · 互动合盘</span></div>'
+    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="已婚夫妻"?"selected":"")+' >已婚夫妻</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
     +(b
       ?(r.type==="朋友"?renderCooperationMagneticField(c.birthday,r.birthday,"friendship",{
          aName:c.name||"当事人",bName:r.name||"朋友",mainA:a?.mainPersonality,mainB:b.mainPersonality
        }):"")
+        +(r.type==="已婚夫妻"?renderSpouseCombination(c.birthday,r.birthday,r.type,{aName:c.name||"当事人",bName:r.name||"配偶"}):"")
         +renderPartnerPairReading(a.mainPersonality,b.mainPersonality,"relationship",{aName:c.name||"A",bName:r.name||"B"})
         +relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
         +innerDriveRelationshipPanel(c,r,b)
