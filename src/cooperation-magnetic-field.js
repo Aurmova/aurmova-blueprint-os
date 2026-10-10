@@ -1,15 +1,16 @@
 // AURMOVA 私人教学｜合作密码（性格磁场）
 // 原书参考：用户上传《最实用的数字性格分析学》第241页及相邻续页。
-// 这是以两人的「生命数」相加得出的独立合成数字，绝不是此前45组主性格O位配对。
+// AURMOVA经咨询师确认采用「双方主性格O位相加化简」作为磁场；原书生命数公式仅作为来源留档。
 // 原文说明排除夫妻。本工具限定伙伴、朋友、亲子三种用途；夫妻／情侣不会自动生成。
 // 传统数字心理学没有经过科学验证，不可作为经济、关系或命运预测。
-import { calculateHighPeakProfile } from "./engine/blueprint.js?v=54";
+import { calculateBlueprint } from "./engine/blueprint.js?v=54";
 
 export const COOP_MAGNETIC_META=Object.freeze({
  source:"《最实用的数字性格分析学》合作密码（性格磁场），用户照片第241页及紧接续页",
- formula:"两人各自生日八位数字逐位求和，分别得到生命数（可记录原始合数如33/6、31/4）；再将两个生命数相加并化简至1–9，如6＋4＝10→1。",
- difference:"45组结合／合作配对采用各自主性格O位，仅描述两人相处特点；本模块采用两人生命数合成一个新的课程磁场数字。两者互不替代。特别是2000年出生者，主性格O位可能受AURMOVA自定义年份规则影响，与生命数不同。",
- scope:"原书写明“除夫妻以外关系”，例如亲子、朋友和合作伙伴；夫妻／情侣不会自动应用此公式。对多个合作伙伴逐人计算，不擅自计算没有明确规则的三人合成。",
+ formula:"AURMOVA目前统一规则：先计算双方各自主性格O位（1–9），把两个O位相加再化简至个位，例如O6＋O4＝10→1。",
+ textbookFormula:"原书第241页原本以两人的生命数相加（例如33/6＋31/4，取6＋4＝10→1）。这是教材原始算法，保留供学习，不用于正式网页自动计算。",
+ difference:"45组配对和合作磁场都读取双方O位，但分析方式不同：45组按两个主性格查互动优势／摩擦；合作磁场把两个O位相加化简为1–9。原书生命数相加是另一取数法，仅资料库留档，正式界面不会出现第二个磁场结果。",
+ scope:"参照原书适用对象：亲子、朋友、合作伙伴；不自动应用于夫妻／情侣。AURMOVA只改变取数为O位，未扩大原书适用范围；多人合作须逐人分析，不虚构三人合成公式。",
  agency:"所有结果为课程中的隐喻，不是科学的人格测量，也不能证明合财、盈利、合作成功或压力必然发生。重大合作须核对真实经历、明确财务、职责及双方同意。",
  active:[1,3,5,7,9],passive:[2,4,6,8],
  activityExplanation:"原书把1、3、5、7、9称为主动性格，把2、4、6、8称为被动性格。此为教材自己的学习分类，不表示个人必然积极、被动或能力高低。"
@@ -143,27 +144,26 @@ const strictBirthday=raw=>{
  const date=new Date(Date.UTC(y,mon-1,d));
  return date.getUTCFullYear()===y&&date.getUTCMonth()===mon-1&&date.getUTCDate()===d;
 };
-export function calculateMagneticNumber(lifeA,lifeB){
- if(!Number.isInteger(lifeA)||!Number.isInteger(lifeB)||lifeA<1||lifeA>9||lifeB<1||lifeB>9)return null;
- const sum=lifeA+lifeB,steps=[sum];let number=sum;
+export function calculateMagneticNumber(oA,oB){
+ if(!Number.isInteger(oA)||!Number.isInteger(oB)||oA<1||oA>9||oB<1||oB>9)return null;
+ const sum=oA+oB,steps=[sum];let number=sum;
  while(number>9){number=digits(number).reduce((a,b)=>a+b,0);steps.push(number);}
- return {a:lifeA,b:lifeB,sum,steps,number,formula:lifeA+"＋"+lifeB+"＝"+(sum===number?String(number):sum+"→"+number)};
+ return {a:oA,b:oB,sum,steps,number,formula:oA+"＋"+oB+"＝"+(sum===number?String(number):sum+"→"+number)};
 }
 export function prepareCooperationMagneticField(birthdayA,birthdayB,kind="cooperation",ctx={}){
  if(!["cooperation","friendship","parentChild"].includes(kind))return null;
  if(!strictBirthday(birthdayA)||!strictBirthday(birthdayB))return null;
- const a=calculateHighPeakProfile(birthdayA),b=calculateHighPeakProfile(birthdayB);
- if(!a?.life||!b?.life)return null;
- const numberInfo=calculateMagneticNumber(a.life.number,b.life.number);
+ // 永远按两个人自己的蓝图O位计算；不采用旧代码传入的生命数或外部回传的数值。
+ const blueprintA=calculateBlueprint(birthdayA),blueprintB=calculateBlueprint(birthdayB);
+ const oA=blueprintA?.mainPersonality,oB=blueprintB?.mainPersonality;
+ const numberInfo=calculateMagneticNumber(oA,oB);
  if(!numberInfo)return null;
  return {
   aName:String(ctx.aName||"当事人").trim()||"当事人",
   bName:String(ctx.bName||"另一方").trim()||"另一方",
   kind,numberInfo,guide:COOP_MAGNETIC_GUIDES[numberInfo.number],
-  lifeA:a.life,lifeB:b.life,
-  isSameAsMainPersonality:ctx.mainA==null||ctx.mainB==null?null:
-    Number(ctx.mainA)===a.life.number&&Number(ctx.mainB)===b.life.number,
-  mainA:ctx.mainA,mainB:ctx.mainB
+  mainA:oA,mainB:oB,
+  calculationBasis:"O",method:"AURMOVA主性格O位合成（非原书生命数）"
  };
 }
 export function renderCooperationMagneticField(birthdayA,birthdayB,kind="cooperation",ctx={}){
@@ -180,15 +180,11 @@ export function renderCooperationMagneticField(birthdayA,birthdayB,kind="coopera
      ?"朋友版提醒：重点看沟通、共同活动、空间界线及是否互相尊重；不要把商业盈利解读套在友情上。"
      :"合作版提醒：进一步核对项目、合同、出资、角色分工、金钱往来和双方退出安排。";
  const sumFormula=n.formula;
- const aSource=p.lifeA.raw+"/"+p.lifeA.number,bSource=p.lifeB.raw+"/"+p.lifeB.number;
  const questionHtml=(guideForContext?[guideForContext.question]:g.questions).map(q=>"<li>"+e(q)+"</li>").join("");
- const warn=p.isSameAsMainPersonality===false
-   ?"<div class=\"formula-note\"><b>数字来源差异：</b>其中一人的生命数与主性格O不同，本模块严格使用生命数；既有45组主性格配对仍按O位计算，不能互相覆盖。</div>":"";
  return '<details class="foundation-block coop-magnetic-reading"'+collapsed+'>'
   +'<summary style="cursor:pointer;font-weight:700;padding:4px 0">性格磁场｜'+e(p.aName)+' × '+e(p.bName)+'｜合成'+n.number+'号 · '+e(guideForContext?guideForContext.title:g.title)+'</summary>'
   +'<div class="card-heading"><div><small>COOPERATION MAGNETIC FIELD · DIFFERENT FROM 45 PAIRS</small><h3>'+e(label)+'｜合作密码（性格磁场）'+n.number+'号</h3></div></div>'
-  +'<div class="formula-note"><b>双方各自生命数：</b>'+e(p.aName)+' '+e(aSource)+'（路径'+e(p.lifeA.path.join("→"))+'）＋'+e(p.bName)+' '+e(bSource)+'（路径'+e(p.lifeB.path.join("→"))+'）。<br><b>合成公式：</b>'+e(sumFormula)+'。<br><b>与45组配对区别：</b>'+e(COOP_MAGNETIC_META.difference)+'</div>'
-  +warn
+  +'<div class="formula-note"><b>统一使用主性格O位：</b>'+e(p.aName)+' O='+p.mainA+'；'+e(p.bName)+' O='+p.mainB+'。<br><b>合作磁场公式：</b>O位 '+e(sumFormula)+'。<br><b>与45组配对区别：</b>'+e(COOP_MAGNETIC_META.difference)+'</div>'
   +'<article class="card reading-card"><h4>① 课程主题参考</h4><p>'+e(guideForContext?guideForContext.meaning:g.sourceMeaning)+'</p><small>原书参考：'+e(g.page)+'</small></article>'
   +'<article class="card reading-card"><h4>② 可能的合作／相处优势</h4><p>'+e(guideForContext?guideForContext.meaning:g.possibleStrength)+'</p></article>'
   +'<article class="card reading-card"><h4>③ 需要现实核对的摩擦</h4><p>'+e(cg?"是否有过高期待、没有说清需求或无法兼顾各自界线；应以孩子真实感受为主。":fg?fg.watch:g.friction)+'</p></article>'
@@ -200,15 +196,15 @@ export function renderCooperationMagneticField(birthdayA,birthdayB,kind="coopera
 }
 export function buildCooperationMagneticEntries(){
  const c="合作密码｜性格磁场";
- return [{category:c,title:"性格磁场公式｜生命数合成，与45组主性格配对不同",
-   keywords:"合作磁场 性格磁场 生命数 33/6 31/4 合作密码 夫妻除外 亲子 朋友 伙伴",
-   text:[COOP_MAGNETIC_META.source,COOP_MAGNETIC_META.formula,COOP_MAGNETIC_META.difference,
+ return [{category:c,title:"合作磁场计算法｜AURMOVA O位合成，原书生命数公式留档",
+   keywords:"合作磁场 性格磁场 主性格 O位 合成 生命数原书 33/6 31/4 合作密码 夫妻除外 亲子 朋友 伙伴",
+   text:[COOP_MAGNETIC_META.source,"【AURMOVA正式算法】"+COOP_MAGNETIC_META.formula,"【原书不同算法·仅留档】"+COOP_MAGNETIC_META.textbookFormula,COOP_MAGNETIC_META.difference,
      COOP_MAGNETIC_META.scope,COOP_MAGNETIC_META.activityExplanation,COOP_MAGNETIC_META.agency].join("\n\n")},
  ...Object.entries(COOP_MAGNETIC_GUIDES).map(([k,g])=>({category:c,
    title:"合作磁场"+k+"号｜"+g.title,
    keywords:"合作磁场 性格磁场 合成数"+k+" 合作密码 "+g.title,
    text:["【教材摘要】"+g.sourceMeaning,"【优势】"+g.possibleStrength,"【需注意】"+g.friction,
       "【咨询白话】"+g.script,"【提问】"+g.questions.join("；"),"【行动】"+g.advice,"【本周练习】"+g.action,
-      "【原书页】"+g.page,"【公式】"+COOP_MAGNETIC_META.formula,"【适用范围】"+COOP_MAGNETIC_META.scope,
+      "【原书页】"+g.page,"【AURMOVA正式公式】"+COOP_MAGNETIC_META.formula,"【原书不同计算法·只作课程参考】"+COOP_MAGNETIC_META.textbookFormula,"【适用范围】"+COOP_MAGNETIC_META.scope,
       "【限制】"+COOP_MAGNETIC_META.agency].join("\n\n")}))];
 }
