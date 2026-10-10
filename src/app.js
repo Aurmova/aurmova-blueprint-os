@@ -15,6 +15,7 @@ import { buildWuxingHealthLibraryEntries } from "./wuxing-health-course.js?v=2";
 import { buildStudentCompositeEntries } from "./student-composite-course.js?v=1";
 import { buildAnnualYearGuidanceEntries } from "./annual-year-guidance.js?v=1";
 import { buildPartnerPairCourseEntries } from "./partner-pair-course.js?v=1";
+import { buildCooperationMagneticEntries } from "./cooperation-magnetic-field.js?v=1";
 
 const icons = {
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11 12 3l9 8v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
@@ -144,6 +145,8 @@ function libraryEntries(){
   entries.push(...buildAnnualYearGuidanceEntries());
   // 1–9 共45组合作与结合密码课堂摘要；不生成新关系联合码。
   entries.push(...buildPartnerPairCourseEntries());
+  // 合作磁场另按两人的生命数求和；原书排除夫妻，与O位45组配对分开。
+  entries.push(...buildCooperationMagneticEntries());
   // Public-safe student course notes: no customer records, instructor keys, or raw book pages.
   entries.push(...buildStudentCompositeEntries());
   (RESTORED_PRIVATE_LIBRARY||[]).forEach(x=>entries.push({category:x.category||"课程整理资料",title:x.title||"",keywords:(x.keywords||""),text:(x.text||"")}));
@@ -394,7 +397,7 @@ function libraryPage(){
     </div>
     <div class="notice">下面显示的是实际资料内容，不记录书本页码或拍照页面；只保留可查询的结构化内容、AURMOVA白话和必要的规则说明。</div>
     <div class="library-module-nav">
-      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","循环数字解读","五行资料","黑洞数字","成熟数字","学员教材｜合成数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","黄金流年深度解读","合作密码与结合密码","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
+      ${["81组联合码","1–9主性格","起始数","表现数字","内驱数字","姓名性情数字","循环数字解读","五行资料","黑洞数字","成熟数字","学员教材｜合成数字","缺失数","阶段挑战数字","七魄重复能量","制约数","高峰数字","特别数字／卓越数","特别数字／业力数","黄金20年阶段","黄金流年蓝图解析","黄金流年深度解读","合作密码与结合密码","合作密码｜性格磁场","财富密码","关系模式","九宫格","儿童1–9","儿童天赋速查","亲子案例"].map(x=>`<button type="button" class="library-module-btn" data-library-query="${escapeLibraryHtml(x)}">${escapeLibraryHtml(x)}</button>`).join("")}
     </div>
   </section>
   <div id="library-results"></div>`;
