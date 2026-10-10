@@ -168,3 +168,42 @@ export function buildPrivateBlueprintPreview(customer, project, requestedYear) {
     clientReportAvailable: false
   };
 }
+
+
+// Dedicated authenticated, staging-only preview endpoint. All calculations
+// happen on the server; no secret credentials or customer data in URLs.
+export async function handlePrivateBlueprintPreview(request, env, owner, send) {
+  const hostname = "aurmova-secure-api-staging.xbing5668.workers.dev";
+  let requestHost, configHost;
+  try {
+    requestHost = new URL(request.url).hostname;
+    configHost = new URL(env.API_ORIGIN).hostname;
+  } catch { return send({ error: "Invalid environment" }, 403); }
+  if (configHost !== hostname || requestHost !== hostname) return send({ error: "Staging only" }, 403);
+  if (!owner || !/^\d+$/.test(String(owner.github_user_id || "")) ||
+      String(owner.github_user_id) !== String(env.OWNER_GITHUB_USER_ID)) {
+    return send({ error: "Authentication required" }, 401);
+  }
+  if (request.method !== "POST") return send({ error: "Method not allowed" }, 405);
+  try {
+    const raw = await request.text();
+    if (new TextEncoder().encode(raw).length > 4000) return send({ error: "Request too large" }, 413);
+    const input = JSON.parse(raw);
+    const id = String(input?.customerId || "");
+    if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(id)) {
+      return send({ error: "Invalid customer ID" }, 400);
+    }
+    if (!FIVE_BLUEPRINTS.includes(input?.project)) return send({ error: "Invalid consultation project" }, 400);
+    const row = await env.DB.prepare(
+      "SELECT profile_json FROM private_customers WHERE id = ? AND owner_github_id = ?"
+    ).bind(id, String(owner.github_user_id)).first();
+    if (!row) return send({ error: "Not found" }, 404);
+    const analysis = buildPrivateBlueprintPreview(JSON.parse(row.profile_json), input.project, input.targetYear);
+    return send({ analysis }, 200);
+  } catch (error) {
+    if (error instanceof Error && /^(请选择有效|生日资料无法计算)/.test(error.message)) {
+      return send({ error: error.message }, 400);
+    }
+    return send({ error: "Analysis preview unavailable" }, 500);
+  }
+}
