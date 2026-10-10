@@ -70,7 +70,7 @@ test("Friend and partners use the same life method but context-specific advice",
  assert.ok(b.includes("朋友版提醒"));
  assert.ok(a.includes("合作密码（性格磁场）6号"));
  assert.ok(b.includes("朋友关系"));
- assert.ok(a.includes("独立的课程"));
+ assert.ok(a.includes("与45组配对区别"));
 });
 
 test("Parent-child never sells adult money predictions, uses own speech and privacy-safe names",()=>{
