@@ -3,7 +3,7 @@ import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4";
 import { renderAnnualYearGuidance } from "./annual-year-guidance.js?v=1";
 import { renderPartnerPairReading } from "./partner-pair-course.js?v=1";
-import { renderCooperationMagneticField } from "./cooperation-magnetic-field.js?v=1";
+import { renderCooperationMagneticField } from "./cooperation-magnetic-field.js?v=2";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -924,7 +924,7 @@ function partnerRow(p,i){
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
   const temperamentPairs=ps.filter(p=>String(p?.name||"").trim()).map(p=>temperamentRelationshipPanel(c,p,"cooperation")).join("");
-  // 性格磁场必须使用每人的生日生命数；45组相处配对另按主性格O位运算。
+  // 合作磁场与45组配对都取双方主性格O位：磁场相加化简，45组逐组查相处优势／摩擦。
   const magneticPairs=ps.map((p,i)=>p?.birthday
     ?renderCooperationMagneticField(c.birthday,p.birthday,"cooperation",{
       aName:c.name||"当事人",bName:p.name||"合作伙伴"+(i+1),
