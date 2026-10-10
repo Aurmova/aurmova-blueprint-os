@@ -3,6 +3,7 @@ import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4";
 import { renderAnnualYearGuidance } from "./annual-year-guidance.js?v=1";
 import { renderPartnerPairReading } from "./partner-pair-course.js?v=1";
+import { renderCooperationMagneticField } from "./cooperation-magnetic-field.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -923,6 +924,14 @@ function partnerRow(p,i){
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
   const temperamentPairs=ps.filter(p=>String(p?.name||"").trim()).map(p=>temperamentRelationshipPanel(c,p,"cooperation")).join("");
+  // 性格磁场必须使用每人的生日生命数；45组相处配对另按主性格O位运算。
+  const magneticPairs=ps.map((p,i)=>p?.birthday
+    ?renderCooperationMagneticField(c.birthday,p.birthday,"cooperation",{
+      aName:c.name||"当事人",bName:p.name||"合作伙伴"+(i+1),
+      mainA:a?.mainPersonality,
+      mainB:calculateBlueprint(p.birthday)?.mainPersonality,
+      collapsed:i>0
+    }):"").filter(Boolean).join("");
   const pairInsights=ps.map((p,i)=>{
     const other=p?.birthday?calculateBlueprint(p.birthday):null;
     return a&&other?renderPartnerPairReading(a.mainPersonality,other.mainPersonality,"cooperation",{
@@ -930,7 +939,8 @@ function cooperationPanel(c){
     }):"";
   }).filter(Boolean).join("");
   return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div>'
-    +(pairInsights||'<div class="formula-note">合作组合需填写伙伴生日后自动读取；每位伙伴单独比对主性格，不硬算一个多人联合数字。</div>')
+    +(magneticPairs||'<div class="formula-note">合作磁场需填写当事人与伙伴的生日，使用双方各自生命数相加并化简（不等同主性格O位配对）。</div>')
+    +(pairInsights||'<div class="formula-note">45组合作／结合密码需填写伙伴生日；按双方主性格O位配对，不产生新的三位数联合码。</div>')
     +blueprintSheet(c,a,"合作蓝图 · "+c.name)
     +plainLanguagePanel(a)
     +'<p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。姓名性情数字只用来补充沟通与分工节奏，不作搭档评分。</p>'
@@ -2900,7 +2910,10 @@ function relationshipPanel(c){
     +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>夫妻／情侣 · 互动合盘</span></div>'
     +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
     +(b
-      ?renderPartnerPairReading(a.mainPersonality,b.mainPersonality,"relationship",{aName:c.name||"A",bName:r.name||"B"})
+      ?(r.type==="朋友"?renderCooperationMagneticField(c.birthday,r.birthday,"friendship",{
+         aName:c.name||"当事人",bName:r.name||"朋友",mainA:a?.mainPersonality,mainB:b.mainPersonality
+       }):"")
+        +renderPartnerPairReading(a.mainPersonality,b.mainPersonality,"relationship",{aName:c.name||"A",bName:r.name||"B"})
         +relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
         +innerDriveRelationshipPanel(c,r,b)
         +temperamentRelationshipPanel(c,r)
@@ -2917,6 +2930,15 @@ function familyPanel(c){
   const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(ch)+'</article>').join("");
   const adults=[f.father?.birthday?calculateBlueprint(f.father.birthday):null,f.mother?.birthday?calculateBlueprint(f.mother.birthday):null].filter(Boolean);
   const kids=(f.children||[]).map(x=>x.birthday?calculateBlueprint(x.birthday):null).filter(Boolean);
+  // 原书明确将亲子纳入性格磁场，但排除夫妻；这里只分析已明确填写的家长与孩子。
+  const parentRecords=[f.father,f.mother].filter(p=>p?.birthday);
+  const parentChildMagnetics=parentRecords.flatMap((parent,i)=>
+    (f.children||[]).map((child,j)=>child?.birthday
+      ?renderCooperationMagneticField(parent.birthday,child.birthday,"parentChild",{
+        aName:parent.name||"家长"+(i+1),bName:child.name||"孩子"+(j+1),collapsed:true,
+        mainA:calculateBlueprint(parent.birthday)?.mainPersonality,
+        mainB:calculateBlueprint(child.birthday)?.mainPersonality
+      }):"")).filter(Boolean).join("");
   const temperamentFamily=[
     f.father?.name?temperamentRelationshipPanel(c,f.father,"family"):"",
     f.mother?.name?temperamentRelationshipPanel(c,f.mother,"family"):"",
@@ -2937,7 +2959,8 @@ function familyPanel(c){
     +'<div class="family-grid">'+familyMemberCard("爸爸","father",f.father||{})+familyMemberCard("妈妈","mother",f.mother||{})+childCards+'</div>'
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v20-add-child">＋ 增加孩子</button><button type="button" class="btn btn-light" id="v20-save-family">保存并重新解析全家</button></div>'
     +temperamentFamily
-    +familyInsight+'</div>';
+    +familyInsight
+    +parentChildMagnetics+'</div>';
 }
 
 function renderModule(key,c){
