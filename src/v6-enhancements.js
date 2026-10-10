@@ -1,3 +1,4 @@
+import {mountCustomerReportTool} from "./customer-report-image.js?v=1";
 import {GUIDED_QUESTIONS,buildGuidedReply,guidedRecordKey} from "./guided-consultation-replies.js?v=1";
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
@@ -3162,6 +3163,13 @@ document.addEventListener("click",async event=>{
  panel.querySelector("[data-guided-output]").innerHTML=guidedResultHtml(reply);status.textContent="已生成并保存，请核对回答意思后照读。";
 });
 
+function mountReportForCustomer(panel,key,c){
+ const types={"人生蓝图":"life","儿童蓝图":"life","黄金流年":"year","关系蓝图":"relationship","亲子蓝图":"family","合作蓝图":"cooperation"};
+ mountCustomerReportTool(panel,{customer:c,defaultType:types[key]||"life",defaultYear:Number(panel.querySelector("#v6-year-target")?.value)||activeFlowYear(),
+ getPairs(type){return type==="relationship"?guidedContexts("relationship",c):type==="family"?guidedContexts("family",c):type==="cooperation"?guidedContexts("cooperation",c):[];}
+ });
+}
+
 function renderModule(key,c){
   const panel=document.querySelector("#v6-module-panel");
   if(!panel||!c) return;
@@ -3171,6 +3179,7 @@ function renderModule(key,c){
   else if(key==="关系蓝图") panel.innerHTML=relationshipPanel(c);
   else if(key==="亲子蓝图") panel.innerHTML=familyPanel(c);
   else panel.innerHTML=lifeBlueprintPanel(c);
+  mountReportForCustomer(panel,key,c);
 }
 function activeModuleName(){
   return document.querySelector("[data-v6-module].active")?.dataset.v6Module || "人生蓝图";
@@ -3780,8 +3789,8 @@ document.addEventListener("click",event=>{
     }
     return
   }
-  const quickYear=event.target.closest("[data-v6-flow-year]"); if(quickYear){const c=currentCustomer();if(!c)return;const val=Number(quickYear.dataset.v6FlowYear)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
-  const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel)panel.innerHTML=yearPanel(c,val);return}
+  const quickYear=event.target.closest("[data-v6-flow-year]"); if(quickYear){const c=currentCustomer();if(!c)return;const val=Number(quickYear.dataset.v6FlowYear)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel){panel.innerHTML=yearPanel(c,val);mountReportForCustomer(panel,"黄金流年",c);}return}
+  const yr=event.target.closest("#v6-recalc-year"); if(yr){const c=currentCustomer();if(!c)return;const val=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());const panel=document.querySelector("#v6-module-panel");if(panel){panel.innerHTML=yearPanel(c,val);mountReportForCustomer(panel,"黄金流年",c);}return}
 });
 document.addEventListener("input",event=>{
   const el=event.target.closest("[data-v6-partner-name],[data-v6-partner-birthday]"); if(!el)return;
