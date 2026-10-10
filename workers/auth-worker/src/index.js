@@ -1,5 +1,6 @@
 import { LOGIN_HTML, LOGIN_CSS, LOGIN_SCRIPT } from "./owner-login-page.js";
 import { handlePrivateCustomers } from "./private-customers-api.js";
+import { handlePrivateBlueprintPreview } from "./private-blueprint-analysis.js";
 
 // AURMOVA secure pilot API.
 // This Worker is NOT part of the public GitHub Pages static bundle.
@@ -249,6 +250,12 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/auth/exchange") {
         return await exchangeTicket(request, env, origin);
+      }
+
+      if (url.pathname === "/private/blueprints/preview") {
+        const session = await authenticatedSession(request, env);
+        if (!session) return json({ error: "Authentication required" }, 401, origin);
+        return await handlePrivateBlueprintPreview(request, env, session.session, (payload, status = 200) => json(payload, status, origin));
       }
 
       if (url.pathname === "/private/customers" || url.pathname.startsWith("/private/customers/")) {
