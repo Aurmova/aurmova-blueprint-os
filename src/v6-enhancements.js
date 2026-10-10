@@ -914,17 +914,55 @@ function yearPanel(c,target){
     +'</div>';
 }
 
+
+const RELATED_NAME_FIELDS=["officialName","formerName","nameChangedYear"];
+function relatedNameInput(p={}){
+ return {displayName:p.name||"",officialName:p.officialName||"",formerName:p.formerName||"",nameChangedYear:p.nameChangedYear||""};
+}
+function relatedNameFields(p={},key){
+ return '<div class="partner-fields related-name-fields">'+RELATED_NAME_FIELDS.map(field=>{
+ const label={officialName:"现正式姓名（华文／英文）",formerName:"曾用／最初正式姓名（可留空）",nameChangedYear:"改名年份（可留空）"}[field];
+ return '<label>'+label+'<input data-related-name-key="'+esc(key)+'" data-related-name-field="'+field+'" value="'+esc(p[field]||"")+'" '+(field==="nameChangedYear"?'inputmode="numeric" maxlength="4" placeholder="例如 2024"':'placeholder="'+(field==="officialName"?"留空则使用上方姓名":"没有正式改名可留空")+'"')+'></label>';
+ }).join("")+'</div><p class="panel-note">姓名沿用同一算法：华文转拼音；表现数字取全部字母，内驱数字取元音，性情数字看四体分布。改名沿用现有新旧姓名规则。</p>';
+}
+function readRelatedNameFields(key,p={}){
+ const next={...p};
+ document.querySelectorAll("[data-related-name-key]").forEach(el=>{
+ if(el.dataset.relatedNameKey===key&&RELATED_NAME_FIELDS.includes(el.dataset.relatedNameField))next[el.dataset.relatedNameField]=el.value.trim();
+ });
+ return next;
+}
+function relatedNamePairPanel(a,b,mode){
+ const ap=calculateExpressionProfile(relatedNameInput(a)),bp=calculateExpressionProfile(relatedNameInput(b));
+ const ai=calculateInnerDriveProfile(relatedNameInput(a)),bi=calculateInnerDriveProfile(relatedNameInput(b));
+ const e=esc,an=a.name||"当事人",bn=b.name||"对方";
+ const family=mode==="family",scene=mode==="cooperation"?"合作分工与决策":family?"亲子沟通与学习支持":"关系沟通与需要";
+ const line=p=>!p.canCalculate?"待填写可计算姓名":e(p.primary.input||"")+" → "+e(p.primary.calculationName||p.primary.normalized||"")+" ｜ "+e(p.primary.compound);
+ const ex=p=>p.canCalculate?EXPRESSION_NUMBER_LIBRARY?.[p.primary.reduced]||{}:{};
+ const dr=p=>p.canCalculate?INNER_DRIVE_NUMBER_LIBRARY?.[p.primary.reduced]||{}:{};
+ const complete=ap.canCalculate&&bp.canCalculate&&ai.canCalculate&&bi.canCalculate;
+ const summary=!complete?"姓名资料还不完整，缺少的结果不会当成0号或不合。":
+ (ap.primary.reduced===bp.primary.reduced?"表现数字同号，先验证做事方式是否相近，是否重复承担同一角色。":"表现数字不同，先验证做事方式能否互补，以及交接时哪里容易误会。")+
+ (ai.primary.reduced===bi.primary.reduced?"内驱同号，追问共同需要有没有被彼此看见。":"内驱不同，追问同一件事里各自重视什么，避免用自己的需要要求对方。");
+ const question=mode==="cooperation"?"同一个项目里，你们各自喜欢负责哪部分？发生分歧时，各自最想被尊重的是方法、决定权、回应还是标准？":family?"家长习惯怎样教，孩子怎样学才接得住？孩子需要先听解释、先试做，还是先得到回应？请分别举最近的例子。":"同一件事发生时，你们各自会怎么做，又希望对方怎样回应？有没有把方式不同误解成不在乎？";
+ const show=(p,x,i)=>{
+ const d=ex(x),id=dr(i),child=family&&p.birthday&&ageFromBirthday(p.birthday)<18;
+ return '<article class="card reading-card"><h4>'+e(p.name||"对方")+'</h4><p><b>表现数字：</b>'+line(x)+'</p><p>'+e(child?(d.child||d.core||""):d.core||"")+'</p><p><b>内驱数字：</b>'+line(i)+'</p><p>'+e(id.innerWish||id.title||"")+'</p><p><b>姓名来源／改名：</b>'+e(x.transitionRule||"采用可计算正式姓名；留空时采用档案姓名。")+'</p></article>';
+ };
+ return '<section class="foundation-block related-name-pair"><div class="card-heading"><div><small>SHARED NAME METHOD</small><h3>'+e(an)+' × '+e(bn)+'｜姓名数字一起看</h3></div><span>'+scene+'</span></div><div class="notion-consult-grid">'+show(a,ap,ai)+show(b,bp,bi)+'</div><div class="question-box"><b>Josephine可照读：</b><p>“我们把两个人的姓名用同一套方法算，再回到实际相处。表现数字观察做事和表达，内驱数字讨论内在需要；性情数字再看思考、行动、情绪和直觉节奏。'+e(summary)+'”</p></div><div class="question-box"><b>'+scene+'追问：</b><p>'+e(question)+'</p></div><p class="panel-note">双方分别计算后交叉观察，不硬加成未经确认的新合数；生日蓝图与结合密码另行保留。</p></section>';
+}
+
 function partnerRow(p,i){
   let result='<div class="partner-result empty-mini">填写生日后自动计算这位伙伴。</div>';
   if(p.birthday){
     const a=calculateBlueprint(p.birthday);
     if(a) result='<div class="partner-result">'+blueprintMap(a,true)+'<span>伙伴 '+(i+1)+'</span><b>主性格 '+a.mainPersonality+'</b><span>坐镇码 '+a.seatCode+'</span><span>父亲基因 '+code(Object.values(a.fatherGenes))+'</span><span>母亲基因 '+code(Object.values(a.motherGenes))+'</span></div>';
   }
-  return '<article class="partner-card" data-v6-partner="'+i+'"><div class="partner-title"><b>合作伙伴 '+(i+1)+'</b><button type="button" class="danger-lite" data-v6-remove-partner="'+i+'">移除</button></div><div class="partner-fields"><label>姓名<input data-v6-partner-name="'+i+'" value="'+esc(p.name||"")+'" placeholder="伙伴姓名"></label><label>生日（日/月/年）<input inputmode="numeric" data-v6-partner-birthday="'+i+'" value="'+esc(p.birthday||"")+'" placeholder="21/11/1995"></label></div>'+result+'</article>';
+  return '<article class="partner-card" data-v6-partner="'+i+'"><div class="partner-title"><b>合作伙伴 '+(i+1)+'</b><button type="button" class="danger-lite" data-v6-remove-partner="'+i+'">移除</button></div><div class="partner-fields"><label>姓名<input data-v6-partner-name="'+i+'" value="'+esc(p.name||"")+'" placeholder="伙伴姓名"></label><label>生日（日/月/年）<input inputmode="numeric" data-v6-partner-birthday="'+i+'" value="'+esc(p.birthday||"")+'" placeholder="21/11/1995"></label></div>'+relatedNameFields(p,'partner:'+i)+result+'</article>';
 }
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
-  const temperamentPairs=ps.filter(p=>String(p?.name||"").trim()).map(p=>temperamentRelationshipPanel(c,p,"cooperation")).join("");
+  const temperamentPairs=ps.filter(p=>String(p?.name||p?.officialName||"").trim()).map(p=>relatedNamePairPanel(c,p,"cooperation")+temperamentRelationshipPanel(c,p,"cooperation")).join("");
   // 合作磁场与45组配对都取双方主性格O位：磁场相加化简，45组逐组查相处优势／摩擦。
   const magneticPairs=ps.map((p,i)=>p?.birthday
     ?renderCooperationMagneticField(c.birthday,p.birthday,"cooperation",{
@@ -1327,7 +1365,7 @@ function innerDriveNumberPanel(c,childMode=false){
 
 function innerDriveRelationshipPanel(c,r,b){
   const aCalc=calculateInnerDriveProfile({displayName:c.name,officialName:c.officialName,formerName:c.formerName,nameChangedYear:c.nameChangedYear});
-  const bCalc=calculateInnerDriveProfile({displayName:r.name});
+  const bCalc=calculateInnerDriveProfile(relatedNameInput(r));
   if(!aCalc.canCalculate||!bCalc.canCalculate){
     return '<div class="foundation-block"><div class="card-heading"><div><small>INNER DRIVE · RELATIONSHIP</small><h3>姓名内驱｜等待双方姓名可计算</h3></div></div><div class="formula-note">双方姓名都可用华文或英文。华文会自动转拼音；本模块只取A/E/I/O/U。姓名没有可用元音时不会硬算。</div></div>';
   }
@@ -2909,7 +2947,7 @@ function relationshipPanel(c){
   const r=loadRelationship(c.id), a=calculateBlueprint(c.birthday), b=r.birthday?calculateBlueprint(r.birthday):null;
   return '<div class="module-render relationship-system-mode">'
     +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>'+esc(r.type||"伴侣／感情")+' · 互动合盘</span></div>'
-    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="已婚夫妻"?"selected":"")+' >已婚夫妻</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
+    +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="已婚夫妻"?"selected":"")+' >已婚夫妻</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button>'+relatedNameFields(r,"relation")+'</div>'
     +(b
       ?(r.type==="朋友"?renderCooperationMagneticField(c.birthday,r.birthday,"friendship",{
          aName:c.name||"当事人",bName:r.name||"朋友",mainA:a?.mainPersonality,mainB:b.mainPersonality
@@ -2917,6 +2955,7 @@ function relationshipPanel(c){
         +(r.type==="已婚夫妻"?renderSpouseCombination(c.birthday,r.birthday,r.type,{aName:c.name||"当事人",bName:r.name||"配偶"}):"")
         +renderPartnerPairReading(a.mainPersonality,b.mainPersonality,"relationship",{aName:c.name||"A",bName:r.name||"B"})
         +relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
+        +relatedNamePairPanel(c,r,"relationship")
         +innerDriveRelationshipPanel(c,r,b)
         +temperamentRelationshipPanel(c,r)
         +relationshipFlowPanel(c,r,a,b)
@@ -2924,12 +2963,12 @@ function relationshipPanel(c){
     +'</div>';
 }
 function familyMemberCard(role,prefix,person){
-  return '<article class="family-member"><h4>'+esc(role)+'</h4><label>姓名<input data-family-field="'+prefix+'.name" value="'+esc(person?.name||"")+'"></label><label>生日（日/月/年）<input data-family-field="'+prefix+'.birthday" value="'+esc(person?.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(person)+'</article>';
+  return '<article class="family-member"><h4>'+esc(role)+'</h4><label>姓名<input data-family-field="'+prefix+'.name" value="'+esc(person?.name||"")+'"></label><label>生日（日/月/年）<input data-family-field="'+prefix+'.birthday" value="'+esc(person?.birthday||"")+'" placeholder="21/11/1995"></label>'+relatedNameFields(person,prefix)+miniBlueprint(person)+'</article>';
 }
 
 function familyPanel(c){
   const f=loadFamily(c.id),selfA=calculateBlueprint(c.birthday);
-  const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+miniBlueprint(ch)+'</article>').join("");
+  const childCards=(f.children||[]).map((ch,i)=>'<article class="family-member"><div class="partner-title"><h4>孩子 '+(i+1)+'</h4><button type="button" class="danger-lite" data-v20-remove-child="'+i+'">移除</button></div><label>姓名<input data-family-child-name="'+i+'" value="'+esc(ch.name||"")+'"></label><label>生日（日/月/年）<input data-family-child-birthday="'+i+'" value="'+esc(ch.birthday||"")+'" placeholder="21/11/1995"></label>'+relatedNameFields(ch,"child:"+i)+miniBlueprint(ch)+'</article>').join("");
   const adults=[f.father?.birthday?calculateBlueprint(f.father.birthday):null,f.mother?.birthday?calculateBlueprint(f.mother.birthday):null].filter(Boolean);
   const kids=(f.children||[]).map(x=>x.birthday?calculateBlueprint(x.birthday):null).filter(Boolean);
   // 原书明确将亲子纳入性格磁场，但排除夫妻；这里只分析已明确填写的家长与孩子。
@@ -2941,6 +2980,9 @@ function familyPanel(c){
         mainA:calculateBlueprint(parent.birthday)?.mainPersonality,
         mainB:calculateBlueprint(child.birthday)?.mainPersonality
       }):"")).filter(Boolean).join("");
+  const familyNamePairs=parentRecords.length&&f.children?.length
+    ?parentRecords.flatMap(parent=>(f.children||[]).filter(child=>child.name||child.officialName).map(child=>relatedNamePairPanel(parent,child,"family")+temperamentRelationshipPanel(parent,child,"family"))).join("")
+    :(f.children||[]).filter(child=>child.name||child.officialName).map(child=>relatedNamePairPanel(c,child,"family")).join("");
   const temperamentFamily=[
     f.father?.name?temperamentRelationshipPanel(c,f.father,"family"):"",
     f.mother?.name?temperamentRelationshipPanel(c,f.mother,"family"):"",
@@ -2960,6 +3002,7 @@ function familyPanel(c){
     +plainLanguagePanel(selfA)
     +'<div class="family-grid">'+familyMemberCard("爸爸","father",f.father||{})+familyMemberCard("妈妈","mother",f.mother||{})+childCards+'</div>'
     +'<div class="actions"><button type="button" class="btn btn-primary" id="v20-add-child">＋ 增加孩子</button><button type="button" class="btn btn-light" id="v20-save-family">保存并重新解析全家</button></div>'
+    +familyNamePairs
     +temperamentFamily
     +familyInsight
     +parentChildMagnetics+'</div>';
@@ -3520,7 +3563,7 @@ document.addEventListener("click",event=>{
       name:document.querySelector("#v20-relation-name")?.value.trim()||"",
       birthday:document.querySelector("#v20-relation-birthday")?.value.trim()||""
     };
-    saveRelationship(c.id,data); renderModule("关系蓝图",c); return
+    saveRelationship(c.id,readRelatedNameFields("relation",{...loadRelationship(c.id),...data})); renderModule("关系蓝图",c); return
   }
   const addChild=event.target.closest("#v20-add-child"); if(addChild){
     const c=currentCustomer(); if(!c)return;
@@ -3545,11 +3588,11 @@ document.addEventListener("click",event=>{
       const i=Number(el.dataset.familyChildName);
       return {name:el.value.trim(),birthday:document.querySelector('[data-family-child-birthday="'+i+'"]')?.value.trim()||""};
     });
-    saveFamily(c.id,{...current,father,mother,children}); renderModule("亲子蓝图",c); return
+    saveFamily(c.id,{...current,father:readRelatedNameFields("father",{...current.father,...father}),mother:readRelatedNameFields("mother",{...current.mother,...mother}),children:children.map((child,i)=>readRelatedNameFields("child:"+i,{...current.children?.[i],...child}))}); renderModule("亲子蓝图",c); return
   }
   const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.push({name:"",birthday:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
-  const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return{name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""}});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return readRelatedNameFields("partner:"+i,{...loadPartners(c.id)[Number(i)],name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""})});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const regionBtn=event.target.closest("[data-v12-year-region]"); if(regionBtn){
     const c=currentCustomer(); if(!c)return;
     const target=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());
