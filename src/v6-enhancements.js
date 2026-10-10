@@ -2,6 +2,7 @@ import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
 import { renderHoleMaturityPanel } from "./hole-maturity-library.js?v=1";
 import { renderAnnualFiveElementAnalysis } from "./five-elements-analysis.js?v=4";
 import { renderAnnualYearGuidance } from "./annual-year-guidance.js?v=1";
+import { renderPartnerPairReading } from "./partner-pair-course.js?v=1";
 import { calculateBlueprint, calculateHighPeakProfile, calculateChallengeProfile, calculateExpressionProfile, calculateInnerDriveProfile, calculateTemperamentProfile, ageFromBirthday, phaseForAge, calculateYearCycleSet, calculateEnvironmentYear, compareYearClimate, calculateYearJointCode, yearSourceAxes, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange, YEAR_THEMES, PHASE_META } from "./engine/blueprint.js?v=54";
 import { ENERGY_LIBRARY, describeEnergySet } from "./energy-library.js?v=28";
 import { PERSONALITY_LIBRARY } from "./personality-library.js?v=28";
@@ -922,7 +923,14 @@ function partnerRow(p,i){
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
   const temperamentPairs=ps.filter(p=>String(p?.name||"").trim()).map(p=>temperamentRelationshipPanel(c,p,"cooperation")).join("");
+  const pairInsights=ps.map((p,i)=>{
+    const other=p?.birthday?calculateBlueprint(p.birthday):null;
+    return a&&other?renderPartnerPairReading(a.mainPersonality,other.mainPersonality,"cooperation",{
+      aName:c.name||"当事人",bName:p.name||"合作伙伴"+(i+1),collapsed:i>0
+    }):"";
+  }).filter(Boolean).join("");
   return '<div class="module-render"><div class="card-heading"><div><small>COOPERATION BLUEPRINT</small><h2>多人合作蓝图</h2></div><span>伙伴人数不设上限</span></div>'
+    +(pairInsights||'<div class="formula-note">合作组合需填写伙伴生日后自动读取；每位伙伴单独比对主性格，不硬算一个多人联合数字。</div>')
     +blueprintSheet(c,a,"合作蓝图 · "+c.name)
     +plainLanguagePanel(a)
     +'<p class="panel-note">每位伙伴保留自己的完整结构。系统不会为了凑结果而把多人硬合成一个没有课程依据的新号码；会逐一比较主性格、坐镇码、父母基因、阶段和合作位置。姓名性情数字只用来补充沟通与分工节奏，不作搭档评分。</p>'
@@ -2892,7 +2900,8 @@ function relationshipPanel(c){
     +'<div class="card-heading"><div><small>RELATIONSHIP BLUEPRINT · TWO-PERSON SYSTEM</small><h2>'+esc(c.name)+' × '+esc(r.name||"对方")+'｜关系蓝图</h2></div><span>夫妻／情侣 · 互动合盘</span></div>'
     +'<div class="relation-form card"><label>关系类型<select id="v20-relation-type"><option '+(r.type==="伴侣／感情"?"selected":"")+'>伴侣／感情</option><option '+(r.type==="家人"?"selected":"")+'>家人</option><option '+(r.type==="朋友"?"selected":"")+'>朋友</option></select></label><label>对方姓名<input id="v20-relation-name" value="'+esc(r.name||"")+'" placeholder="对方姓名"></label><label>对方生日（日/月/年）<input id="v20-relation-birthday" value="'+esc(r.birthday||"")+'" placeholder="21/11/1995"></label><button type="button" class="btn btn-primary" id="v20-save-relation">保存并重新生成两人关系</button></div>'
     +(b
-      ?relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
+      ?renderPartnerPairReading(a.mainPersonality,b.mainPersonality,"relationship",{aName:c.name||"A",bName:r.name||"B"})
+        +relationshipCross(a,b,{aName:c.name||"A",bName:r.name||"B",aBirthday:c.birthday,bBirthday:r.birthday})
         +innerDriveRelationshipPanel(c,r,b)
         +temperamentRelationshipPanel(c,r)
         +relationshipFlowPanel(c,r,a,b)
