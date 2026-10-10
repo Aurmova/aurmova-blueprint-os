@@ -916,12 +916,13 @@ function yearPanel(c,target){
 }
 
 
-const RELATED_NAME_FIELDS=["officialName","formerName","nameChangedYear"];
+const RELATED_NAME_FIELDS=["gender","officialName","formerName","nameChangedYear"];
 function relatedNameInput(p={}){
  return {displayName:p.name||"",officialName:p.officialName||"",formerName:p.formerName||"",nameChangedYear:p.nameChangedYear||""};
 }
 function relatedNameFields(p={},key){
  return '<div class="partner-fields related-name-fields">'+RELATED_NAME_FIELDS.map(field=>{
+ if(field==="gender")return '<label>性别（每人分别选择）<select data-related-name-key="'+esc(key)+'" data-related-name-field="gender" required aria-label="性别">'+[["","未选择"],["女","女"],["男","男"],["其他","其他"]].map(([value,label])=>'<option value="'+value+'" '+(String(p.gender||"")===value?"selected":"")+'>'+label+'</option>').join("")+'</select><small data-related-gender-status role="status" aria-live="polite"></small></label>';
  const label={officialName:"现正式姓名（华文／英文）",formerName:"曾用／最初正式姓名（可留空）",nameChangedYear:"改名年份（可留空）"}[field];
  return '<label>'+label+'<input data-related-name-key="'+esc(key)+'" data-related-name-field="'+field+'" value="'+esc(p[field]||"")+'" '+(field==="nameChangedYear"?'inputmode="numeric" maxlength="4" placeholder="例如 2024"':'placeholder="'+(field==="officialName"?"留空则使用上方姓名":"没有正式改名可留空")+'"')+'></label>';
  }).join("")+'</div><p class="panel-note">姓名沿用同一算法：华文转拼音；表现数字取全部字母，内驱数字取元音，性情数字看四体分布。改名沿用现有新旧姓名规则。</p>';
@@ -953,6 +954,7 @@ function relatedNamePairPanel(a,b,mode){
  return '<section class="foundation-block related-name-pair"><div class="card-heading"><div><small>SHARED NAME METHOD</small><h3>'+e(an)+' × '+e(bn)+'｜姓名数字一起看</h3></div><span>'+scene+'</span></div><div class="notion-consult-grid">'+show(a,ap,ai)+show(b,bp,bi)+'</div><div class="question-box"><b>Josephine可照读：</b><p>“我们把两个人的姓名用同一套方法算，再回到实际相处。表现数字观察做事和表达，内驱数字讨论内在需要；性情数字再看思考、行动、情绪和直觉节奏。'+e(summary)+'”</p></div><div class="question-box"><b>'+scene+'追问：</b><p>'+e(question)+'</p></div><p class="panel-note">双方分别计算后交叉观察，不硬加成未经确认的新合数；生日蓝图与结合密码另行保留。</p></section>';
 }
 
+
 function partnerRow(p,i){
   let result='<div class="partner-result empty-mini">填写生日后自动计算这位伙伴。</div>';
   if(p.birthday){
@@ -961,6 +963,52 @@ function partnerRow(p,i){
   }
   return '<article class="partner-card" data-v6-partner="'+i+'"><div class="partner-title"><b>合作伙伴 '+(i+1)+'</b><button type="button" class="danger-lite" data-v6-remove-partner="'+i+'">移除</button></div><div class="partner-fields"><label>姓名<input data-v6-partner-name="'+i+'" value="'+esc(p.name||"")+'" placeholder="伙伴姓名"></label><label>生日（日/月/年）<input inputmode="numeric" data-v6-partner-birthday="'+i+'" value="'+esc(p.birthday||"")+'" placeholder="21/11/1995"></label></div>'+relatedNameFields(p,'partner:'+i)+result+'</article>';
 }
+function relatedPersonHasData(p){
+ return !!(p&&(p.name||p.officialName||p.formerName||p.birthday));
+}
+function collectRelatedGenderDrafts(c,mode){
+ if(mode==="cooperation"){
+ const old=loadPartners(c.id);
+ return [...document.querySelectorAll("[data-v6-partner]")].map(card=>{
+ const i=Number(card.dataset.v6Partner);
+ return readRelatedNameFields("partner:"+i,{...old[i],name:card.querySelector("[data-v6-partner-name]")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday]")?.value.trim()||""});
+ });
+ }
+ const old=loadFamily(c.id);
+ const parent=key=>readRelatedNameFields(key,{...old[key],name:document.querySelector('[data-family-field="'+key+'.name"]')?.value.trim()||"",birthday:document.querySelector('[data-family-field="'+key+'.birthday"]')?.value.trim()||""});
+ const children=[...document.querySelectorAll("[data-family-child-name]")].map(el=>{
+ const i=Number(el.dataset.familyChildName);
+ return readRelatedNameFields("child:"+i,{...old.children?.[i],name:el.value.trim(),birthday:document.querySelector('[data-family-child-birthday="'+i+'"]')?.value.trim()||""});
+ });
+ return {...old,father:parent("father"),mother:parent("mother"),children};
+}
+function validateRelatedGenders(c,mode){
+ const draft=collectRelatedGenderDrafts(c,mode);
+ const rows=mode==="cooperation"?draft.map((p,i)=>["partner:"+i,p]):[
+ ["father",draft.father],["mother",draft.mother],...draft.children.map((p,i)=>["child:"+i,p])
+ ];
+ for(const [key,p] of rows){
+ const select=[...document.querySelectorAll('[data-related-name-field="gender"]')].find(el=>el.dataset.relatedNameKey===key);
+ const required=key.startsWith("partner:")||key.startsWith("child:")||relatedPersonHasData(p);
+ if(select?.nextElementSibling)select.nextElementSibling.textContent="";
+ if(required&&!["男","女","其他"].includes(p.gender||"")){
+ if(select){if(select.nextElementSibling)select.nextElementSibling.textContent="请先为这位成员选择性别。";select.focus();select.reportValidity();}
+ return false;
+ }
+ }
+ return true;
+}
+document.addEventListener("change",event=>{
+ const el=event.target.closest('[data-related-name-field="gender"]');if(!el)return;
+ const c=currentCustomer();if(!c)return;
+ const key=el.dataset.relatedNameKey;
+ if(key.startsWith("partner:"))savePartners(c.id,collectRelatedGenderDrafts(c,"cooperation"));
+ else if(key==="father"||key==="mother"||key.startsWith("child:"))saveFamily(c.id,collectRelatedGenderDrafts(c,"family"));
+ else if(key==="relation")saveRelationship(c.id,readRelatedNameFields("relation",loadRelationship(c.id)));
+ if(el.nextElementSibling)el.nextElementSibling.textContent="已保存性别；点击保存并重新解析以刷新结果。";
+});
+
+
 function cooperationPanel(c){
   const ps=loadPartners(c.id),a=calculateBlueprint(c.birthday);
   const temperamentPairs=ps.filter(p=>String(p?.name||p?.officialName||"").trim()).map(p=>relatedNamePairPanel(c,p,"cooperation")+temperamentRelationshipPanel(c,p,"cooperation")).join("");
@@ -3673,14 +3721,15 @@ document.addEventListener("click",event=>{
   }
   const addChild=event.target.closest("#v20-add-child"); if(addChild){
     const c=currentCustomer(); if(!c)return;
-    const f=loadFamily(c.id); f.children=f.children||[]; f.children.push({name:"",birthday:""}); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
+    const f=collectRelatedGenderDrafts(c,"family"); f.children=f.children||[]; f.children.push({name:"",birthday:"",gender:""}); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
   }
   const removeChild=event.target.closest("[data-v20-remove-child]"); if(removeChild){
     const c=currentCustomer(); if(!c)return;
-    const f=loadFamily(c.id); f.children=f.children||[]; f.children.splice(Number(removeChild.dataset.v20RemoveChild),1); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
+    const f=collectRelatedGenderDrafts(c,"family"); f.children=f.children||[]; f.children.splice(Number(removeChild.dataset.v20RemoveChild),1); saveFamily(c.id,f); renderModule("亲子蓝图",c); return
   }
   const saveFamilyBtn=event.target.closest("#v20-save-family"); if(saveFamilyBtn){
     const c=currentCustomer(); if(!c)return;
+    if(!validateRelatedGenders(c,"family"))return;
     const current=loadFamily(c.id);
     const father={
       name:document.querySelector('[data-family-field="father.name"]')?.value.trim()||"",
@@ -3696,9 +3745,9 @@ document.addEventListener("click",event=>{
     });
     saveFamily(c.id,{...current,father:readRelatedNameFields("father",{...current.father,...father}),mother:readRelatedNameFields("mother",{...current.mother,...mother}),children:children.map((child,i)=>readRelatedNameFields("child:"+i,{...current.children?.[i],...child}))}); renderModule("亲子蓝图",c); return
   }
-  const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.push({name:"",birthday:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
-  const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=loadPartners(c.id);ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
-  const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return readRelatedNameFields("partner:"+i,{...loadPartners(c.id)[Number(i)],name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""})});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const add=event.target.closest("#v6-add-partner"); if(add){const c=currentCustomer();if(!c)return;const ps=collectRelatedGenderDrafts(c,"cooperation");ps.push({name:"",birthday:"",gender:""});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const rm=event.target.closest("[data-v6-remove-partner]"); if(rm){const c=currentCustomer();if(!c)return;const ps=collectRelatedGenderDrafts(c,"cooperation");ps.splice(Number(rm.dataset.v6RemovePartner),1);savePartners(c.id,ps);renderModule("合作蓝图",c);return}
+  const save=event.target.closest("#v6-save-partners"); if(save){const c=currentCustomer();if(!c)return;if(!validateRelatedGenders(c,"cooperation"))return;const ps=[...document.querySelectorAll("[data-v6-partner]")].map(card=>{const i=card.dataset.v6Partner;return readRelatedNameFields("partner:"+i,{...loadPartners(c.id)[Number(i)],name:card.querySelector("[data-v6-partner-name='"+i+"']")?.value.trim()||"",birthday:card.querySelector("[data-v6-partner-birthday='"+i+"']")?.value.trim()||""})});savePartners(c.id,ps);renderModule("合作蓝图",c);return}
   const regionBtn=event.target.closest("[data-v12-year-region]"); if(regionBtn){
     const c=currentCustomer(); if(!c)return;
     const target=Number(document.querySelector("#v6-year-target")?.value)||activeFlowYear(new Date());
