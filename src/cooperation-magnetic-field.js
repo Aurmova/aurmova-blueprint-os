@@ -107,6 +107,18 @@ export const COOP_MAGNETIC_GUIDES=Object.freeze({
   action:"把一个共同梦想改写成30天内可检验的目标和完成标准。"
  }
 });
+// 亲子不照念成人的金钱或事业暗示；这是AURMOVA基于课程主题设计的独立亲子提问。
+export const COOP_MAGNETIC_PARENT_CHILD_GUIDES=Object.freeze({
+ 1:{title:"共同创造与独立尝试",meaning:"一起想新点子、让孩子练习自主表达",script:"“这一组我们可以观察家长和孩子在一起时，是否很愿意尝试新方法。可以给孩子适龄选择，也要听听他是否喜欢这个安排，不必要求孩子事事跟着大人行动。”",question:"孩子想尝试新东西时，家长通常会怎样回应？",action:"一起完成一个可自由发挥的小活动。"},
+ 2:{title:"倾听与实际沟通",meaning:"聊很多不代表双方真的听懂",script:"“亲子版的2我们主要看沟通。你们可能很爱聊天，但孩子表达的需要是否被大人真正听见？家长也可以先少一点说教，多问一句孩子希望怎样被帮助。”",question:"孩子最近最想让家长认真听懂的事情是什么？",action:"每天留10分钟不打断地听孩子说话。"},
+ 3:{title:"活力与行动节奏",meaning:"两人容易想了就做，适合练习安全的行动边界",script:"“这组我们可以观察你们是不是都想快点开始。孩子有热情是好事，大人要做的是帮他注意安全、学会等待，而不是说这个数字表示孩子会冲动出事。”",question:"孩子和家长意见都来得很快时，怎样先商量再行动？",action:"共同制定一个先想一想、再开始的小步骤。"},
+ 4:{title:"规律与安全感",meaning:"家长和孩子一起建立适合年龄的生活习惯",script:"“这一组可以用来讨论规律。孩子是否知道做一件事的步骤，也知道遇到问题可以求助？家长可以订明确且温和的规则，别因为追求稳定而让孩子害怕犯错。”",question:"目前哪项生活规律最常引起亲子冲突？",action:"共同设计一个简短、可执行的家庭小流程。"},
+ 5:{title:"分心与优先事项",meaning:"关注家庭活动过多、步骤太杂时的注意力与支持",script:"“亲子版5不是说孩子有障碍或容易发生坏事，而是问你们最近是不是安排太多，孩子不知道先做哪一件。减少任务、分步骤、让他一次专注一项，会比责备更有帮助。”",question:"孩子最近是不是被很多安排打断，难以完成一件事情？",action:"减少一项非必要安排，一次只练习一个目标。"},
+ 6:{title:"照顾与责任分担",meaning:"互相关心但不能让孩子承担成人的金钱责任",script:"“原书成人合作的6用到了合财的说法，但那不能套在孩子身上。亲子关系我们只讨论照顾和责任：大人怎样支持孩子，孩子又能做什么适龄的小任务。没有所谓孩子会给父母带财的判断。”",question:"家长是否把孩子的懂事当作必须承担太多责任？",action:"安排一个适龄家务任务，并让孩子知道可以求助。"},
+ 7:{title:"朋友与支持网络",meaning:"观察孩子在家庭以外的交往支持和隐私边界",script:"“亲子版7可以用来谈学校、朋友和向人求助。我们不按数字预测孩子会遇到贵人，而是看他现实中有没有可信任的人，以及家长如何在尊重隐私的前提下提供支持。”",question:"孩子遇到难题时，愿意向哪些值得信任的人求助？",action:"和孩子列出两位遇事可以求助的人。"},
+ 8:{title:"成长目标与压力分担",meaning:"有目标的同时留意儿童可承受的学习和情绪压力",script:"“亲子版8不讲做大平台或发财，而是看目标和压力。我们可以一起确认家庭对成绩、比赛或表现的期待，是否超过孩子当前能承担的程度。鼓励努力，也要允许他休息。”",question:"孩子最近是不是特别担心自己达不到家长的期待？",action:"共同选一个可实现的小目标并预留休息。"},
+ 9:{title:"共同梦想与实践",meaning:"把想象和期待变成孩子真正感兴趣的适龄活动",script:"“亲子版9可以讨论梦想和创作，但不是说孩子注定成功。我们可以鼓励孩子讲讲自己的愿望，再陪他做一个很小的尝试。重要的是理解他的真实兴趣，不是用大人的目标代替孩子的选择。”",question:"孩子最想尝试的一件事，是否出于他自己的兴趣？",action:"陪孩子把一个愿望转成一项有趣的小行动。"}
+});
 const htmlEscape=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const digits=number=>[...String(number)].map(Number);
 const strictBirthday=raw=>{
@@ -145,6 +157,7 @@ export function prepareCooperationMagneticField(birthdayA,birthdayB,kind="cooper
 export function renderCooperationMagneticField(birthdayA,birthdayB,kind="cooperation",ctx={}){
  const p=prepareCooperationMagneticField(birthdayA,birthdayB,kind,ctx);if(!p)return "";
  const g=p.guide,e=htmlEscape,n=p.numberInfo;
+ const cg=kind==="parentChild"?COOP_MAGNETIC_PARENT_CHILD_GUIDES[n.number]:null;
  const label=kind==="cooperation"?"合作伙伴":kind==="friendship"?"朋友关系":"亲子互动";
  const collapsed=ctx.collapsed?"":" open";
  const scripts=kind==="parentChild"
@@ -154,19 +167,19 @@ export function renderCooperationMagneticField(birthdayA,birthdayB,kind="coopera
      :"合作版提醒：进一步核对项目、合同、出资、角色分工、金钱往来和双方退出安排。";
  const sumFormula=n.formula;
  const aSource=p.lifeA.raw+"/"+p.lifeA.number,bSource=p.lifeB.raw+"/"+p.lifeB.number;
- const questionHtml=g.questions.map(q=>"<li>"+e(q)+"</li>").join("");
+ const questionHtml=(cg?[cg.question]:g.questions).map(q=>"<li>"+e(q)+"</li>").join("");
  const warn=p.isSameAsMainPersonality===false
    ?"<div class=\"formula-note\"><b>数字来源差异：</b>其中一人的生命数与主性格O不同，本模块严格使用生命数；既有45组主性格配对仍按O位计算，不能互相覆盖。</div>":"";
  return '<details class="foundation-block coop-magnetic-reading"'+collapsed+'>'
-  +'<summary style="cursor:pointer;font-weight:700;padding:4px 0">性格磁场｜'+e(p.aName)+' × '+e(p.bName)+'｜合成'+n.number+'号 · '+e(g.title)+'</summary>'
+  +'<summary style="cursor:pointer;font-weight:700;padding:4px 0">性格磁场｜'+e(p.aName)+' × '+e(p.bName)+'｜合成'+n.number+'号 · '+e(cg?cg.title:g.title)+'</summary>'
   +'<div class="card-heading"><div><small>COOPERATION MAGNETIC FIELD · DIFFERENT FROM 45 PAIRS</small><h3>'+e(label)+'｜合作密码（性格磁场）'+n.number+'号</h3></div></div>'
   +'<div class="formula-note"><b>双方各自生命数：</b>'+e(p.aName)+' '+e(aSource)+'（路径'+e(p.lifeA.path.join("→"))+'）＋'+e(p.bName)+' '+e(bSource)+'（路径'+e(p.lifeB.path.join("→"))+'）。<br><b>合成公式：</b>'+e(sumFormula)+'。<br><b>与45组配对区别：</b>'+e(COOP_MAGNETIC_META.difference)+'</div>'
   +warn
-  +'<article class="card reading-card"><h4>① 原书磁场含义（课堂转述）</h4><p>'+e(g.sourceMeaning)+'</p><small>原书参考：'+e(g.page)+'</small></article>'
-  +'<article class="card reading-card"><h4>② 可能的合作／相处优势</h4><p>'+e(g.possibleStrength)+'</p></article>'
-  +'<article class="card reading-card"><h4>③ 需要现实核对的摩擦</h4><p>'+e(g.friction)+'</p></article>'
-  +'<article class="card reading-card"><h4>④ AURMOVA行动建议</h4><p>'+e(g.advice)+'</p><p><b>本周可做：</b>'+e(g.action)+'</p></article>'
-  +'<div class="question-box"><b>⑤ Josephine可照读白话</b><p>'+e(g.script)+'</p><p>'+e(scripts)+'</p></div>'
+  +'<article class="card reading-card"><h4>① 课程主题参考</h4><p>'+e(cg?cg.meaning:g.sourceMeaning)+'</p><small>原书参考：'+e(g.page)+'</small></article>'
+  +'<article class="card reading-card"><h4>② 可能的合作／相处优势</h4><p>'+e(cg?cg.meaning:g.possibleStrength)+'</p></article>'
+  +'<article class="card reading-card"><h4>③ 需要现实核对的摩擦</h4><p>'+e(cg?"是否有过高期待、没有说清需求或无法兼顾各自界线；应以孩子真实感受为主。":g.friction)+'</p></article>'
+  +'<article class="card reading-card"><h4>④ AURMOVA行动建议</h4><p>'+e(cg?cg.action:g.advice)+'</p><p><b>本周可做：</b>'+e(cg?cg.action:g.action)+'</p></article>'
+  +'<div class="question-box"><b>⑤ Josephine可照读白话</b><p>'+e(cg?cg.script:g.script)+'</p><p>'+e(scripts)+'</p></div>'
   +'<div class="question-box"><b>⑥ 两人咨询追问</b><ul>'+questionHtml+'</ul><p><b>回答有：</b>请各自举一个真实场景，了解是否有协商空间。<b>回答没有：</b>不强行套用教材标签，继续核对实际情况。</p></div>'
   +'<div class="formula-note"><b>来源：</b>'+e(COOP_MAGNETIC_META.source)+'。<b>适用范围：</b>'+e(COOP_MAGNETIC_META.scope)+'<br><b>专业界线：</b>'+e(COOP_MAGNETIC_META.agency)+'</div>'
   +'</details>';
