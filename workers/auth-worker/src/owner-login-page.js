@@ -18,7 +18,7 @@ export const LOGIN_HTML = `<!doctype html>
 <p class="eyebrow">AURMOVA · PRIVATE ACCESS PILOT</p>
 <h1>私人安全登录</h1>
 <p class="intro">这是独立的云端身份验证测试页面，不会修改你的 AURMOVA 正式网站。</p>
-<div class="notice"><strong>测试阶段</strong><p>这里只确认 GitHub 身份及 Cloudflare 后端连接。现有咨询工作台尚未完成顾客资料保密迁移，请勿在此输入真实顾客资料。</p></div>
+<div class="notice"><strong>测试阶段</strong><p>这里仅供测试 GitHub 身份验证与私人顾客档案管理功能。现有咨询工作台尚未迁移，请勿输入真实顾客资料。</p></div>
 <div class="actions">
 <button id="login" type="button">使用 GitHub 验证身份</button>
 <button id="check" type="button" class="outline" disabled>检查私人连接</button>
@@ -72,9 +72,7 @@ function setLoggedIn(token) {
   if (token) {
     loadPrivateCustomerList();
   } else {
-    document.getElementById("private-customer-list").replaceChildren();
-    document.getElementById("private-customer-detail").hidden = true;
-    document.getElementById("private-customer-detail").textContent = "";
+    resetPrivateCustomerState();
   }
 }
 async function api(path, options) {
