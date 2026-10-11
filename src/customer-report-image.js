@@ -1,5 +1,6 @@
 // Customer-visible report whitelist and high-resolution PNG renderer.
 import {calculateBlueprint,calculateGoldenYearSnapshot,activeFlowYear,flowYearRange} from "./engine/blueprint.js?v=54";
+import {detailedReportSections} from "./customer-report-content.js?v=1";
 export const CUSTOMER_REPORT_TYPES={life:"人生蓝图",year:"黄金流年蓝图",relationship:"关系蓝图",family:"亲子蓝图",cooperation:"合作蓝图"};
 const PUBLIC_PERSONALITY={
  1:{strength:"自主、主动与推动事情的能力。",watch:"需要留意自己推进得很快时，别人是否有参与和表达的空间。",action:"选一件想推进的小事，写清目标与第一步；同时邀请相关的人说出需要。",communication:"更容易接住清楚的重点、选择与自主空间。"},
@@ -27,7 +28,7 @@ function mainOf(person){
  if(!person?.birthday)return null;
  try{return calculateBlueprint(person.birthday)?.mainPersonality||null;}catch{return null;}
 }
-export function buildCustomerReport({type,customer={},other={},year,includeNumbers=true,includeBirthday=false,summary="",action=""}){
+export function buildCustomerReport({type,customer={},other={},year,includeNumbers=true,includeBirthday=false,detail="full",summary="",action=""}){
  if(!CUSTOMER_REPORT_TYPES[type])throw new Error("请选择有效的报告项目。");
  const paired=["relationship","family","cooperation"].includes(type);
  if(!String(customer.name||"").trim()||!customer.birthday)throw new Error("先保存顾客姓名与生日。");
@@ -38,7 +39,7 @@ export function buildCustomerReport({type,customer={},other={},year,includeNumbe
  if(String(customer.name).length>100||(paired&&String(other.name).length>100))throw new Error("报告姓名请控制在100字以内。");
  if(String(summary).length>1200||String(action).length>1200)throw new Error("总结与行动建议各请控制在1200字以内。");
  const names=paired?[String(customer.name),String(other.name)]:[String(customer.name)];
- let subtitle="",sections=[];
+ let subtitle="",sections=[],yearNumber=null;
  if(type==="life"){
  subtitle=includeNumbers?"主性格 "+a+"号｜自我认识与行动梳理":"自我认识与行动梳理";
  sections=[{title:"自然优势 · 观察方向",body:p.strength},{title:"需要留意的模式",body:p.watch},{title:"本周行动",body:p.action}];
@@ -46,6 +47,7 @@ export function buildCustomerReport({type,customer={},other={},year,includeNumbe
  const target=Number(year)||activeFlowYear();
  if(!Number.isInteger(target)||target<1900||target>2200)throw new Error("请输入1900–2200之间的流年年度。");
  const snap=calculateGoldenYearSnapshot(customer.birthday,target),n=snap.personal.number,v=PUBLIC_YEAR[n],range=flowYearRange(target);
+ yearNumber=n;
  subtitle=target+" 流年｜"+range.start+" 至 "+range.end+(includeNumbers?"｜个人流年 "+n+"号":"");
  sections=[{title:"年度关注方向 · "+v[0],body:v[1]},{title:"需要留意",body:v[2]},{title:"本周行动",body:v[3]},{title:"使用方式",body:"年度主题用于安排关注重点，不代表某一年必然发生某件事；请结合现实条件、已有计划与实际进展调整。"}];
  }else{
@@ -60,6 +62,7 @@ export function buildCustomerReport({type,customer={},other={},year,includeNumbe
  {title:ctx[1],body:a===b?"双方观察方向相近，可以验证共同需要是否被看见；相近也可能让两个人重复承担同一角色。":"双方观察方向不同，可以先找互补，也确认哪一个说话或行动差异容易产生误会。"},
  {title:"共同练习",body:ctx[2]}];
  }
+ if(detail==="full")sections=detailedReportSections({type,a,b,yearNumber,base:sections,customerName:String(customer.name),otherName:String(other.name||""),birthday:other.birthday});
  if(summary.trim())sections.splice(sections.length-1,0,{title:"本次咨询总结",body:String(summary).trim()});
  if(action.trim())sections=sections.filter(s=>!["本周行动","共同练习"].includes(s.title)).concat({title:"约定的行动",body:String(action).trim()});
  // Build only explicitly allowed output fields. Never spread the raw customer or internal blueprint.
@@ -139,7 +142,7 @@ export function mountCustomerReportTool(panel,{customer,defaultType="life",defau
  const key="aurmova.customerReportOptions."+customer.id;
  let saved={};try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch{}
  const type=Object.hasOwn(CUSTOMER_REPORT_TYPES,defaultType)?defaultType:"life";
- root.innerHTML='<summary>生成顾客报告图｜切换项目、预览、下载</summary><div class="report-controls"><p>先保存最新顾客资料。报告项目由你选择，预览并确认内容后才能下载。</p><label>要给顾客哪一种报告<select data-report-type>'+Object.entries(CUSTOMER_REPORT_TYPES).map(([id,title])=>'<option value="'+id+'" '+(id===type?"selected":"")+'>'+title+'</option>').join("")+'</select></label><label data-report-year-wrap>流年年度<input data-report-year type="number" min="1900" max="2200" value="'+e(defaultYear)+'"></label><label data-report-pair-wrap>报告中的双方<select data-report-pair></select></label><label><input type="checkbox" data-report-numbers checked>人生／流年报告显示主性格或个人流年号码</label><label><input type="checkbox" data-report-birthday>报告显示生日</label><label>本次咨询总结（可自行修改）<textarea rows="3" maxlength="1200" data-report-summary placeholder="只写你决定给顾客看的重点"></textarea></label><label>约定的行动（可自行修改）<textarea rows="3" maxlength="1200" data-report-action placeholder="例如：本周先练习一次清楚表达需要"></textarea></label><button type="button" class="btn btn-primary" data-report-preview>生成报告预览</button><p data-report-status role="status" aria-live="polite"></p><div data-report-images></div><label><input type="checkbox" data-report-confirm disabled>我已检查以上内容，确认可以交给顾客</label><div data-report-downloads></div><p class="panel-note">高清PNG：每页2480 × 3508像素，适合A4打印。手机也可长按预览图保存。三角形、联合码、父母基因、坐镇码、姓名算法和咨询提词不会自动放入顾客报告。</p></div>';
+ root.innerHTML='<summary>生成顾客报告图｜切换项目、预览、下载</summary><div class="report-controls"><p>先保存最新顾客资料。报告项目由你选择，预览并确认内容后才能下载。</p><label>要给顾客哪一种报告<select data-report-type>'+Object.entries(CUSTOMER_REPORT_TYPES).map(([id,title])=>'<option value="'+id+'" '+(id===type?"selected":"")+'>'+title+'</option>').join("")+'</select></label><label>报告内容<select data-report-detail><option value="full" selected>完整版｜场景解读与行动计划</option><option value="brief">重点版｜简短摘要</option></select></label><label data-report-year-wrap>流年年度<input data-report-year type="number" min="1900" max="2200" value="'+e(defaultYear)+'"></label><label data-report-pair-wrap>报告中的双方<select data-report-pair></select></label><label><input type="checkbox" data-report-numbers checked>人生／流年报告显示主性格或个人流年号码</label><label><input type="checkbox" data-report-birthday>报告显示生日</label><label>本次咨询总结（可自行修改）<textarea rows="3" maxlength="1200" data-report-summary placeholder="只写你决定给顾客看的重点"></textarea></label><label>约定的行动（可自行修改）<textarea rows="3" maxlength="1200" data-report-action placeholder="例如：本周先练习一次清楚表达需要"></textarea></label><button type="button" class="btn btn-primary" data-report-preview>生成报告预览</button><p data-report-status role="status" aria-live="polite"></p><div data-report-images></div><label><input type="checkbox" data-report-confirm disabled>我已检查以上内容，确认可以交给顾客</label><div data-report-downloads></div><p class="panel-note">高清PNG：每页2480 × 3508像素，适合A4打印。手机也可长按预览图保存。三角形、联合码、父母基因、坐镇码、姓名算法和咨询提词不会自动放入顾客报告。</p></div>';
  const style=panel.ownerDocument.createElement("style");
  style.textContent=".customer-report-tool{border:1px solid #c9b38c;border-radius:12px;margin:0 0 22px;padding:16px;background:#fffdf9}.customer-report-tool summary{font-weight:650;cursor:pointer;color:#80633b}.report-controls>label{display:block;margin:15px 0}.report-controls select,.report-controls input[type=number],.report-controls textarea{display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:7px;border:1px solid #d6c39b;border-radius:8px;background:white;font:inherit}.report-controls input[type=checkbox]{margin-right:8px}.report-controls img{display:block;max-width:100%;height:auto;border:1px solid #e6ddcf;margin:12px 0}.report-controls [data-report-downloads] a{display:inline-block;margin:6px;padding:12px 18px;background:#a68750;color:white;border-radius:8px;text-decoration:none}";
  root.prepend(style);panel.prepend(root);
@@ -190,7 +193,7 @@ export function mountCustomerReportTool(panel,{customer,defaultType="life",defau
  const selected=$("[data-report-type]").value,paired=["relationship","family","cooperation"].includes(selected);
  const pair=paired?getPairs(selected)[Number($("[data-report-pair]").value)]:null;
  if(paired&&!pair)throw new Error("先保存所选项目的双方资料。");
- const model=buildCustomerReport({type:selected,customer:pair?.a||customer,other:pair?.b||{},year:$("[data-report-year]").value,includeNumbers:$("[data-report-numbers]").checked,includeBirthday:$("[data-report-birthday]").checked,summary:$("[data-report-summary]").value,action:$("[data-report-action]").value});
+ const model=buildCustomerReport({type:selected,customer:pair?.a||customer,other:pair?.b||{},year:$("[data-report-year]").value,includeNumbers:$("[data-report-numbers]").checked,includeBirthday:$("[data-report-birthday]").checked,detail:$("[data-report-detail]").value,summary:$("[data-report-summary]").value,action:$("[data-report-action]").value});
  const logoUrl=panel.ownerDocument.querySelector(".brand-logo")?.src||"";
  const result=await renderCustomerReportCanvases(model,{document:panel.ownerDocument,logoUrl});
  if(token!==revision)return;
