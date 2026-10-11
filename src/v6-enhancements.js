@@ -1,3 +1,4 @@
+import {mountSpeakingGuide} from "./speaking-guide.js?v=1";
 import {mountCustomerReportTool} from "./customer-report-image.js?v=2";
 import {GUIDED_QUESTIONS,buildGuidedReply,guidedRecordKey} from "./guided-consultation-replies.js?v=1";
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
@@ -3168,6 +3169,7 @@ function mountReportForCustomer(panel,key,c){
  mountCustomerReportTool(panel,{customer:c,defaultType:types[key]||"life",defaultYear:Number(panel.querySelector("#v6-year-target")?.value)||activeFlowYear(),
  getPairs(type){return type==="relationship"?guidedContexts("relationship",c):type==="family"?guidedContexts("family",c):type==="cooperation"?guidedContexts("cooperation",c):[];}
  });
+ mountSpeakingGuide(panel,{customer:c,type:types[key]||"life",year:Number(panel.querySelector("#v6-year-target")?.value)||activeFlowYear(),child:key==="儿童蓝图"||(key==="人生蓝图"&&childAudience(c)==="child"),getPairs(type){return ["relationship","family","cooperation"].includes(type)?guidedContexts(type,c):[];}});
 }
 
 function renderModule(key,c){
