@@ -1,4 +1,4 @@
-import {mountSpeakingGuide} from "./speaking-guide.js?v=1";
+import {mountSpeakingGuide} from "./speaking-guide.js?v=2";
 import {mountCustomerReportTool} from "./customer-report-image.js?v=2";
 import {GUIDED_QUESTIONS,buildGuidedReply,guidedRecordKey} from "./guided-consultation-replies.js?v=1";
 import { renderCycleEnvironmentPanel } from "./cycle-environment.js?v=1";
