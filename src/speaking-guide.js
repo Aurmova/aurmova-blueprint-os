@@ -1,3 +1,4 @@
+import {buildOrderedFoundation} from "./ordered-speaking-foundation.js?v=1";
 import {buildCustomerReport,CUSTOMER_REPORT_TYPES} from './customer-report-image.js?v=2';
 import {calculateBlueprint,activeFlowYear} from './engine/blueprint.js?v=54';
 import {buildGuidedReply} from './guided-consultation-replies.js?v=1';
@@ -22,16 +23,17 @@ export function buildSpeakingSteps({type,customer,other={},year,child=false}){
  else if(type==='relationship')topics=[['先听双方的表达',pick(report,'第一位')+'\n'+pick(report,'第二位'),'刚才那件事，两个人分别说了什么？对方的想法是本人说过，还是你推测的？','communication'],['再看需要有没有接上',pick(report,'双方差异'),'你希望怎样被回应？对方有没有直接说明自己的需要？','needs'],['最后看冲突怎样修复',pick(report,'意见不一致'),'在哪句话开始听不进去？什么时候还能够停下来、重新谈？','conflict']];
  else if(type==='family')topics=[['先看孩子怎么接得住',pick(report,'发展阶段')+' '+pick(report,'学习与参与'),'孩子在哪个任务卡住？把任务拆小或示范一次后，有没有不同？','learning'],['再看家长与孩子的交流',pick(report,'怎样接上话'),'大人第一句怎么说？孩子怎样回应？哪一句之后开始互相听不进去？','communication'],['最后处理不配合的场景',pick(report,'不配合')+' '+pick(report,'家长自己的压力'),'当时孩子和大人各自是什么状态？先改一个说法，会不会更容易继续？','emotion']];
  else topics=[['先看分工怎么搭配',pick(report,'分工可以'),'目前谁负责哪件事？最近一次重复做或漏做是怎样发生的？','roles'],['再看交接和决定',pick(report,'进度与交接'),'谁决定、谁执行、谁验收？这些是否由双方共同确认？','decision'],['最后处理压力与分歧',pick(report,'压力下')+' '+pick(report,'分歧的处理'),'争议的事实是什么？哪些条件可商量，哪些是双方知道的底线？','conflict']];
+ const foundation=buildOrderedFoundation({type,customer,other,child});
+ const applicationTopics=type==='life'?[['联系顾客这次的问题',child?'把刚才核对过的观察放进家长最想改善的一个场景，先调整任务、说法或支持方式。':'把刚才核对过的观察放进你这次最想解决的一件事。'+pick(report,'生活场景'),'回到你这次想问的事，哪一个观察最有用？实际条件有什么需要补充？','communication']]:topics;
  const steps=[
- {id:'open',title:'开场，让顾客安心',say:name+'，'+opening+'如果描述与你的经历不同，请直接告诉我，我们以实际经历为准。',question:'这样开始可以吗？',transition:'那我先听听你现在最在意的事情。'},
- {id:'problem',title:'确认这次最想解决的问题',say:'今天我们先抓一件最重要的事，避免讲了很多，最后不知道怎样用。',question:firstQuestion,transition:'好，我会把你刚才说的事情作为今天的主线。'},
- {id:'frame',title:'说明这次会怎样看',say:frame,question:'围绕刚才那件事，你最希望咨询结束后得到什么帮助？',transition:'接下来我先讲一个观察，你听听看是否符合。'},
- ...topics.map(([title,say,question,topic],i)=>({id:'topic'+i,title,say,question,topic,transition:i<2?'我们把这个例子记下来，再看下一层。':'我们已经找到需要核对的场景，接下来只选一个小行动。'})),
+ ...foundation.steps,
+ ...foundation.extras,
+ ...applicationTopics.map(([title,say,question,topic],i)=>({id:(type==='life'?'application':'topic')+i,title,say,question,topic,transition:i<applicationTopics.length-1?'我们把这个例子记下来，再看下一层。':'我们已经找到需要核对的场景，接下来只选一个小行动。'})),
  {id:'action',title:'把解读变成一个行动',say:child?'选一个适合孩子年龄的小任务，只给一步清楚的指引，先让孩子尝试，再具体回应他的努力。':pick(report,'本周行动')||pick(report,'共同练习'),question:'这一步你愿意试吗？怎样调整，才是你现在做得到的？',transition:'我们把你愿意做的部分说具体。'},
  {id:'agreement',title:'确认怎么做、何时复盘',say:'我们约定一件具体的事：什么时候做、做到什么程度，以及用什么变化判断有没有帮助。',question:'你愿意尝试的行动是什么？准备什么时候开始？下次我们核对什么？',transition:'最后，我把今天谈的重点整理一下。'},
  {id:'close',title:'总结与自然收尾',say:'今天我们从你的实际问题出发，核对了表达、需要与行动方式。符合的观察留下，不符合的就调整。我们先实践一小步，再看真实效果。',question:'今天哪一点最有帮助？还有什么需要我重新说明？',transition:'我会按今天确认的重点整理顾客报告。报告项目和内容由我检查后再交给你。'}
  ];
- return {title:CUSTOMER_REPORT_TYPES[type],steps,report};
+ return {title:CUSTOMER_REPORT_TYPES[type],opening:name+"，"+opening+" 如果描述与你的经历不同，请直接告诉我，我们以实际经历为准。",firstQuestion,frame,steps,report};
 }
 export function speakingReply({type,step,answer,customer,other={},respondent}){
  const text=short(answer);if(!text)return '先记录顾客的实际回答，再生成接话。';
@@ -57,7 +59,7 @@ export function mountSpeakingGuide(panel,{customer,type='life',year=activeFlowYe
  '<h2>跟着说 · 一步一步咨询</h2><p class="spoken-helper">只看当前一步：先照读，再问；听完顾客回答后接话，最后说转场句进入下一步。完整资料可以随时展开查阅。</p>'+
  (pairedTypes.includes(type)?'<label>这次咨询的双方<select data-speak-pair></select></label>':'')+
  (type==='year'?'<label>流年年度<input data-speak-year type="number" min="1900" max="2200" value="'+esc(year)+'"></label>':'')+
- '<div class="spoken-buttons"><button class="btn" type="button" data-speak-mode>查看完整资料</button></div><div data-speak-body></div><p data-speak-status role="status" aria-live="polite"></p>';
+ '<div class="spoken-buttons"><button class="btn" type="button" data-speak-mode>查看完整资料</button></div><div data-speak-opening></div><div data-speak-body></div><p data-speak-status role="status" aria-live="polite"></p>';
  panel.prepend(root);panel.classList.add('speaking-active');const workspace=doc.querySelector('#app');workspace?.classList.add('speaking-focus');
  const $=s=>root.querySelector(s),status=$('[data-speak-status]');let session,state,key,a,b,selectedYear=year;
  function persist(){try{localStorage.setItem(key,JSON.stringify(state));}catch{status.textContent='当前浏览器无法保存进度，本次仍可继续咨询。';}}
@@ -65,13 +67,14 @@ export function mountSpeakingGuide(panel,{customer,type='life',year=activeFlowYe
  function render(){
   const step=session.steps[state.index],record=currentRecord();
   const say=step.id==='close'?speakingSummary(state.records)+'\n'+step.say:step.say;
-  $('[data-speak-body]').innerHTML='<p><b>'+esc(session.title)+' · 第'+(state.index+1)+' / '+session.steps.length+'步</b></p><progress max="'+session.steps.length+'" value="'+(state.index+1)+'"></progress><h3>'+esc(step.title)+'</h3>'+
+  $('[data-speak-opening]').innerHTML='<details><summary>简短开场与确认问题（需要时展开）</summary><p>'+esc(session.opening)+'</p><p>'+esc(session.firstQuestion)+'</p><p>'+esc(session.frame)+'</p><label>顾客这次最想解决的问题<textarea data-speak-problem rows="2" maxlength="1500">'+esc(state.records.problem?.answer||'')+'</textarea></label></details>';
+  $('[data-speak-body]').innerHTML='<p><b>'+esc(session.title)+' · 第'+(state.index+1)+' / '+session.steps.length+'步</b></p><progress max="'+session.steps.length+'" value="'+(state.index+1)+'"></progress><h3>'+esc(step.title)+'</h3>'+(step.optional?'<p class="spoken-helper">这一层按顾客的问题选讲；暂时无关可以直接略过。</p>':'')+
   '<div class="spoken-card"><small>① 现在照着说</small>'+esc(say)+'</div><div class="spoken-card spoken-question"><small>② 说完问顾客，然后停下来听</small>'+esc(step.question)+'</div>'+
   (pairedTypes.includes(type)?'<label>这一步是谁回答<select data-speak-respondent>'+[a.name,b.name,'双方分别回答'].map(n=>'<option value="'+esc(n)+'" '+(n===record.respondent?'selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>':'')+
   '<label>顾客原话（可记录，按当前步骤保存）<textarea data-speak-answer maxlength="1500" rows="3" placeholder="例如：顾客认同的部分、真实例子；没有或不确定也可以记录。">'+esc(record.answer||'')+'</textarea></label><button type="button" class="btn" data-speak-reply>顾客回答后，我怎么接</button><div data-speak-output>'+ (record.reply?'<div class="spoken-card"><small>③ 核对意思后接话</small>'+esc(record.reply)+'</div>':'')+'</div>'+
   '<details><summary>这一层没问清楚时，怎样继续？</summary><p>顾客认同：请他给最近一个例子，再问当时的需要。\n顾客不认同：这一条先放下，回到真实经历。\n顾客不确定：缩小到最近一次；暂时没有例子可以略过，不必硬找。</p></details><div class="spoken-card"><small>④ 这一层谈完，转到下一步</small>'+esc(step.transition)+'</div>'+
   '<div class="spoken-buttons"><button class="btn" type="button" data-speak-prev '+(state.index===0?'disabled':'')+'>上一步</button><button class="btn btn-primary" type="button" data-speak-next '+(state.index===session.steps.length-1?'disabled':'')+'>下一步</button><button class="btn" type="button" data-speak-copy>复制这一步话术</button></div>'+
-  '<label>直接跳到某一步<select data-speak-jump>'+session.steps.map((s,i)=>'<option value="'+i+'" '+(i===state.index?'selected':'')+'>'+(i+1)+' · '+esc(s.title)+'</option>').join('')+'</select></label>'+
+  (step.optional?'<button class="btn" type="button" data-speak-next>这一层先略过</button>':'')+'<label>直接跳到某一步<select data-speak-jump>'+session.steps.map((s,i)=>'<option value="'+i+'" '+(i===state.index?'selected':'')+'>'+(i+1)+' · '+esc(s.title)+'</option>').join('')+'</select></label>'+
   (state.index===session.steps.length-1?'<button class="btn btn-primary" type="button" data-speak-report>咨询结束，去预览顾客报告</button><p class="spoken-helper">报告内容仍由你检查和修改，不会自动发送给顾客。</p>':'');
  }
  function load(){
@@ -82,13 +85,16 @@ export function mountSpeakingGuide(panel,{customer,type='life',year=activeFlowYe
   key=speakingSessionKey(customer.id,type,a,b,selectedYear);try{state=JSON.parse(localStorage.getItem(key)||'{}');}catch{state={};}
   if(!state||typeof state!=='object'||Array.isArray(state))state={};
   state.records=state.records&&typeof state.records==='object'?state.records:{};
+  if(state.schema!==2){state.index=0;state.schema=2;}
   state.index=Number.isInteger(state.index)?Math.max(0,Math.min(session.steps.length-1,state.index)):0;render();
  }
  if($('[data-speak-pair]'))$('[data-speak-pair]').innerHTML=getPairs(type).map((pair,i)=>'<option value="'+i+'">'+esc(pair.label)+'</option>').join('');
  load();
  function saveAnswer(){const step=session.steps[state.index],old=currentRecord();state.records[step.id]={...old,answer:$('[data-speak-answer]').value,respondent:$('[data-speak-respondent]')?.value||a.name};persist();}
  root.addEventListener('input',event=>{
-  if(!session||!event.target.matches('[data-speak-answer]'))return;
+  if(!session)return;
+  if(event.target.matches('[data-speak-problem]')){state.records.problem={...state.records.problem,answer:event.target.value};persist();return;}
+  if(!event.target.matches('[data-speak-answer]'))return;
   saveAnswer();delete state.records[session.steps[state.index].id].reply;persist();$('[data-speak-output]').replaceChildren();status.textContent='已保存顾客原话；修改后请重新生成接话。';
  });
  root.addEventListener('change',event=>{
@@ -111,3 +117,4 @@ export function mountSpeakingGuide(panel,{customer,type='life',year=activeFlowYe
   if(button.matches('[data-speak-report]')){panel.classList.remove('speaking-active');workspace?.classList.remove('speaking-focus');$('[data-speak-mode]').textContent='收起资料，继续跟着说';const report=panel.querySelector('.customer-report-tool');if(report){report.open=true;report.scrollIntoView({behavior:'smooth',block:'start'});}else status.textContent='请在蓝图页面的生成顾客报告图入口预览报告。';}
  });
 }
+
