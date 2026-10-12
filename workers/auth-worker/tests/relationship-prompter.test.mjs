@@ -89,7 +89,7 @@ test("private reader is only part of authenticated hidden customer panel; safe t
   assert.match(LOGIN_SCRIPT,/renderRelationshipPrompter\(data.consultationScript\)/);
   assert.match(LOGIN_SCRIPT,/textContent = step.script|paragraph\("可以直接照读", step.script/);
   assert.match(LOGIN_SCRIPT,/textContent = step.followUps\[chosen\[step.id\]\]/);
-  assert.match(LOGIN_SCRIPT,/selected\[step.id\]/);
+  assert.match(LOGIN_SCRIPT,/chosen\[step.id\]/);
   assert.match(LOGIN_SCRIPT,/analysisOutput.replaceChildren\(\)/);
   assert.match(LOGIN_CSS,/prompter-wrap/);
   assert.doesNotThrow(()=>new Function(LOGIN_SCRIPT));
