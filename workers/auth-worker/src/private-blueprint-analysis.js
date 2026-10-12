@@ -7,6 +7,7 @@ import {
   ageFromBirthday, phaseForAge
 } from "../../../src/engine/blueprint.js";
 import { PERSONALITY_LIBRARY } from "../../../src/personality-library.js";
+import { makeRelationshipConsultationScript } from "./relationship-consultation.js";
 
 export const FIVE_BLUEPRINTS = Object.freeze([
   "人生蓝图解析", "黄金流年蓝图解析", "关系蓝图解析",
@@ -46,6 +47,7 @@ function personPreview(input, isOwner) {
     role: isOwner ? "主要顾客" : (input.role || "共同分析成员"),
     age, main: b.mainPersonality, mainTitle: profile.title || "",
     seatCode: b.seatCode, innerCode: b.innerCode,
+    starting: b.startingThoughtCode,
     fatherCode: b.fatherCode, motherCode: b.motherCode,
     phase: activePhase,
     phaseCodes: activePhase ? GROUPS[activePhase].map((key, i) => ({
@@ -85,6 +87,7 @@ export function buildPrivateBlueprintPreview(customer, project, requestedYear) {
   const people = [owner, ...members.map(member => personPreview(member, false))];
   const sections = [];
   const questions = [];
+  let consultationScript = null;
   const annotations = [];
   let completeness = "已接入出生盘的确定性计算；深入联合码语义、儿童专用完整话术、全部姓名拼音换算与正式顾客报告仍待专项审核。";
   if (project === "人生蓝图解析") {
@@ -129,6 +132,9 @@ export function buildPrivateBlueprintPreview(customer, project, requestedYear) {
       sections.push(section("双方／成员联合对照", people.flatMap(person => [
         row(person.name + " · " + person.role, "主性格 " + person.main + "；内心码 " + person.innerCode + "；坐镇码 " + person.seatCode)
       ])));
+      if (project === "关系蓝图解析") {
+        consultationScript = makeRelationshipConsultationScript(owner, people[1]);
+      }
       for (const other of people.slice(1)) {
         if (project === "关系蓝图解析") {
           sections.push(section(owner.name + " × " + other.name + " · " + PERSON_ROLE[project], [
@@ -164,6 +170,7 @@ export function buildPrivateBlueprintPreview(customer, project, requestedYear) {
     customerId: customer.id, customerUpdatedAt: customer.updatedAt,
     heading: "AURMOVA · " + project,
     people, sections, questions, annotations, completeness,
+    consultationScript,
     disclaimer: "本页属于数字学课程框架下的管理员内部咨询草稿，必须结合当事人的事实核对；不得用于诊断、断言关系结果、预测财富或决定儿童潜能。",
     clientReportAvailable: false
   };
