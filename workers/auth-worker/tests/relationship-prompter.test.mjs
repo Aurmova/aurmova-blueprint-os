@@ -72,7 +72,7 @@ test("every step has consultant-ready question, three response branches and next
     for(const k of ["fits","differs","unsure"]) assert.ok(step.followUps[k].length>10);
     assert.ok(step.nextAction.length>10);
   }
-  assert.match(p.notes.join(" "),/不会被保存到数据库/);
+  assert.match(p.notes.join(" "),/不自动保存顾客对问题的回答/);
 });
 
 test("other member records stay intact and scripts use selected private record", () => {
