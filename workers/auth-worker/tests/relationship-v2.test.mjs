@@ -38,6 +38,13 @@ test("V2 has a distinct, readable explanation and cross-links at all seven stage
   assert.match(got.steps[1].blocks[0].text,/主性格3/);
   assert.match(got.steps[1].blocks[0].text,/起始数/);
   assert.match(got.steps[1].blocks[1].text,/可能/);
+  // Regression: never stringify the entire person object as "[object Object]".
+  const ordered=got.steps[2].blocks[0].text;
+  assert.match(ordered,/测试关系甲：因5/);
+  assert.match(ordered,/测试成员乙：因7/);
+  for (const part of got.steps) for (const block of part.blocks) {
+    assert.doesNotMatch(block.text,/\[object Object\]/,part.id+" "+block.label);
+  }
   assert.match(got.steps[2].blocks[1].text,/测试关系甲/);
   assert.match(got.steps[2].blocks[1].text,/测试成员乙/);
   assert.match(got.steps[2].blocks[2].text,/过程与 .*出发点同为数字7/);
