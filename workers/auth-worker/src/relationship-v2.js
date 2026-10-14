@@ -163,7 +163,7 @@ export function enhanceRelationshipV2(script,a,b) {
       intro("引导技巧","先让A说自己的目的，再让B复述；随后让B说自己的目的，A复述。不要代替顾客判断他们实际怎样想。")
     ],
     seat:[
-      intro("先讲清因、过程、结果", stageDesc(a,ca)+" "+stageDesc(b,cb)),
+      intro("先讲清因、过程、结果", stageDesc(a.name,ca)+" "+stageDesc(b.name,cb)),
       intro("双方交叉后可能出现的互动",pair[0]+" "+pair[1]),
       intro("找到共同点",pair[2]),
       intro("课程来源核对",a.name+"（"+a.seatCode+"）："+sourceA+" "+b.name+"（"+b.seatCode+"）："+sourceB),
