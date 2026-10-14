@@ -35,6 +35,9 @@ test("V2 has a distinct, readable explanation and cross-links at all seven stage
     assert.ok(s.interaction.options.every(o=>o.label && o.ask && o.reply),s.id);
     assert.ok(s.question.endsWith("？"),s.id);
   }
+  assert.match(got.steps[1].blocks[0].text,/主性格3/);
+  assert.match(got.steps[1].blocks[0].text,/起始数/);
+  assert.match(got.steps[1].blocks[1].text,/可能/);
   assert.match(got.steps[2].blocks[1].text,/测试关系甲/);
   assert.match(got.steps[2].blocks[1].text,/测试成员乙/);
   assert.match(got.steps[2].blocks[2].text,/过程与 .*出发点同为数字7/);
@@ -73,8 +76,8 @@ test("special 3x8 and inner 6x7 samples never leak into a different couple's ana
     members:[{name:"模拟乙",gender:"女",birthday:"01/01/1996",role:"朋友"}]};
   const got=script(different);
   assert.ok(got);
-  assert.doesNotMatch(got.steps[1].blocks[1].text,/3号与8号.*这个组合才/);
-  assert.match(got.steps[1].blocks[1].text,/不(?:要)?用3号与8号的示例套到其他组合/);
+  assert.doesNotMatch(got.steps[1].blocks[2].text,/3号与8号.*这个组合才/);
+  assert.match(got.steps[1].blocks[2].text,/不(?:要)?用3号与8号的示例套到其他组合/);
   assert.doesNotMatch(got.steps[3].blocks[1].text,/我努力做了，你却不说/);
   const [a,b]=buildPrivateBlueprintPreview(different,"关系蓝图解析").people;
   assert.ok(got.steps[2].blocks[0].text.includes("因"+a.seatCode[0]));
