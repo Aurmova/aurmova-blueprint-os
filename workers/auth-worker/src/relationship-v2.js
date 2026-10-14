@@ -125,6 +125,8 @@ export function enhanceRelationshipV2(script,a,b) {
   const pair=v2Pair(a,b);
   const ia=needCode(Number(a.innerCode)), ib=needCode(Number(b.innerCode));
   const ca=validSeat(a),cb=validSeat(b);
+  const is38 = Number(a.main) === 3 && Number(b.main) === 8;
+  const is67 = Number(a.innerCode) === 6 && Number(b.innerCode) === 7;
   const sourceA=script.codeEvidence?.find(p=>p.name===a.name)?.source || "请核对课程正序解说。";
   const sourceB=script.codeEvidence?.find(p=>p.name===b.name)?.source || "请核对课程正序解说。";
   const blocks={
@@ -135,7 +137,9 @@ export function enhanceRelationshipV2(script,a,b) {
     ],
     personality:[
       intro("先介绍两位", mainTitle(a)+"；"+mainTitle(b)+"。先不说谁强谁弱，先讨论决定事情时各自怎么开始。"),
-      intro("联合观察","在同一件事情里，"+a.name+"的表达与行动倾向、"+b.name+"的目标与责任倾向可能让双方注意不同的重点。这是需要拿例子验证的假设。"),
+      intro("联合观察", is38 ?
+        "在同一件事情里，"+a.name+"的表达与行动倾向、"+b.name+"的目标与责任倾向可能让双方注意不同的重点。这是需要拿例子验证的假设。" :
+        a.name+"的主性格"+a.main+"、"+b.name+"的主性格"+b.main+"可能提示不同的参与方式。先让两人分别说明发起、思考和执行顺序，不要用3号与8号的示例套到其他组合。"),
       intro("生活例子", "例如讨论周末计划：一位可能先提出想做什么，另一位可能先问时间与安排。双方都可以是在认真参与，只是提问被误解成了否定。"),
       intro("引导技巧","先让A说自己的目的，再让B复述；随后让B说自己的目的，A复述。不要代替顾客判断他们实际怎样想。")
     ],
@@ -148,7 +152,9 @@ export function enhanceRelationshipV2(script,a,b) {
     ],
     inner:[
       intro("先解释两位的内心码",a.name+"内心码"+a.innerCode+"，参考关键词："+ia.positive+"。"+b.name+"内心码"+b.innerCode+"，参考关键词："+ib.positive+"。"),
-      intro("把双方真正需要的东西对照","如果"+a.name+"把具体承担与照顾当成被重视的信号，而"+b.name+"更需要有时间观察、思考或被信任，就可能出现‘我努力做了，你却不说’与‘我想清楚才回应’的落差。两人要自己确认是否符合。"),
+      intro("把双方真正需要的东西对照", is67 ?
+        "如果"+a.name+"把具体承担与照顾当成被重视的信号，而"+b.name+"更需要有时间观察、思考或被信任，就可能出现‘我努力做了，你却不说’与‘我想清楚才回应’的落差。两人要自己确认是否符合。" :
+        "内心码"+a.innerCode+"的线索是："+ia.positive+"；内心码"+b.innerCode+"的线索是："+ib.positive+"。两种需求可能同时合理。请各自说明：什么时候最希望得到回应？什么时候需要调整对方的回应方式？"),
       intro("先别急着批评",a.name+"需要留意的课题可能是："+ia.watch+"；"+b.name+"可能是："+ib.watch+"。这些是反思线索，不代表任何人的真实行为或心理诊断。"),
       intro("生活例子","一方心情不好想被陪伴，另一方以为让对方独处就是尊重。两个人可以约定：不舒服时先问‘你想让我陪你，还是给你一点空间？’")
     ],
