@@ -3,6 +3,7 @@
 // Preserve the existing course-engine calculations; never calculate a new code
 // by concatenating two people's numbers or conflating MNO with another position.
 import { INNER_DIGIT_POLARITY } from "../../../src/consultation-library.js";
+import { PERSONALITY_LIBRARY } from "../../../src/personality-library.js";
 
 const KEYS = Object.freeze({
   1:"主动表达自己的决定",2:"先照顾沟通与关系感受",
@@ -54,6 +55,23 @@ function v2Pair(a,b) {
 }
 function mainTitle(person) {
   return person.name+"（主性格"+person.main+"、起始数"+(person.starting || "待核对")+"）";
+}
+function personalityStarting(person) {
+  const main = Number(person.main);
+  const entry = PERSONALITY_LIBRARY[main] || {};
+  const firstPositive = entry.positive?.[0] || "个人优势有待核对";
+  const firstGrowth = entry.growth?.[0] || "尝试从实际情境寻找新的做法";
+  const start = Number(person.starting);
+  const origin = Number.isInteger(start) && start >= 1 && start <= 9
+    ? "起始数"+start+"（"+KEYS[start]+"）"
+    : "起始数尚未核对";
+  return person.name+"：主性格"+main+"课程可观察的倾向是「"+firstPositive+"」；"+origin+
+    "可作为事情一开始如何判断的线索。相处时需要学习「"+firstGrowth+"」。";
+}
+function startingPair(a,b) {
+  const ka = KEYS[Number(a.starting)] || "了解需求";
+  const kb = KEYS[Number(b.starting)] || "了解需求";
+  return a.name+"可能从「"+ka+"」开始思考，"+b.name+"可能先「"+kb+"」。先请两个人各自讲启动决策时在意的点，再核对彼此有没有误会。";
 }
 function justOneThing(a,b,theme) {
   return "例如："+TOPICS[theme].example+" 此时先请"+a.name+"说希望对方听见什么，再请"+b.name+"复述听见的内容。接着交换角色。";
@@ -136,7 +154,8 @@ export function enhanceRelationshipV2(script,a,b) {
       intro("提醒","涉及不安全、威胁或控制行为时，不用数字合理化，应优先考虑现实支持与安全。")
     ],
     personality:[
-      intro("先介绍两位", mainTitle(a)+"；"+mainTitle(b)+"。先不说谁强谁弱，先讨论决定事情时各自怎么开始。"),
+      intro("先介绍两位与各自的起始数", personalityStarting(a)+" "+personalityStarting(b)),
+      intro("起始数交叉观察", startingPair(a,b)),
       intro("联合观察", is38 ?
         "在同一件事情里，"+a.name+"的表达与行动倾向、"+b.name+"的目标与责任倾向可能让双方注意不同的重点。这是需要拿例子验证的假设。" :
         a.name+"的主性格"+a.main+"、"+b.name+"的主性格"+b.main+"可能提示不同的参与方式。先让两人分别说明发起、思考和执行顺序，不要用3号与8号的示例套到其他组合。"),
