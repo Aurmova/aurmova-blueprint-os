@@ -8,6 +8,7 @@ import {
 } from "../../../src/engine/blueprint.js";
 import { PERSONALITY_LIBRARY } from "../../../src/personality-library.js";
 import { makeRelationshipConsultationScript } from "./relationship-consultation.js";
+import { enhanceRelationshipV2 } from "./relationship-v2.js";
 
 export const FIVE_BLUEPRINTS = Object.freeze([
   "人生蓝图解析", "黄金流年蓝图解析", "关系蓝图解析",
@@ -133,7 +134,7 @@ export function buildPrivateBlueprintPreview(customer, project, requestedYear) {
         row(person.name + " · " + person.role, "主性格 " + person.main + "；内心码 " + person.innerCode + "；坐镇码 " + person.seatCode)
       ])));
       if (project === "关系蓝图解析") {
-        consultationScript = makeRelationshipConsultationScript(owner, people[1]);
+        consultationScript = enhanceRelationshipV2(makeRelationshipConsultationScript(owner, people[1]), owner, people[1]);
       }
       for (const other of people.slice(1)) {
         if (project === "关系蓝图解析") {
