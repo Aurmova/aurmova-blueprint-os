@@ -43,7 +43,7 @@ test("V2 has a distinct, readable explanation and cross-links at all seven stage
   assert.match(ordered,/测试关系甲：因5/);
   assert.match(ordered,/测试成员乙：因7/);
   for (const part of got.steps) for (const block of part.blocks) {
-    assert.doesNotMatch(block.text,/\\[object Object\\]/,part.id+" "+block.label);
+    assert.doesNotMatch(block.text,/\[object Object\]/,part.id+" "+block.label);
   }
   assert.match(got.steps[2].blocks[1].text,/测试关系甲/);
   assert.match(got.steps[2].blocks[1].text,/测试成员乙/);
