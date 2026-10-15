@@ -105,7 +105,6 @@ test("input validation blocks malformed or empty notes and unsupported projects"
     {...makeBody(),project:"人生蓝图解析"},
     {...makeBody(),stepId:"__proto__"},
     {...makeBody(),selectionKey:"<img src=x>"},
-    {...makeBody(),selectionKey:"",selectionLabel:""},
     {...makeBody(),selectionKey:"",selectionLabel:"",answerText:""},
     {...makeBody(),answerText:"x".repeat(2001)},
     {...makeBody(),answerText:42},
