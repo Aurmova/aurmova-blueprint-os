@@ -105,7 +105,7 @@ test("V2 stays inside relationship project and leaves historical fake records un
 test("UI segments use safe DOM text rendering; option choice and focus are ephemeral",()=>{
   assert.match(LOGIN_HTML,/id="private-analysis-panel"[^>]+hidden/);
   assert.match(LOGIN_CSS,/prompter-blocks/);
-  assert.match(LOGIN_SCRIPT,/renderRelationshipPrompter\(data.consultationScript\)/);
+  assert.match(LOGIN_SCRIPT,/renderRelationshipPrompter\(data.consultationScript, data.customerId, data.project\)/);
   assert.match(LOGIN_SCRIPT,/sectionNode\("prompter-block-text", block.text\)/);
   assert.match(LOGIN_SCRIPT,/chosen\.opening/);
   assert.match(LOGIN_SCRIPT,/selected\.reply/);

@@ -86,7 +86,7 @@ test("other member records stay intact and scripts use selected private record",
 test("private reader is only part of authenticated hidden customer panel; safe text nodes", () => {
   assert.match(LOGIN_HTML,/id="customer-panel"[^>]+hidden/);
   assert.match(LOGIN_HTML,/id="private-analysis-panel"[^>]+hidden/);
-  assert.match(LOGIN_SCRIPT,/renderRelationshipPrompter\(data.consultationScript\)/);
+  assert.match(LOGIN_SCRIPT,/renderRelationshipPrompter\(data.consultationScript, data.customerId, data.project\)/);
   assert.match(LOGIN_SCRIPT,/textContent = step.script|paragraph\("可以直接照读", step.script/);
   assert.match(LOGIN_SCRIPT,/textContent = step.followUps\[chosen\[step.id\]\]/);
   assert.match(LOGIN_SCRIPT,/chosen\[step.id\]/);
