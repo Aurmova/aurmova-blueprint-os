@@ -5,8 +5,11 @@ main = "index.js"
 compatibility_date = "2026-10-16"
 workers_dev = true
 
-# IMPORTANT: The private STAGING D1 binding, Turnstile keys,
-# and owner authentication secret must be set before collecting customers.
-# Add a [[d1_databases]] DB binding with the actual staging database ID,
-# never the production database ID, before enabling booking submissions.
-# Do not commit secrets or real TNG credentials to GitHub.
+# Only the independent booking-staging D1 database is configured below.
+# Keep OWNER_ADMIN_KEY, TURNSTILE_SECRET_KEY and RATE_LIMIT_SALT in Cloudflare
+# encrypted runtime secrets, not this GitHub file.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aurmova-booking-staging"
+database_id = "68dcbf69-cb79-4dbb-94d1-4e9e33bfd036"
