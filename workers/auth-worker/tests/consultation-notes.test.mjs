@@ -117,3 +117,11 @@ test("unauthenticated HTTP route cannot save customer notes", async () => {
   });
   assert.equal(response.status, 401);
 });
+
+
+test("consultation history reload reports a visible success count and fresh timestamp", () => {
+  assert.match(LOGIN_SCRIPT, /notesFeedback\.setAttribute\("role", "status"\)/);
+  assert.match(LOGIN_SCRIPT, /读取成功：共/);
+  assert.match(LOGIN_SCRIPT, /本次读取时间/);
+  assert.match(LOGIN_SCRIPT, /读取失败：/);
+});
