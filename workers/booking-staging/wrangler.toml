@@ -1,0 +1,12 @@
+# AURMOVA isolated customer-booking staging Worker.
+# This configuration intentionally does not reference the production Worker.
+name = "aurmova-booking-staging"
+main = "index.js"
+compatibility_date = "2026-10-16"
+workers_dev = true
+
+# IMPORTANT: The private STAGING D1 binding, Turnstile keys,
+# and owner authentication secret must be set before collecting customers.
+# Add a [[d1_databases]] DB binding with the actual staging database ID,
+# never the production database ID, before enabling booking submissions.
+# Do not commit secrets or real TNG credentials to GitHub.
