@@ -25,6 +25,7 @@ export const LOGIN_HTML = `<!doctype html>
 <button id="logout" type="button" class="outline" hidden>退出安全会话</button>
 </div>
 <div class="status" role="status" aria-live="polite" id="message">等待 GitHub 身份验证。</div>
+<div id="session-warning" class="session-warning" role="status" aria-live="polite" hidden></div>
 ${CUSTOMER_HTML}
 <pre id="result" hidden></pre>
 <p class="footnote">身份验证只允许指定的 GitHub 账号。安全会话最长 30 分钟；刷新页面后需要重新登录。</p>
@@ -44,6 +45,8 @@ h1{font-size:29px;letter-spacing:.025em;margin:0 0 12px;font-weight:650}.intro{l
 .actions{display:grid;gap:10px}button{appearance:none;min-height:48px;width:100%;border:1px solid #8c7250;border-radius:9px;background:#8c7250;color:white;font-weight:650;font-size:15px;padding:12px;cursor:pointer}
 button.outline{background:white;color:#634e33}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible{outline:3px solid #d4bb86;outline-offset:2px}
 .status{background:#f4f4f2;border-radius:8px;margin-top:17px;padding:13px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.session-warning:not([hidden]){position:sticky;top:8px;z-index:15;background:#fff4e1;border:2px solid #b18a50;border-radius:9px;padding:12px 14px;margin-top:12px;font-size:14px;line-height:1.65;color:#5d401b;box-shadow:0 4px 14px #5d4f3322}
+.session-warning.expired{background:#fff1ee;border-color:#b36a57;color:#793825}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f7f5f0;padding:15px;border-radius:8px}
 .footnote{font-size:12px;color:#82766a;line-height:1.7;margin:19px 0 0}
 @media(max-width:440px){.card{padding:27px 21px}h1{font-size:26px}}
@@ -56,15 +59,48 @@ const result = document.getElementById("result");
 const login = document.getElementById("login");
 const check = document.getElementById("check");
 const logout = document.getElementById("logout");
+const sessionWarning = document.getElementById("session-warning");
 let accessToken = "";
+let sessionExpiresAtMs = 0;
+let sessionExpired = false;
+
+function markSessionExpired() {
+  if (!accessToken) return;
+  sessionExpired = true;
+  login.hidden = false;
+  login.textContent = "重新使用 GitHub 验证身份";
+  check.disabled = true;
+  sessionWarning.hidden = false;
+  sessionWarning.classList.add("expired");
+  sessionWarning.textContent = "安全会话已过期。未保存的编辑内容尚未写入数据库！请先复制需要保留的文字，再点击「重新使用 GitHub 验证身份」。重新登录会重新加载页面。";
+}
+function updateSessionNotice() {
+  if (!accessToken || !sessionExpiresAtMs) {
+    sessionWarning.hidden = true;
+    return;
+  }
+  if (sessionExpired || Date.now() >= sessionExpiresAtMs) return markSessionExpired();
+  const minutes = Math.ceil((sessionExpiresAtMs - Date.now()) / 60000);
+  sessionWarning.classList.remove("expired");
+  sessionWarning.hidden = minutes > 5;
+  if (minutes <= 5) sessionWarning.textContent = "安全登录约 " + minutes + " 分钟后到期。请尽快保存本次编辑；若不能及时保存，请先复制未保存的文字，重新验证身份后再继续。";
+}
+// In-memory expiry tracking only; no customer data or bearer token is persisted.
+setInterval(updateSessionNotice, 15000);
+document.addEventListener("visibilitychange", updateSessionNotice);
 
 function show(text, details) {
   message.textContent = text;
   result.hidden = !details;
   result.textContent = details ? JSON.stringify(details, null, 2) : "";
 }
-function setLoggedIn(token) {
+function setLoggedIn(token, expiresAt) {
   accessToken = token;
+  sessionExpiresAtMs = token && Number.isFinite(expiresAt) ? expiresAt * 1000 : 0;
+  sessionExpired = false;
+  login.textContent = "使用 GitHub 验证身份";
+  sessionWarning.classList.remove("expired");
+  updateSessionNotice();
   login.hidden = !!token;
   logout.hidden = !token;
   check.disabled = !token;
@@ -78,7 +114,13 @@ function setLoggedIn(token) {
 async function api(path, options) {
   const headers = { "Content-Type": "application/json" };
   if (accessToken) headers.Authorization = "Bearer " + accessToken;
-  return fetch(path, { ...options, headers, credentials: "omit", cache: "no-store" });
+  const response = await fetch(path, { ...options, headers, credentials: "omit", cache: "no-store" });
+  if (response.status === 401 && path !== "/auth/exchange" && accessToken) {
+    markSessionExpired();
+    // Consistent, actionable message for all Staging editor/save endpoints.
+    return new Response(JSON.stringify({ error: "安全登录已过期，本次操作未保存。请先复制尚未保存的文字，再重新使用 GitHub 验证身份。" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+  return response;
 }
 
 login.addEventListener("click", function () {
@@ -128,7 +170,7 @@ async function finishLogin() {
     if (!response.ok || !/^[0-9a-f]{64}$/.test(payload.accessToken || "")) {
       throw new Error(payload.error || "身份验证失败");
     }
-    setLoggedIn(payload.accessToken);
+    setLoggedIn(payload.accessToken, payload.expiresAt);
     show("GitHub 身份验证成功。现在可以点击「检查私人连接」。", {
       githubLogin: payload.user && payload.user.githubLogin,
       expiresAt: new Date(payload.expiresAt * 1000).toLocaleString(),
