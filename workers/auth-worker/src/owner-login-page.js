@@ -115,7 +115,11 @@ async function api(path, options) {
   const headers = { "Content-Type": "application/json" };
   if (accessToken) headers.Authorization = "Bearer " + accessToken;
   const response = await fetch(path, { ...options, headers, credentials: "omit", cache: "no-store" });
-  if (response.status === 401 && path !== "/auth/exchange" && accessToken) markSessionExpired();
+  if (response.status === 401 && path !== "/auth/exchange" && accessToken) {
+    markSessionExpired();
+    // Consistent, actionable message for all Staging editor/save endpoints.
+    return new Response(JSON.stringify({ error: "安全登录已过期，本次操作未保存。请先复制尚未保存的文字，再重新使用 GitHub 验证身份。" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
   return response;
 }
 
