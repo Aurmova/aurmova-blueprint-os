@@ -13,3 +13,4 @@ workers_dev = true
 binding = "DB"
 database_name = "aurmova-booking-staging"
 database_id = "68dcbf69-cb79-4dbb-94d1-4e9e33bfd036"
+# Staging-only CI refresh: trigger Cloudflare Builds for isolated booking Worker; keep main untouched.
