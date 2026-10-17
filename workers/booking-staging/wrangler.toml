@@ -9,6 +9,10 @@ workers_dev = true
 # Keep OWNER_ADMIN_KEY, TURNSTILE_SECRET_KEY and RATE_LIMIT_SALT in Cloudflare
 # encrypted runtime secrets, not this GitHub file.
 
+# Public Turnstile widget key. Never place the secret key in GitHub.
+[vars]
+TURNSTILE_SITE_KEY = "0x4AAAAAAFYcY4uTYljOjRVA"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "aurmova-booking-staging"
