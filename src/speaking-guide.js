@@ -1,4 +1,5 @@
 import {buildOrderedFoundation} from "./ordered-speaking-foundation.js?v=1";
+import {buildLifeElevenSteps} from "./life-eleven-stages.js?v=1";
 import {buildCustomerReport,CUSTOMER_REPORT_TYPES} from './customer-report-image.js?v=2';
 import {calculateBlueprint,activeFlowYear} from './engine/blueprint.js?v=54';
 import {buildGuidedReply} from './guided-consultation-replies.js?v=1';
@@ -33,7 +34,8 @@ export function buildSpeakingSteps({type,customer,other={},year,child=false}){
  {id:'agreement',title:'确认怎么做、何时复盘',say:'我们约定一件具体的事：什么时候做、做到什么程度，以及用什么变化判断有没有帮助。',question:'你愿意尝试的行动是什么？准备什么时候开始？下次我们核对什么？',transition:'最后，我把今天谈的重点整理一下。'},
  {id:'close',title:'总结与自然收尾',say:'今天我们从你的实际问题出发，核对了表达、需要与行动方式。符合的观察留下，不符合的就调整。我们先实践一小步，再看真实效果。',question:'今天哪一点最有帮助？还有什么需要我重新说明？',transition:'我会按今天确认的重点整理顾客报告。报告项目和内容由我检查后再交给你。'}
  ];
- return {title:CUSTOMER_REPORT_TYPES[type],opening:name+"，"+opening+" 如果描述与你的经历不同，请直接告诉我，我们以实际经历为准。",firstQuestion,frame,steps,report};
+ const activeSteps=(type==='life'&&!child)?buildLifeElevenSteps({customer}).steps:steps;
+ return {title:CUSTOMER_REPORT_TYPES[type],opening:name+"，"+opening+" 如果描述与你的经历不同，请直接告诉我，我们以实际经历为准。",firstQuestion,frame,steps:activeSteps,report};
 }
 export function speakingReply({type,step,answer,customer,other={},respondent}){
  const text=short(answer);if(!text)return '先记录顾客的实际回答，再生成接话。';
@@ -56,7 +58,7 @@ export function speakingSummary(records={}){
 export function mountSpeakingGuide(panel,{customer,type='life',year=activeFlowYear(),child=false,getPairs=()=>[]}){
  const doc=panel.ownerDocument,root=doc.createElement('section');root.className='speaking-guide';
  root.innerHTML='<style>#app.speaking-focus>:not(.client-summary):not(.module-tabs):not(#v6-module-panel):not(.page-header){display:none!important}.speaking-active>:not(.speaking-guide){display:none!important}.speaking-guide{background:#fffdf9;border:1px solid #c6ad7c;border-radius:12px;padding:20px;margin-bottom:20px}.speaking-guide h2{margin:0 0 10px}.speaking-guide label{display:block;margin:14px 0}.speaking-guide select,.speaking-guide input[type=number],.speaking-guide textarea{display:block;width:100%;box-sizing:border-box;padding:12px;border:1px solid #d7c8b0;background:#fff;border-radius:8px;font:inherit;margin-top:7px}.speaking-guide .spoken-card{margin:18px 0;padding:18px;border-left:4px solid #a68750;background:#f6f0e7;white-space:pre-wrap;overflow-wrap:anywhere;font-size:18px;line-height:1.85}.speaking-guide .spoken-card small{display:block;color:#876d42;font-size:13px;font-weight:600;margin-bottom:8px}.speaking-guide .spoken-question{background:#fff;border:1px solid #d7c8b0}.speaking-guide .spoken-buttons{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.speaking-guide button{cursor:pointer;min-height:44px}.speaking-guide .spoken-helper{color:#776a58;font-size:14px}.speaking-guide progress{width:100%;accent-color:#a68750}.speaking-guide details{margin:14px 0}.speaking-guide details p{white-space:pre-wrap}</style>'+
- '<h2>跟着说 · 一步一步咨询</h2><p class="spoken-helper">只看当前一步：先照读，再问；听完顾客回答后接话，最后说转场句进入下一步。完整资料可以随时展开查阅。</p>'+
+ '<h2>跟着说 · 一步一步咨询</h2><p class="spoken-helper">只看当前一步：先照读，再问；听完顾客回答后接话，最后说转场句进入下一步。完整资料可以随时展开查阅。</p><p class="spoken-helper" style="border:1px solid #d9b88f;padding:10px;border-radius:8px">Staging 内部测试：现有咨询草稿仍保存在本机浏览器，没有完成私人数据库的端到端验证。请先使用测试顾客，不输入真实敏感资料。</p>'+
  (pairedTypes.includes(type)?'<label>这次咨询的双方<select data-speak-pair></select></label>':'')+
  (type==='year'?'<label>流年年度<input data-speak-year type="number" min="1900" max="2200" value="'+esc(year)+'"></label>':'')+
  '<div class="spoken-buttons"><button class="btn" type="button" data-speak-mode>查看完整资料</button></div><div data-speak-opening></div><div data-speak-body></div><p data-speak-status role="status" aria-live="polite"></p>';
