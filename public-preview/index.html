@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>AURMOVA | 11段咨询安全界面测试</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans SC",Arial,sans-serif;color:#332c23;background:#f6f2eb}
+*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #e2d8c9;padding:18px max(20px,calc((100vw - 760px)/2))}
+.brand{font-size:20px;letter-spacing:.2em;font-weight:700}.tag{font-size:11px;letter-spacing:.14em;color:#947545;margin-top:3px}
+main{max-width:760px;margin:28px auto 70px;padding:0 18px}.banner{border:1px solid #d9b885;background:#fff9e9;border-radius:12px;padding:14px 16px;line-height:1.65;font-size:14px}
+section{margin-top:18px;padding:22px;background:white;border:1px solid #e3d8c9;border-radius:14px;box-shadow:0 3px 16px #482f1807}
+.eyebrow{font-size:12px;color:#a08057;letter-spacing:.1em}h1{font-size:23px;margin:8px 0 12px;line-height:1.4}h2{font-size:16px;margin:0 0 10px}
+.progress{height:6px;background:#eee7de;border-radius:12px;overflow:hidden;margin-top:14px}.fill{height:100%;width:9%;background:#a38657;transition:width .2s}
+.speech{white-space:pre-wrap;font-size:18px;line-height:1.9;background:#fbf8f3;border-left:4px solid #b39462;padding:20px;margin:12px 0 24px;border-radius:3px 10px 10px 3px}
+.question{line-height:1.8;padding:12px 0;font-size:17px}.answer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+button{min-height:46px;cursor:pointer;border:1px solid #d8c7b2;border-radius:9px;background:#fff;color:#392f23;font:inherit;padding:10px 12px}
+button.selected{background:#ede3d1;border-color:#a98b5a;font-weight:650}
+button.primary{background:#44382c;color:#fff;border-color:#44382c}button:disabled{opacity:.4;cursor:not-allowed}
+.response{margin-top:18px;white-space:pre-wrap;line-height:1.75;border:1px solid #d9cfbf;background:#faf7f2;border-radius:9px;padding:15px}
+.nav{display:flex;gap:10px;margin-top:20px}.nav button{flex:1}
+small.note{display:block;margin-top:12px;color:#746d64;line-height:1.65}footer{color:#857c70;text-align:center;font-size:12px;margin:20px}
+@media(max-width:450px){.answer{grid-template-columns:1fr}.speech{font-size:16px}section{padding:16px}}
+</style></head><body>
+<header><div class="brand">AURMOVA</div><div class="tag">PRIVATE WORKFLOW · SAFE UI PREVIEW</div></header>
+<main>
+<div class="banner"><strong>界面测试版 · 只使用虚构示例</strong><br>
+本页只演示11段咨询的操作、问题与接话流程；没有完整数字计算、81组内部教材、顾客数据库、付费连接或真实个人信息。此网址在未启用访问控制前可能公开，请勿输入真实顾客资料。</div>
+<section><div class="eyebrow">LIFE BLUEPRINT · 11 STAGES</div><h1 id="title">加载中…</h1>
+<div class="eyebrow" id="counter"></div><div class="progress"><div class="fill" id="fill"></div></div>
+<div style="margin-top:22px"><h2>01｜Josephine 可以照读</h2><div id="script" class="speech"></div>
+<h2>02｜问顾客</h2><div id="question" class="question"></div>
+<h2>03｜选择模拟回答</h2><div class="answer" id="choices"></div>
+<div id="response" class="response" aria-live="polite"></div>
+<div class="nav"><button id="prev">← 上一段</button><button class="primary" id="next">下一段 →</button></div>
+<small class="note">这里只演示操作顺序；真实顾客的自动计算、已确认课程内容、私人记录和报告功能将在安全后台完成。</small>
+</div></section><footer>AURMOVA · Staging UI Preview · No real customer data</footer></main>
+<script>
+"use strict";
+const stages=[["主性格与最自然的自己","我们先从你比较自然的行为方式开始观察。请把解读当成一条探索线索，而不是对你作出固定判断。","平时遇到新任务，你通常先行动、先观察，还是先找人商量？"],["主性格 × 起始数","一个人在平常的表现，和刚开始一件事情时的反应可能不同。我们先看做事的起点，再结合你的真实经历。","你进入新环境时的第一反应，和熟悉后一样吗？"],["内心码与真正的需要","有些人外表看起来很愿意配合，心里却非常希望有清楚的安排。我们要观察你的实际需要。","当你觉得安心和被理解时，身边的人通常做了什么？"],["三角形内的优势与过度使用","这一步先寻找你已经通过经验表现出来的能力，也看看一项优点有没有用得太多。","最近一次让你觉得自己做得不错的事情是什么？"],["思考、压力与沟通模式","面对压力时，人可能变得比平常急躁、安静或犹豫。这里以实际生活场景为准。","你最近有压力时，是先想、先说，还是先自己处理？"],["潜意识与天赋观察","这一段会探索突发事件时的第一反应，以及你已在现实生活中发挥的能力。具体课程公式尚待核对。","突然有事情发生时，你的第一反应是什么？"],["父母基因与缺失数字","这里的父母基因只是课程中的位置名称，不是生物遗传结论。我们要通过你的成长经历核实。","成长过程中，你学过哪种处理事情的方法，现在还经常使用？"],["人生三个阶段与当前课题","人生在不同年龄可能有不同的关注重点。我们先听你目前最关心的问题，再讨论对应的阶段主题。","你现在最想改善的是工作、关系、家庭，还是责任分配？"],["财富模式与个人价值创造","财富的讨论不等于预测发财。我们会从你已经拥有的技能、服务价值及现实金钱习惯出发。","现在最想改善的是收入、收费、支出，还是合作条件？"],["关系模式与沟通界线","在关系里，我们可以学习更清楚地表达需要，也保留对他人不同想法的尊重。","最近一次觉得不被理解时，你当时真正希望对方怎样回应？"],["人生总结与30天成长行动","最后只整理三个重点：已经确认的优势、最希望改善的困难，以及未来30天愿意尝试的小行动。","今天哪一点最有帮助？你愿意先练习哪一件具体的事？"]];
+let current=0;
+const answers=["有，符合","部分符合","没有，不符合","不确定"];
+const replies=[
+"谢谢你分享。可以告诉我最近一次发生这种情况的具体例子吗？这样我们才能知道，这个观察是否真的适合你。",
+"好，我们只保留符合的那一部分。你觉得在工作和家庭里，这个反应会不一样吗？",
+"谢谢你直接告诉我。这项先标记为不符合，不需要为了配合数字勉强寻找例子。你实际会怎样处理？",
+"没关系。我们先从最近一次类似的生活场景开始回想；如果暂时没有例子，也可以先略过。"
+];
+function render(){
+const s=stages[current];
+document.getElementById("title").textContent=String(current+1).padStart(2,"0")+"｜"+s[0];
+document.getElementById("counter").textContent="第 "+(current+1)+" / 11 段";
+document.getElementById("fill").style.width=((current+1)/stages.length*100)+"%";
+document.getElementById("script").textContent="「"+s[1]+"」";
+document.getElementById("question").textContent="「"+s[2]+"」";
+document.getElementById("prev").disabled=current===0;
+document.getElementById("next").disabled=current===stages.length-1;
+document.getElementById("next").textContent=current===stages.length-1?"已经到最后一段":"下一段 →";
+const area=document.getElementById("choices");area.replaceChildren();
+document.getElementById("response").textContent="点击一项模拟回答，查看 Josephine 的下一句。";
+answers.forEach((label,i)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.onclick=()=>{Array.from(area.children).forEach(x=>x.classList.remove("selected"));b.classList.add("selected");document.getElementById("response").textContent="04｜Josephine 下一句\n\n「"+replies[i]+"」";};area.appendChild(b);});
+}
+document.getElementById("prev").addEventListener("click",()=>{if(current>0){current--;render();window.scrollTo({top:0,behavior:"smooth"});}});
+document.getElementById("next").addEventListener("click",()=>{if(current<stages.length-1){current++;render();window.scrollTo({top:0,behavior:"smooth"});}});
+render();
+</script></body></html>
