@@ -12,6 +12,9 @@ workers_dev = true
 # Public Turnstile widget key. Never place the secret key in GitHub.
 [vars]
 TURNSTILE_SITE_KEY = "0x4AAAAAAFYcY4uTYljOjRVA"
+# Public TNG Business payment URL for post-booking manual settlement only.
+# Payments are NOT automatically marked paid; owner confirms settlement.
+TNG_PAYMENT_LINK_URL = "https://payment.tngdigital.com.my/sc/bDLoxcMI5n"
 
 [[d1_databases]]
 binding = "DB"
