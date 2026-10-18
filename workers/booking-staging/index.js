@@ -36,12 +36,31 @@ async function checkRate(db,request,env){
  const row=await db.prepare('SELECT count FROM aurmova_booking_rate_limit WHERE key = ?').bind(key).first();
  return Number(row?.count||0)<=5;
 }
+// Staging-only safe Turnstile diagnostics: log categories, never secrets, tokens, or personal data.
 async function verifyTurnstile(request,env,token){
- if(!env.TURNSTILE_SECRET_KEY||!env.TURNSTILE_SITE_KEY||!token)return false;
+ const diagnostic=(code,message,status=400)=>{
+  console.warn('AURMOVA booking Turnstile rejection:',code);
+  return {ok:false,code,message,status};
+ };
+ if(!env.TURNSTILE_SECRET_KEY||!env.TURNSTILE_SITE_KEY)return diagnostic('TS06','预约验证配置异常（TS06），请联系 AURMOVA。',503);
+ if(!token)return diagnostic('TS03','验证码无效（TS03），请重新完成验证。');
  const ip=request.headers.get('CF-Connecting-IP')||'';
  const data=new FormData();data.append('secret',env.TURNSTILE_SECRET_KEY);data.append('response',String(token));if(ip)data.append('remoteip',ip);
- const res=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:data});if(!res.ok)return false;
- const verification=await res.json();return verification.success===true;
+ try{
+  const res=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:data});
+  if(!res.ok)return diagnostic('TS04','验证服务暂时异常（TS04），请稍后再试。',503);
+  const verification=await res.json();
+  if(verification.success===true)return {ok:true};
+  const codes=Array.isArray(verification['error-codes'])?verification['error-codes']:[];
+  if(codes.includes('timeout-or-duplicate'))return diagnostic('TS01','验证码已过期或已使用（TS01），请重新验证后提交。');
+  if(codes.includes('invalid-input-secret')||codes.includes('missing-input-secret')||codes.includes('sitekey-secret-mismatch'))return diagnostic('TS02','预约验证配置异常（TS02），请联系 AURMOVA。',503);
+  if(codes.includes('invalid-input-response')||codes.includes('missing-input-response'))return diagnostic('TS03','验证码无效（TS03），请重新完成验证。');
+  if(codes.includes('internal-error')||codes.includes('bad-request'))return diagnostic('TS04','验证服务暂时异常（TS04），请稍后再试。',503);
+  return diagnostic('TS05','验证码未通过（TS05），请重新验证。');
+ }catch(_error){
+  // Avoid printing exception objects: downstream errors can contain request data.
+  return diagnostic('TS04','验证服务暂时异常（TS04），请稍后再试。',503);
+ }
 }
 function allowSameOrigin(request){const origin=request.headers.get('Origin');return !origin||origin===new URL(request.url).origin}
 function authorize(request,env){const h=request.headers.get('Authorization')||'';return Boolean(env.OWNER_ADMIN_KEY&&String(env.OWNER_ADMIN_KEY).length>=24&&h==='Bearer '+env.OWNER_ADMIN_KEY)}
@@ -61,7 +80,7 @@ async function route(request,env,publicHtml,ownerHtml){
   const raw=await request.text();if(raw.length>10000)return json({error:'资料内容过长。'},413);
   let body;try{body=JSON.parse(raw)}catch{return json({error:'资料格式不正确。'},400)}
   let record;try{record=validate(body)}catch(ex){return json({error:ex.message},400)}
-  if(!await verifyTurnstile(request,env,body.turnstileToken))return json({error:'验证码验证失败，请重新验证。'},400);
+  const turnstileResult=await verifyTurnstile(request,env,body.turnstileToken);if(!turnstileResult.ok)return json({error:turnstileResult.message},turnstileResult.status);
   await ensureTables(env.DB);
   if(!await checkRate(env.DB,request,env))return json({error:'提交次数较多，请稍后再试。'},429);
   const now=new Date().toISOString();const random=Array.from(crypto.getRandomValues(new Uint8Array(6))).map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();const id='AUR-'+now.slice(2,10).replaceAll('-','')+'-'+random;
