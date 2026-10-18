@@ -71,7 +71,7 @@ async function route(request,env,publicHtml,ownerHtml){
  const url=new URL(request.url),path=url.pathname;
  if(request.method==='GET'&&(path==='/'||path==='/booking'))return page(publicHtml.replaceAll('__TURNSTILE_SITE_KEY__',String(env.TURNSTILE_SITE_KEY||'')));
  if(request.method==='GET'&&path==='/owner')return page(ownerHtml);
- if(request.method==='GET'&&path==='/api/health')return json({ok:true,publicReady:Boolean(env.DB&&env.OWNER_ADMIN_KEY&&env.TURNSTILE_SECRET_KEY&&env.TURNSTILE_SITE_KEY),turnstileDiagnostics:'TS-v1'});
+ if(request.method==='GET'&&path==='/api/health')return json({ok:true,publicReady:Boolean(env.DB&&env.OWNER_ADMIN_KEY&&env.TURNSTILE_SECRET_KEY&&env.TURNSTILE_SITE_KEY),turnstileDiagnostics:'TS-v1',paymentLinkReady:Boolean(publicPayment(env))});
  if(!path.startsWith('/api/'))return new Response('Not found',{status:404});
  if(!env.DB)return json({error:'数据库尚未绑定，请联系管理员。'},503);
  if(path==='/api/bookings'&&request.method==='POST'){
