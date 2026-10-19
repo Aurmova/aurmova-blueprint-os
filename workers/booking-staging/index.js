@@ -2,7 +2,18 @@
 // AURMOVA independent customer booking MVP for Cloudflare Workers + D1.
 // NOTE: this is staging code. Do not deploy over aurmova-secure-api or expose internal libraries.
 const SERVICES = Object.freeze(['人生蓝图解析','黄金流年蓝图解析','关系蓝图解析','亲子蓝图解析','合作蓝图解析']);
-const STATUSES = Object.freeze(['待付款','已付款','已联系','已完成','已取消']);
+const PRICES = Object.freeze({'人生蓝图解析':168,'黄金流年蓝图解析':188,'关系蓝图解析':328,'亲子蓝图解析':328,'合作蓝图解析':388});
+const DEPOSIT_PER_PROJECT = 68;
+const COMBO_PRICE = 288;
+const STATUSES = Object.freeze(['待订金','已联系','已付订金','已付全款','已完成','已取消','待付款','已付款']);
+function calcQuote(services){
+ let total=services.reduce((sum,s)=>sum+PRICES[s],0);
+ const combo=services.includes('人生蓝图解析')&&services.includes('黄金流年蓝图解析');
+ const discount=combo?PRICES['人生蓝图解析']+PRICES['黄金流年蓝图解析']-COMBO_PRICE:0;
+ total-=discount;
+ const deposit=services.length*DEPOSIT_PER_PROJECT;
+ return {services,total,deposit,balance:total-deposit,discount,depositPaid:0,balancePaid:0,depositPaidAt:null,balancePaidAt:null};
+}
 const json = (data, status=200) => new Response(JSON.stringify(data), {status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});
 const page = html => new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'none'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"}});
 const clean = (v,n=120) => typeof v==='string' ? v.trim().slice(0,n) : '';
@@ -13,18 +24,30 @@ function reduce(n){let v=Math.abs(Number(n)||0);while(v>9)v=String(v).split('').
 // Mirrors O position from src/engine/blueprint.js; only this final public number may be displayed.
 function publicNumber(birthday){const [dd,mm,yyyy]=birthday.split('/').map(Number),d=String(dd).padStart(2,'0'),m=String(mm).padStart(2,'0'),y=String(yyyy).padStart(4,'0');const I=reduce(Number(d[0])+Number(d[1])),J=reduce(Number(m[0])+Number(m[1])),K=reduce(Number(y[0])+Number(y[1])),L=yyyy===2000?5:reduce(Number(y[2])+Number(y[3]));return reduce(reduce(I+J)+reduce(K+L))}
 function validate(body){
- const name=clean(body.name,80),birthday=clean(body.birthday,10),gender=clean(body.gender,12),whatsapp=clean(body.whatsapp,25),service=clean(body.service,60),occupation=clean(body.occupation,80),question=clean(body.question,600);
- if(!name||!validGender(gender)||!validDate(birthday)||!validWhatsApp(whatsapp)||!SERVICES.includes(service)||body.consent!==true)throw Error('请填写有效个人资料、项目，并同意资料使用说明。');
+ const name=clean(body.name,80),birthday=clean(body.birthday,10),gender=clean(body.gender,12),whatsapp=clean(body.whatsapp,25),occupation=clean(body.occupation,80),question=clean(body.question,600);
+ const requested=Array.isArray(body.services)?body.services:(typeof body.service==='string'?[body.service]:[]);
+ if(requested.length<1||requested.length>SERVICES.length||requested.some(s=>typeof s!=='string'||!SERVICES.includes(s))||new Set(requested).size!==requested.length)throw Error('请选择至少一项有效蓝图服务，不可重复选择。');
+ const services=SERVICES.filter(s=>requested.includes(s));
+ if(!name||!validGender(gender)||!validDate(birthday)||!validWhatsApp(whatsapp)||body.consent!==true||body.depositTermsAccepted!==true)throw Error('请填写有效个人资料并同意资料使用及订金规则。');
  if(!Array.isArray(body.related)||body.related.length>8)throw Error('最多可以增加8位对象。');
- const related=body.related.map(x=>({name:clean(x.name,80),gender:clean(x.gender,12),birthday:clean(x.birthday,10)}));
+ const related=body.related.map(x=>({name:clean(x.name,80),gender:clean(x.gender,12),birthday:clean(x.birthday,10),service:clean(x.service,60)}));
  if(related.some(x=>!x.name||!validGender(x.gender)||!validDate(x.birthday)))throw Error('关联对象的姓名、性别或生日不正确。');
- if(related.length&&!['关系蓝图解析','亲子蓝图解析','合作蓝图解析'].includes(service))throw Error('此服务无需填写关联对象。');
+ const extra=services.filter(s=>['关系蓝图解析','亲子蓝图解析','合作蓝图解析'].includes(s));
+ if(related.length&&!extra.length)throw Error('所选蓝图无需添加关联对象。');
+ if(related.some(x=>x.service&&!extra.includes(x.service)))throw Error('关联对象所属蓝图没有被勾选。');
+ if(extra.length>1&&related.some(x=>!x.service))throw Error('请为每位关联对象指定对应的蓝图。');
+ if(extra.length===1)for(const x of related)if(!x.service)x.service=extra[0];
  if(clean(body.website,200))throw Error('提交失败，请重试。');
- return {name,birthday,gender,whatsapp,service,occupation,question,related};
+ return {name,birthday,gender,whatsapp,services,service:services.join('＋'),occupation,question,related,quote:calcQuote(services)};
 }
 async function ensureTables(db){
  await db.prepare('CREATE TABLE IF NOT EXISTS aurmova_booking_staging (id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT NOT NULL, birthday TEXT NOT NULL, whatsapp TEXT NOT NULL, service TEXT NOT NULL, occupation TEXT NOT NULL DEFAULT \'\', question TEXT NOT NULL DEFAULT \'\', related_json TEXT NOT NULL DEFAULT \'[]\', public_number INTEGER NOT NULL, status TEXT NOT NULL DEFAULT \'待付款\', consent_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
  await db.prepare('CREATE TABLE IF NOT EXISTS aurmova_booking_rate_limit (key TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL)').run();
+ const info=await db.prepare("PRAGMA table_info('aurmova_booking_staging')").all();
+ if(!(info.results||[]).some(c=>c.name==='quote_json')){
+  try{await db.prepare("ALTER TABLE aurmova_booking_staging ADD COLUMN quote_json TEXT NOT NULL DEFAULT '{}'").run()}
+  catch(e){if(!/duplicate column name/i.test(String(e?.message||e)))throw e}
+ }
 }
 async function checkRate(db,request,env){
  const ip=request.headers.get('CF-Connecting-IP')||'unknown';const bucket=new Date().toISOString().slice(0,13);
@@ -64,12 +87,12 @@ async function verifyTurnstile(request,env,token){
 }
 function allowSameOrigin(request){const origin=request.headers.get('Origin');return !origin||origin===new URL(request.url).origin}
 function authorize(request,env){const h=request.headers.get('Authorization')||'';return Boolean(env.OWNER_ADMIN_KEY&&String(env.OWNER_ADMIN_KEY).length>=24&&h==='Bearer '+env.OWNER_ADMIN_KEY)}
-function phoneLink(booking){const msg='你好 AURMOVA，我已经提交预约。\n预约编号：'+booking.id+'\n项目：'+booking.service+'\n姓名：'+booking.name+'\n请提供 TNG 付款方式与预约时间。';return 'https://wa.me/60105651465?text='+encodeURIComponent(msg)}
+function phoneLink(booking){const msg='你好 AURMOVA，我已经提交预约。\n预约编号：'+booking.id+'\n项目：'+booking.service+'\n本次应付订金：RM'+booking.quote.deposit+'\n姓名：'+booking.name+'\n请协助核对 TNG 付款及预约时间。';return 'https://wa.me/60105651465?text='+encodeURIComponent(msg)}
 function publicPayment(env){const value=clean(env.TNG_PAYMENT_LINK_URL,400);return /^https:\/\/[^\s/?#]+(?:[/?#][^\s]*)?$/i.test(value)?value:null}
-function safePublicBooking(row){return {id:row.id,service:row.service,number:row.public_number,status:row.status}}
+function safePublicBooking(row){return {id:row.id,services:row.services,service:row.service,number:row.public_number,status:row.status,quote:row.quote}}
 async function route(request,env,publicHtml,ownerHtml){
  const url=new URL(request.url),path=url.pathname;
- if(request.method==='GET'&&(path==='/'||path==='/booking'))return page(publicHtml.replaceAll('__TURNSTILE_SITE_KEY__',String(env.TURNSTILE_SITE_KEY||'')));
+ if(request.method==='GET'&&(path==='/'||path==='/booking'))return page(publicHtml.replaceAll('__TURNSTILE_SITE_KEY__',String(env.TURNSTILE_SITE_KEY||'')).replaceAll('__PRICING_DATA__',JSON.stringify({prices:PRICES,depositPerProject:DEPOSIT_PER_PROJECT,comboPrice:COMBO_PRICE})));
  if(request.method==='GET'&&path==='/owner')return page(ownerHtml);
  if(request.method==='GET'&&path==='/api/health')return json({ok:true,publicReady:Boolean(env.DB&&env.OWNER_ADMIN_KEY&&env.TURNSTILE_SECRET_KEY&&env.TURNSTILE_SITE_KEY),turnstileDiagnostics:'TS-v1',paymentLinkReady:Boolean(publicPayment(env))});
  if(!path.startsWith('/api/'))return new Response('Not found',{status:404});
@@ -85,16 +108,16 @@ async function route(request,env,publicHtml,ownerHtml){
   if(!await checkRate(env.DB,request,env))return json({error:'提交次数较多，请稍后再试。'},429);
   const now=new Date().toISOString();const random=Array.from(crypto.getRandomValues(new Uint8Array(6))).map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();const id='AUR-'+now.slice(2,10).replaceAll('-','')+'-'+random;
   const number=publicNumber(record.birthday);
-  const row={...record,id,public_number:number,status:'待付款'};
-  await env.DB.prepare('INSERT INTO aurmova_booking_staging (id,name,gender,birthday,whatsapp,service,occupation,question,related_json,public_number,status,consent_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,record.name,record.gender,record.birthday,record.whatsapp,record.service,record.occupation,record.question,JSON.stringify(record.related),number,'待付款',now,now,now).run();
+  const row={...record,id,public_number:number,status:'待订金'};
+  await env.DB.prepare('INSERT INTO aurmova_booking_staging (id,name,gender,birthday,whatsapp,service,occupation,question,related_json,public_number,status,consent_at,created_at,updated_at,quote_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,record.name,record.gender,record.birthday,record.whatsapp,record.service,record.occupation,record.question,JSON.stringify(record.related),number,'待订金',now,now,now,JSON.stringify(record.quote)).run();
   return json({booking:safePublicBooking(row),paymentUrl:publicPayment(env),whatsappUrl:phoneLink(row)},201);
  }
  if(path.startsWith('/api/owner/')){
   if(!authorize(request,env))return json({error:'管理员验证失败。'},401);
   await ensureTables(env.DB);
   if(path==='/api/owner/bookings'&&request.method==='GET'){
-   const all=await env.DB.prepare('SELECT id,name,gender,birthday,whatsapp,service,occupation,question,related_json,public_number,status,created_at FROM aurmova_booking_staging ORDER BY created_at DESC LIMIT 100').all();
-   return json({bookings:(all.results||[]).map(r=>({id:r.id,name:r.name,gender:r.gender,birthday:r.birthday,whatsapp:r.whatsapp,service:r.service,occupation:r.occupation,question:r.question,related:JSON.parse(r.related_json||'[]'),number:r.public_number,status:r.status,created_at:r.created_at}))});
+   const all=await env.DB.prepare('SELECT id,name,gender,birthday,whatsapp,service,occupation,question,related_json,public_number,status,created_at,quote_json FROM aurmova_booking_staging ORDER BY created_at DESC LIMIT 100').all();
+   return json({bookings:(all.results||[]).map(r=>({id:r.id,name:r.name,gender:r.gender,birthday:r.birthday,whatsapp:r.whatsapp,service:r.service,occupation:r.occupation,question:r.question,related:JSON.parse(r.related_json||'[]'),number:r.public_number,status:r.status,created_at:r.created_at,quote:JSON.parse(r.quote_json||'{}')}))});
   }
   const match=/^\/api\/owner\/bookings\/(AUR-\d{6}-[A-F0-9]{12})$/.exec(path);
   if(match&&request.method==='PATCH'){
@@ -102,9 +125,17 @@ async function route(request,env,publicHtml,ownerHtml){
    const raw=await request.text();if(raw.length>1000)return json({error:'内容过长。'},413);
    let body;try{body=JSON.parse(raw)}catch{return json({error:'格式错误。'},400)}
    if(!STATUSES.includes(body.status))return json({error:'状态不正确。'},400);
-   const old=await env.DB.prepare('SELECT id FROM aurmova_booking_staging WHERE id=?').bind(match[1]).first();if(!old)return json({error:'找不到预约。'},404);
-   await env.DB.prepare('UPDATE aurmova_booking_staging SET status=?,updated_at=? WHERE id=?').bind(body.status,new Date().toISOString(),match[1]).run();
-   return json({success:true,status:body.status});
+   const old=await env.DB.prepare('SELECT id,status,quote_json FROM aurmova_booking_staging WHERE id=?').bind(match[1]).first();
+   if(!old)return json({error:'找不到预约。'},404);
+   const quote=JSON.parse(old.quote_json||'{}');
+   const financial=body.status==='已付订金'||body.status==='已付全款';
+   if(financial&&!(Number(quote.total)>0))return json({error:'旧记录无收费明细，无法直接标记订金。'},400);
+   if(body.status==='已付订金'&&Number(quote.balancePaid)>0)return json({error:'该记录已确认全款，不可降级为只付订金。'},400);
+   const now=new Date().toISOString();
+   if(financial){quote.depositPaid=quote.deposit;quote.depositPaidAt=quote.depositPaidAt||now}
+   if(body.status==='已付全款'){quote.balancePaid=quote.balance;quote.balancePaidAt=quote.balancePaidAt||now}
+   await env.DB.prepare('UPDATE aurmova_booking_staging SET status=?,quote_json=?,updated_at=? WHERE id=?').bind(body.status,JSON.stringify(quote),now,match[1]).run();
+   return json({success:true,status:body.status,quote});
   }
  }
  return json({error:'Not found'},404);
