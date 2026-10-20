@@ -21,7 +21,7 @@ TNG_PAYMENT_LINK_URL = "https://payment.tngdigital.com.my/sc/bDLoxcMI5n"
 [[d1_databases]]
 binding = "DB"
 database_name = "aurmova-booking-production"
-database_id = "REPLACE_WITH_NEW_PRODUCTION_D1_ID"
+database_id = "885aea01-8fac-4605-8625-75ada6caec6b"
 
 # Important: never put OWNER_ADMIN_KEY, TURNSTILE_SECRET_KEY,
 # or RATE_LIMIT_SALT in this GitHub file. Use Cloudflare encrypted secrets.
