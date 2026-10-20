@@ -1,0 +1,27 @@
+# AURMOVA independent production booking Worker.
+# NOT the existing aurmova-secure-api and NOT aurmova-booking-staging.
+# The D1 ID below is deliberately NOT configured. Replace with the ID from a NEW
+# Cloudflare D1 database before connecting builds / deploying this Worker.
+name = "aurmova-booking"
+main = "index.js"
+compatibility_date = "2026-10-20"
+workers_dev = true
+
+[vars]
+DEPLOYMENT_ENV = "production"
+# Keep the real booking form offline until the owner verifies all checks.
+# Only change this to true after an explicit final go-live decision.
+ENABLE_BOOKINGS = "false"
+# Static reusable payment link. Customer enters their deposit amount manually;
+# settlement is never auto-confirmed by TNG without merchant integration.
+TNG_PAYMENT_LINK_URL = "https://payment.tngdigital.com.my/sc/bDLoxcMI5n"
+# After the production Turnstile widget is created, add its PUBLIC site key:
+# TURNSTILE_SITE_KEY = "<PUBLIC_PRODUCTION_TURNSTILE_SITE_KEY>"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aurmova-booking-production"
+database_id = "REPLACE_WITH_NEW_PRODUCTION_D1_ID"
+
+# Important: never put OWNER_ADMIN_KEY, TURNSTILE_SECRET_KEY,
+# or RATE_LIMIT_SALT in this GitHub file. Use Cloudflare encrypted secrets.
