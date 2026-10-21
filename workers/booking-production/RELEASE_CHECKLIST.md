@@ -50,3 +50,12 @@ Cloudflare docs:
 - D1: https://developers.cloudflare.com/d1/get-started/
 - Turnstile: https://developers.cloudflare.com/turnstile/get-started/
 - Pricing: https://developers.cloudflare.com/workers/platform/pricing/
+
+## 2026-10-21 first production-build trigger
+
+- Independent `aurmova-booking` Worker and D1 `aurmova-booking-production` were created in Cloudflare.
+- `wrangler.toml` now contains the dedicated production D1 identifier and public production Turnstile site key. The checklist steps describing placeholders above are historical preparation instructions, already completed.
+- The owner added three sensitive runtime values as encrypted secrets in the Cloudflare dashboard; none are stored in this repository.
+- Git integration targets only `release/booking-production-prep` using the dedicated Wrangler config. Auto-builds were enabled in the Cloudflare dashboard after initial connection.
+- This documentation-only change is intended to trigger the first Cloudflare Git build; its result must be checked separately. It does not change any application runtime code or enable customer bookings.
+- Keep `ENABLE_BOOKINGS = "false"` until the owner expressly approves opening after tests.
