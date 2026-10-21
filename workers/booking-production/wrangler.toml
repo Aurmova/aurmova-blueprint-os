@@ -18,6 +18,11 @@ TNG_PAYMENT_LINK_URL = "https://payment.tngdigital.com.my/sc/bDLoxcMI5n"
 # After the production Turnstile widget is created, add its PUBLIC site key:
 TURNSTILE_SITE_KEY = "0x4AAAAAAFeoeAxs9n71ojyz"
 
+# Deployment guard: secret NAMES only. Values remain encrypted in Cloudflare.
+# Refuse a deployment if any required secret is not configured.
+[secrets]
+required = ["OWNER_ADMIN_KEY", "TURNSTILE_SECRET_KEY", "RATE_LIMIT_SALT"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "aurmova-booking-production"
