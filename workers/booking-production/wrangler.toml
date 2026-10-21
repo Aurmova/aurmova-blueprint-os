@@ -16,7 +16,7 @@ ENABLE_BOOKINGS = "false"
 # settlement is never auto-confirmed by TNG without merchant integration.
 TNG_PAYMENT_LINK_URL = "https://payment.tngdigital.com.my/sc/bDLoxcMI5n"
 # After the production Turnstile widget is created, add its PUBLIC site key:
-# TURNSTILE_SITE_KEY = "<PUBLIC_PRODUCTION_TURNSTILE_SITE_KEY>"
+TURNSTILE_SITE_KEY = "0x4AAAAAAFeoeAxs9n71ojyz"
 
 [[d1_databases]]
 binding = "DB"
