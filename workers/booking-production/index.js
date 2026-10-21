@@ -100,7 +100,7 @@ async function route(request,env,publicHtml,ownerHtml){
  if(request.method==='GET'&&(path==='/'||path==='/booking')&&!bookingsOpen)return page(CLOSED_HTML);
  if(request.method==='GET'&&(path==='/'||path==='/booking'))return page(publicHtml.replaceAll('__TURNSTILE_SITE_KEY__',String(env.TURNSTILE_SITE_KEY||'')).replaceAll('__PRICING_DATA__',JSON.stringify({prices:PRICES,depositPerProject:DEPOSIT_PER_PROJECT,comboPrice:COMBO_PRICE})));
  if(request.method==='GET'&&path==='/owner')return page(ownerHtml);
- if(request.method==='GET'&&path==='/api/health')return json({ok:true,environment:'production',publicReady:configReady,bookingsOpen,pricingVersion:'RM68-per-project-combo288-v1',ownerStatusVersion:'inline-payment-row-binding-v4'});
+ if(request.method==='GET'&&path==='/api/health')return json({ok:true,environment:'production',publicReady:configReady,bookingsOpen,readinessChecks:{databaseConnected:Boolean(env.DB),adminKeyValid:String(env.OWNER_ADMIN_KEY||'').length>=32,turnstileSecretPresent:Boolean(env.TURNSTILE_SECRET_KEY),turnstileSiteKeyPresent:Boolean(env.TURNSTILE_SITE_KEY),paymentLinkValid:Boolean(publicPayment(env))},pricingVersion:'RM68-per-project-combo288-v1',ownerStatusVersion:'inline-payment-row-binding-v4'});
  if(!path.startsWith('/api/'))return new Response('Not found',{status:404});
  if(!env.DB)return json({error:'数据库尚未绑定，请联系管理员。'},503);
  if(path==='/api/bookings'&&request.method==='POST'){
