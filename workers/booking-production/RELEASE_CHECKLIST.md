@@ -59,3 +59,10 @@ Cloudflare docs:
 - Git integration targets only `release/booking-production-prep` using the dedicated Wrangler config. Auto-builds were enabled in the Cloudflare dashboard after initial connection.
 - This documentation-only change is intended to trigger the first Cloudflare Git build; its result must be checked separately. It does not change any application runtime code or enable customer bookings.
 - Keep `ENABLE_BOOKINGS = "false"` until the owner expressly approves opening after tests.
+
+## 2026-10-22 guarded deployment verification
+
+- Cloudflare aurmova-booking Git builds were re-enabled by the owner.
+- Production Wrangler config declares required secret names, not their values.
+- This documentation-only commit intends to trigger a new Cloudflare Git build. The build result is not assumed; check the Cloudflare build logs and deployments.
+- Keep ENABLE_BOOKINGS set to false until health checks and end-to-end tests pass.
