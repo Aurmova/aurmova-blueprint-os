@@ -12,6 +12,12 @@ test("maps a synthetic booking to a namespaced customer without exposing payment
  assert.equal(result.sourceBookingId,booking.id);
 });
 
+test("parses the actual booking Worker fullwidth-plus service delimiter",()=>{
+ const result=bookingToCustomer({...booking,service:"人生蓝图解析＋黄金流年蓝图解析"});
+ assert.deepEqual(result.consultationTypes,["人生蓝图解析","黄金流年蓝图解析"]);
+ assert.equal(result.consultationType,"人生蓝图解析");
+});
+
 test("preview preserves local customers and deduplicates repeat bookings",()=>{
  const local=[{id:"local-1",name:"既有虚构顾客"}];
  const original=JSON.stringify(local);
@@ -22,7 +28,22 @@ test("preview preserves local customers and deduplicates repeat bookings",()=>{
  assert.equal(JSON.stringify(local),original);
 });
 
-test("invalid IDs and unknown services are rejected",()=>{
+test("preview detects existing booking link or namespaced ID without changing local data",()=>{
+ for (const existing of [
+  {id:"local-42",sourceBookingId:booking.id,name:"原有顾客"},
+  {id:"booking:"+booking.id,name:"原有顾客"},
+ ]) {
+  const local=[existing];
+  const original=JSON.stringify(local);
+  const preview=previewBookingMerge(local,[booking]);
+  assert.equal(preview.newCustomers.length,0);
+  assert.equal(preview.duplicateCount,1);
+  assert.equal(JSON.stringify(local),original);
+ }
+});
+
+test("invalid IDs, unknown services and duplicate service items are rejected",()=>{
  assert.throws(()=>bookingToCustomer({...booking,id:"bad"}));
  assert.throws(()=>bookingToCustomer({...booking,service:"儿童蓝图解析"}));
+ assert.throws(()=>bookingToCustomer({...booking,service:"人生蓝图解析＋人生蓝图解析"}));
 });
