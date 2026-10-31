@@ -21,6 +21,10 @@ export function bookingToCustomer(booking) {
   const services = bookingServices(booking);
   const birthday = String(booking.birthday || "");
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthday)) throw new TypeError("Invalid birthday");
+  const [day, month, year] = birthday.split("/").map(Number);
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  if (year < 1900 || date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day || date.getTime() > Date.now()) throw new TypeError("Invalid birthday");
   return {
     source: "booking-staging",
     sourceBookingId: booking.id,
