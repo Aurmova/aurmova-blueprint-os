@@ -47,3 +47,13 @@ test("invalid IDs, unknown services and duplicate service items are rejected",()
  assert.throws(()=>bookingToCustomer({...booking,service:"儿童蓝图解析"}));
  assert.throws(()=>bookingToCustomer({...booking,service:"人生蓝图解析＋人生蓝图解析"}));
 });
+
+test("rejects impossible dates without mutating existing local records",()=>{
+ const local=[{id:"local-1",name:"既有虚构顾客"}];
+ const before=JSON.stringify(local);
+ for(const birthday of ["31/02/1995","29/02/2025","01/01/1899","01/01/2999"]){
+  assert.throws(()=>previewBookingMerge(local,[{...booking,birthday}]),/Invalid birthday/);
+  assert.equal(JSON.stringify(local),before);
+ }
+ assert.equal(bookingToCustomer({...booking,birthday:"29/02/2024"}).birthday,"29/02/2024");
+});
