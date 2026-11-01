@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { bookingToCustomer, previewBookingMerge } from "../src/booking-customer-adapter.js";
 
-const booking = {id:"AUR-261030-ABCDEF123456",name:"虚构顾客",gender:"女性",birthday:"21/11/1995",service:"人生蓝图解析、黄金流年蓝图解析",status:"待订金",created_at:"2026-10-30T00:00:00Z",related:[]};
+const booking = {id:"AUR-261030-ABCDEF123456",name:"虚构顾客",gender:"女",birthday:"21/11/1995",service:"人生蓝图解析、黄金流年蓝图解析",status:"待订金",created_at:"2026-10-30T00:00:00Z",related:[]};
 
 test("maps a synthetic booking to a namespaced customer without exposing payment secrets",()=>{
  const result=bookingToCustomer(booking);
@@ -56,4 +56,16 @@ test("rejects impossible dates without mutating existing local records",()=>{
   assert.equal(JSON.stringify(local),before);
  }
  assert.equal(bookingToCustomer({...booking,birthday:"29/02/2024"}).birthday,"29/02/2024");
+});
+
+test("rejects malformed identity without changing existing local customers",()=>{
+ const local=[{id:"local-1",name:"既有虚构顾客"}];
+ const original=JSON.stringify(local);
+ for(const changes of [{name:""},{name:" ".repeat(3)},{gender:"女性"},{gender:""},{name:"x".repeat(81)}]){
+  assert.throws(()=>previewBookingMerge(local,[{...booking,...changes}]),/Invalid booking identity/);
+  assert.equal(JSON.stringify(local),original);
+ }
+ for(const gender of ["男","女","其他"]){
+  assert.equal(bookingToCustomer({...booking,gender}).gender,gender);
+ }
 });
