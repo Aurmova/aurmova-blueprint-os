@@ -19,6 +19,9 @@ export function bookingToCustomer(booking) {
     throw new TypeError("Invalid booking ID");
   }
   const services = bookingServices(booking);
+  const name = String(booking.name || "").trim();
+  const gender = String(booking.gender || "").trim();
+  if (!name || name.length > 80 || !["男", "女", "其他"].includes(gender)) throw new TypeError("Invalid booking identity");
   const birthday = String(booking.birthday || "");
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthday)) throw new TypeError("Invalid birthday");
   const [day, month, year] = birthday.split("/").map(Number);
@@ -30,8 +33,8 @@ export function bookingToCustomer(booking) {
     sourceBookingId: booking.id,
     // Namespace IDs: never overwrite an existing local customer with a coincidentally matching ID.
     id: `booking:${booking.id}`,
-    name: String(booking.name || ""),
-    gender: String(booking.gender || ""),
+    name,
+    gender,
     birthday,
     whatsapp: String(booking.whatsapp || ""),
     occupation: String(booking.occupation || ""),
