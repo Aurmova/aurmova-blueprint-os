@@ -99,3 +99,20 @@ test('payment status changes require explicit manual verification', () => {
   assert.match(bookingSource, /manualPaymentVerified\s*!==\s*true/);
   assert.match(bookingSource, /if\s*\(financial&&body\.manualPaymentVerified/);
 });
+
+test('owner routes are gated before D1 and public page cannot expose owner credential', () => {
+  const route = bookingSource.split('const PUBLIC_HTML=')[0];
+  const ownerStart = route.indexOf("if(path.startsWith('/api/owner/'))");
+  assert.ok(ownerStart >= 0, 'owner route guard missing');
+  const ownerSegment = route.slice(ownerStart, ownerStart + 400);
+  assert.match(ownerSegment, /authorize\(request,env\)/, 'owner authorization missing');
+  assert.ok(ownerSegment.indexOf('authorize(request,env)') < ownerSegment.indexOf('ensureTables(env.DB)'), 'database touched before authentication');
+  const html = bookingSource.slice(bookingSource.indexOf('const PUBLIC_HTML='));
+  assert.doesNotMatch(html, /env\.OWNER_ADMIN_KEY/, 'admin secret referenced in public HTML');
+});
+
+test('no automatic local customer overwrite or migration occurs in staging source', () => {
+  assert.doesNotMatch(appSource, /localStorage\.clear\s*\(/);
+  assert.doesNotMatch(appSource, /localStorage\.removeItem\s*\(\s*['"]aurmova\.customers['"]/);
+  assert.doesNotMatch(appSource, /\/api\/owner\/customers/, 'new sync endpoint requires separate privacy and migration review');
+});
