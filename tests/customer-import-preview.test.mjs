@@ -31,3 +31,18 @@ test('invalid input fails closed', () => {
   assert.throws(() => previewCustomerImport(null,[]),TypeError);
   assert.throws(() => previewCustomerImport([],{}),TypeError);
 });
+
+test('malformed or duplicated existing identifiers stop the preview safely', () => {
+  assert.throws(() => previewCustomerImport([{id:'same'},{id:'same'}],[{id:'new'}]), TypeError);
+  assert.throws(() => previewCustomerImport([{id:123}],[{id:'new'}]), TypeError);
+  assert.throws(() => previewCustomerImport([null],[{id:'new'}]), TypeError);
+});
+
+test('non-string incoming IDs cannot be coerced into collisions', () => {
+  const result = previewCustomerImport([{id:'123'}], [{id:123},{id:{toString(){throw Error('must not execute')}}},{id:'fresh'}]);
+  assert.deepEqual(result.conflicts, [
+    {index:0,reason:'missing-or-invalid-id'},
+    {index:1,reason:'missing-or-invalid-id'}
+  ]);
+  assert.deepEqual(result.candidates,[{index:2,id:'fresh'}]);
+});
