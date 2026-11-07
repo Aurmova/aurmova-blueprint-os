@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://*.workers.dev; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>AURMOVA｜私人安全登录试点</title>
+  <link rel="stylesheet" href="./secure-login.css">
+  <script type="module" src="./src/secure-login.js"></script>
+</head>
+<body>
+  <main class="panel">
+    <div class="mark" aria-hidden="true">A</div>
+    <p class="eyebrow">AURMOVA · PRIVATE ACCESS PILOT</p>
+    <h1>私人安全登录</h1>
+    <p class="description">这是独立云端身份验证的测试入口。通过 GitHub 账户确认身份；不会将你的密码或 API 密钥保存在网页中。</p>
+
+    <section class="notice">
+      <strong>重要</strong>
+      <p>这只是安全登录试点；现有 GitHub Pages 咨询工作台仍使用浏览器本地资料，尚未完成保密迁移。请暂勿录入真实顾客敏感资料。</p>
+    </section>
+
+    <label for="api-url">Cloudflare Worker API 地址</label>
+    <input id="api-url" type="url" inputmode="url" autocomplete="url" placeholder="https://your-worker.your-subdomain.workers.dev">
+    <p class="hint">地址将在你部署 Worker 后获得。这里只有公开服务地址，不需要填写任何密码。</p>
+
+    <div class="actions">
+      <button id="login-button" type="button">使用 GitHub 验证身份</button>
+      <button id="check-button" type="button" class="secondary" disabled>检查安全连接</button>
+      <button id="logout-button" type="button" class="secondary" hidden>退出登录</button>
+    </div>
+    <div id="message" class="message" role="status" aria-live="polite">等待配置安全后端。</div>
+    <pre id="result" hidden aria-live="polite"></pre>
+    <p class="back"><a href="./#home">← 返回原有工作台</a></p>
+  </main>
+</body>
+</html>

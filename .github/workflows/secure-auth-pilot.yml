@@ -1,0 +1,31 @@
+name: AURMOVA Secure Auth Pilot Tests
+
+on:
+  pull_request:
+    paths:
+      - "workers/auth-worker/**"
+      - "secure-login.html"
+      - "secure-login.css"
+      - "src/secure-login.js"
+      - ".github/workflows/secure-auth-pilot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-auth:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/auth-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax verification
+        run: npm run check
+      - name: Authentication API tests
+        run: npm test
+      - name: Login client syntax
+        run: node --check ../../src/secure-login.js
