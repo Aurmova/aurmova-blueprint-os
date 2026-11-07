@@ -48,11 +48,11 @@ test('non-string incoming IDs cannot be coerced into collisions', () => {
 });
 
 test('unsafe control characters and oversized identifiers fail closed', () => {
-  const result = previewCustomerImport([], [{id:'bad\\nline'},{id:'x'.repeat(129)},{id:'valid-1'}]);
+  const result = previewCustomerImport([], [{id:'bad' + String.fromCharCode(10) + 'line'},{id:'x'.repeat(129)},{id:'valid-1'}]);
   assert.deepEqual(result.conflicts, [
     {index:0,reason:'missing-or-invalid-id'},
     {index:1,reason:'missing-or-invalid-id'}
   ]);
   assert.deepEqual(result.candidates,[{index:2,id:'valid-1'}]);
-  assert.throws(() => previewCustomerImport([{id:'old\\nline'}],[]),TypeError);
+  assert.throws(() => previewCustomerImport([{id:'old' + String.fromCharCode(10) + 'line'}],[]),TypeError);
 });
