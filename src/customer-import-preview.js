@@ -1,6 +1,11 @@
 // Offline-only, side-effect-free preview for future customer migration.
 // This module MUST NOT be connected to live D1 or automatically invoked by the UI.
-const key = value => typeof value === 'string' ? value.trim() : '';
+// Reject control characters and unbounded identifiers before any future persistence layer sees them.
+const key = value => {
+  if (typeof value !== 'string') return '';
+  const id = value.trim();
+  return id.length > 0 && id.length <= 128 && !/[\u0000-\u001f\u007f]/.test(id) ? id : '';
+};
 export function previewCustomerImport(existing, incoming) {
   if (!Array.isArray(existing) || !Array.isArray(incoming)) throw new TypeError('Customer collections must be arrays');
   // Fail closed on malformed or duplicated existing identifiers: never guess which record wins.
