@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { calculateBlueprint, calculateGoldenYearSnapshot, activeFlowYear, flowYearRange } from '../src/engine/blueprint.js';
 
 // All birthdays below are synthetic fixtures. No production/customer data or network access.
-const fixtures = ['11/11/1998', '05/11/1998', '05/11/1966', '16/03/1975'];
+const fixtures = ['14/02/1993', '23/06/1987', '09/04/1972', '27/08/2001'];
 
 test('four independent consultation calculations are deterministic and isolated', () => {
   const first = fixtures.map(birthday => ({
