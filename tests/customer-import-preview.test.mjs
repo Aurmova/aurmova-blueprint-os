@@ -56,3 +56,12 @@ test('unsafe control characters and oversized identifiers fail closed', () => {
   assert.deepEqual(result.candidates,[{index:2,id:'valid-1'}]);
   assert.throws(() => previewCustomerImport([{id:'old' + String.fromCharCode(10) + 'line'}],[]),TypeError);
 });
+
+
+test('oversized offline previews fail before reading record contents', () => {
+  const unreadable = new Proxy({id:'fictional'}, {get(){throw Error('record must not be inspected');}});
+  const tooMany = Array(10001).fill(unreadable);
+  assert.throws(() => previewCustomerImport(tooMany, []), RangeError);
+  assert.throws(() => previewCustomerImport([], tooMany), RangeError);
+  assert.deepEqual(previewCustomerImport([], [{id:'fictional-1'}]).candidates, [{index:0,id:'fictional-1'}]);
+});
