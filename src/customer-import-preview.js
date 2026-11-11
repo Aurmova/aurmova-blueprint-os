@@ -1,6 +1,7 @@
 // Offline-only, side-effect-free preview for future customer migration.
 // This module MUST NOT be connected to live D1 or automatically invoked by the UI.
 // Reject control characters and unbounded identifiers before any future persistence layer sees them.
+const MAX_PREVIEW_RECORDS = 10000;
 const key = value => {
   if (typeof value !== 'string') return '';
   const id = value.trim();
@@ -8,6 +9,10 @@ const key = value => {
 };
 export function previewCustomerImport(existing, incoming) {
   if (!Array.isArray(existing) || !Array.isArray(incoming)) throw new TypeError('Customer collections must be arrays');
+  // Bound an offline preview so a corrupted import cannot exhaust browser memory.
+  if (existing.length > MAX_PREVIEW_RECORDS || incoming.length > MAX_PREVIEW_RECORDS) {
+    throw new RangeError('Customer import preview exceeds safe record limit');
+  }
   // Fail closed on malformed or duplicated existing identifiers: never guess which record wins.
   const existingIds = new Set();
   for (const record of existing) {
