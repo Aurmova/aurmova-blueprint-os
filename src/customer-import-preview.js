@@ -5,7 +5,7 @@ const MAX_PREVIEW_RECORDS = 10000;
 const key = value => {
   if (typeof value !== 'string') return '';
   const id = value.trim();
-  return id.length > 0 && id.length <= 128 && !/[\u0000-\u001f\u007f]/.test(id) ? id : '';
+  return id.length > 0 && id.length <= 128 && id === value && !/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/u.test(id) ? id : '';
 };
 export function previewCustomerImport(existing, incoming) {
   if (!Array.isArray(existing) || !Array.isArray(incoming)) throw new TypeError('Customer collections must be arrays');
