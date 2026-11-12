@@ -65,3 +65,17 @@ test('oversized offline previews fail before reading record contents', () => {
   assert.throws(() => previewCustomerImport([], tooMany), RangeError);
   assert.deepEqual(previewCustomerImport([], [{id:'fictional-1'}]).candidates, [{index:0,id:'fictional-1'}]);
 });
+
+test('ambiguous whitespace and invisible-direction identifiers fail closed', () => {
+  const result = previewCustomerImport([{id:'fixed-1'}], [
+    {id:' fixed-1'}, {id:'fixed-1 '}, {id:'new\u200b-id'}, {id:'abc\u202edef'}, {id:'valid-2'}
+  ]);
+  assert.deepEqual(result.conflicts, [
+    {index:0,reason:'missing-or-invalid-id'},
+    {index:1,reason:'missing-or-invalid-id'},
+    {index:2,reason:'missing-or-invalid-id'},
+    {index:3,reason:'missing-or-invalid-id'}
+  ]);
+  assert.deepEqual(result.candidates, [{index:4,id:'valid-2'}]);
+  assert.throws(() => previewCustomerImport([{id:' fixed-1'}], []), TypeError);
+});
