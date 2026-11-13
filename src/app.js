@@ -868,7 +868,7 @@ document.addEventListener("click", event => {
   if(editSpeech||restoreSpeech||cancelSpeech){
     const form=document.querySelector("#speech-record-form");
     if(!form)return;
-    if(cancelSpeech){form.reset();form.querySelector("#speech-edit-record-id").value="";form.querySelector("#speech-edit-indicator").style.display="none";form.querySelector("#speech-save-button").textContent="保存为新的一次讲话记录";cancelSpeech.style.display="none";return;}
+    if(cancelSpeech){if(form.querySelector("#speech-text").value.trim()&&!window.confirm("取消编辑会丢弃尚未保存的修改，确定继续吗？"))return;form.reset();form.querySelector("#speech-edit-record-id").value="";form.querySelector("#speech-edit-indicator").style.display="none";form.querySelector("#speech-save-button").textContent="保存为新的一次讲话记录";cancelSpeech.style.display="none";return;}
     const id=form.dataset.customerId,recordId=editSpeech?.dataset.speechEdit||restoreSpeech?.dataset.speechRestore;
     const record=readSpeechRecords(id).find(x=>String(x.id)===recordId);
     if(!record)return;
@@ -877,9 +877,11 @@ document.addEventListener("click", event => {
       const index=Number(restoreSpeech.dataset.speechVersion);
       const version=record.versions?.[index];
       if(!version)return;
-      if(!window.confirm("恢复这个旧版本？当前版本会先保存到历史，不会丢失。"))return;
+      if(!window.confirm("要载入这个旧版本到编辑框吗？只有点击「保存修改」后，才会写入记录并保留当前版本。"))return;
       topic=version.topic;text=version.text;
     }
+    const currentArea=form.querySelector("#speech-text");
+    if(currentArea.value.trim()&&!window.confirm("编辑框内有未保存的内容。继续会替换编辑框内容，确定吗？"))return;
     form.querySelector("#speech-edit-record-id").value=recordId;
     form.querySelector("#speech-topic").value=topic;
     const area=form.querySelector("#speech-text");area.value=text;area.dispatchEvent(new Event("input",{bubbles:true}));
@@ -1079,6 +1081,7 @@ document.addEventListener("submit", event => {
       if(index<0){showToast("找不到原始记录，未执行覆盖");return;}
       const original=existing[index];
       const versions=Array.isArray(original.versions)?original.versions.slice():[];
+      if(original.topic===topic&&original.text===text){showToast("内容没有变化，无需重复保存");return;}
       versions.push({topic:original.topic,text:original.text,savedAt:new Date().toISOString()});
       next=existing.slice();
       next[index]={...original,topic,text,versions,updatedAt:new Date().toISOString()};
