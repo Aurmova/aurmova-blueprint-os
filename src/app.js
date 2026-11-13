@@ -704,13 +704,21 @@ function speechRecordsPage(){
   const customer=loadCustomers().find(c=>String(c.id)===id);
   if(!customer)return header("PRIVATE NOTES","咨询讲话记录","请先从顾客档案选择顾客。")+'<section class="card"><a class="btn btn-light" href="#history">返回顾客档案</a></section>';
   const records=readSpeechRecords(id).slice().reverse();
-  return header("PRIVATE CONSULTATION RECORD","咨询讲话记录｜"+escapeLibraryHtml(customer.name),"记录你实际跟顾客讲过的话；每次保存为独立历史，不覆盖旧稿。")
-    +'<section class="card form-card"><p class="notice">目前仅保存在这台设备的浏览器中，尚未跨设备同步或备份。请勿将本功能当成正式安全档案库；避免输入身份证等不必要的敏感资料。</p>'
-    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
-    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><textarea id="speech-text" name="text" rows="9" maxlength="30000" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
-    +'<div class="actions"><button type="submit" class="btn btn-primary">保存为新的一次讲话记录</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
-    +'<section class="card"><h2>以往讲话记录（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p></article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
+  const dateLabel=iso=>{const d=new Date(iso);return Number.isNaN(d.getTime())?"日期未知":d.toLocaleString("zh-MY",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});};
+  return header("PRIVATE CONSULTATION NOTES",escapeLibraryHtml(customer.name)+"｜咨询笔记","Notion 式阅读与分段记录 · 每次保存一份独立记录")
+    +'<section class="card" style="max-width:900px;margin-inline:auto;padding:clamp(20px,5vw,48px)">'
+    +'<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:22px"><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(id)+'">← 返回顾客工作台</a><span style="color:var(--gold)">私人笔记 · '+records.length+' 篇</span></div>'
+    +'<h2 style="font-size:clamp(26px,4vw,38px);margin-bottom:6px">'+escapeLibraryHtml(customer.name)+'</h2>'
+    +'<p style="color:var(--muted,#777);margin-bottom:28px">人生蓝图 · 黄金流年 · 关系 · 亲子 · 合作</p>'
+    +'<div class="notice">目前仅储存在这台设备的浏览器，尚未跨设备同步或备份。请定期另行备份重要记录；不要输入不必要的敏感资料。</div>'
+    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'" style="margin-top:25px">'
+    +'<div class="field"><label for="speech-title">笔记标题</label><input id="speech-title" name="title" maxlength="120" placeholder="例如：第一次人生蓝图咨询｜开场与主性格"></div>'
+    +'<div class="field"><label for="speech-topic">咨询类型</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
+    +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
+    +'<div class="field"><label for="speech-text">正文 · 可分段写问题、回答、回应 *</label><textarea id="speech-text" name="text" rows="17" maxlength="30000" required style="width:100%;font-size:17px;line-height:1.85;padding:18px;resize:vertical" placeholder="开场介绍\n\n今天我们先从你的人生蓝图开始……\n\n问题 01｜当别人提出不同意见时……\n顾客回答｜……\n我的回应｜……\n\n下次继续｜……"></textarea></div>'
+    +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
+    +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
+    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+escapeLibraryHtml(x.text)+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
@@ -979,10 +987,10 @@ document.addEventListener("submit", event => {
     event.preventDefault();
     const id=event.target.dataset.customerId;
     if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
-    const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),text=String(fd.get("text")||"").trim();
+    const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120),text=String(fd.get("text")||"").trim();
     if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
-    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,text}];
+    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text}];
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
     showToast("讲话记录已保存于本机");
     render();
