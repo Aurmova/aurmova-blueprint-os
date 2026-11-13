@@ -725,9 +725,9 @@ function speechRecordsPage(){
     +'<div class="field"><label for="speech-title">笔记标题</label><input id="speech-title" name="title" maxlength="120" placeholder="例如：第一次人生蓝图咨询｜开场与主性格"></div>'
     +'<div class="field"><label for="speech-topic">咨询类型</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
     +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
-    +'<div style="margin:16px 0 8px"><small>编辑工具｜选中文字后可套用格式；列表、折叠和表格会插入可编辑模板</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
-    +[['h2','H2 标题'],['h3','H3 标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['todo','☐ 待办'],['toggle','▸ 折叠'],['quote','❝ 引用'],['divider','— 分隔线'],['table','▦ 表格'],['link','链接']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
-    +'<div class="field"><label for="speech-text">正文 · 可分段写问题、回答、回应 *</label><textarea id="speech-text" name="text" rows="17" maxlength="30000" required style="width:100%;font-size:17px;line-height:1.85;padding:18px;resize:vertical" placeholder="开场介绍\n\n今天我们先从你的人生蓝图开始……\n\n问题 01｜当别人提出不同意见时……\n顾客回答｜……\n我的回应｜……\n\n下次继续｜……"></textarea></div>'
+    +'<div style="margin:16px 0 8px"><small>直接编辑文字：选中内容后点粗体或标题，不需要输入代码。折叠问答、表格可在下方直接填写。</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
+    +[['h2','标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['toggle','▸ 折叠问答'],['table','▦ 表格']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
+    +'<div class="field"><label for="speech-editor">咨询正文（直接输入，像普通笔记一样编辑）</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" data-placeholder="在这里输入咨询内容" style="min-height:320px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p> </p></div></div>'
     +'<div id="speech-blocks" aria-label="折叠问答与表格编辑区"></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
@@ -885,8 +885,6 @@ window.addEventListener("hashchange", render);
 document.addEventListener("click", event => {
   const speechTool=event.target.closest("[data-speech-tool]");
   if(speechTool){
-    const area=document.querySelector("#speech-text");
-    if(!area)return;
     const tool=speechTool.dataset.speechTool;
     if(tool==="toggle"){
       const holder=document.querySelector("#speech-blocks");
@@ -946,13 +944,13 @@ document.addEventListener("click", event => {
       block.append(heading,table,remove);holder.append(block);
       block.querySelector("input").focus();return;
     }
-    const start=area.selectionStart,end=area.selectionEnd,selected=area.value.slice(start,end);
-    const defaults={h2:"小标题",h3:"小节标题",bold:"重点内容",italic:"补充说明",bullet:"列表内容",number:"第一项",todo:"待完成事项",quote:"顾客原话",link:"链接文字"};
-    const text=selected||defaults[tool]||"";
-    const snippets={h2:"【"+text+"】",h3:"［"+text+"］",bold:"「"+text+"」",italic:"（"+text+"）",bullet:"• "+text,number:"1. "+text,todo:"☐ "+text,quote:"顾客原话：「"+text+"」",divider:"────────",link:text+"（请粘贴链接）"};
-    const insertion=snippets[tool]||text;
-    if(area.value.length+insertion.length-(end-start)>30000){showToast("笔记已达到30000字限制");return;}
-    area.setRangeText(insertion,start,end,"end");area.focus();return;
+    const editor=document.querySelector("#speech-editor");
+    if(!editor)return;
+    editor.focus();
+    const commands={h2:["formatBlock","h2"],bold:["bold",null],italic:["italic",null],bullet:["insertUnorderedList",null],number:["insertOrderedList",null]};
+    const command=commands[tool];
+    if(command){document.execCommand(command[0],false,command[1]);}
+    return;
   }
   const fStage=event.target.closest("[data-followup-stage]");
   if(fStage){
@@ -1072,7 +1070,9 @@ document.addEventListener("submit", event => {
     const id=event.target.dataset.customerId;
     if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
     const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120);
-    const parts=[String(fd.get("text")||"").trim()];
+    const editor=event.target.querySelector("#speech-editor");
+    const bodyText=editor?.innerText?.trim()||"";
+    const parts=[bodyText];
     event.target.querySelectorAll(".speech-toggle-block").forEach(block=>{
       const q=block.querySelector(".speech-block-title")?.value.trim()||"未命名问题";
       const answer=block.querySelector(".speech-block-answer")?.value.trim()||"";
