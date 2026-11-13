@@ -706,11 +706,11 @@ function speechRecordsPage(){
   const records=readSpeechRecords(id).slice().reverse();
   return header("PRIVATE CONSULTATION RECORD","咨询讲话记录｜"+escapeLibraryHtml(customer.name),"记录你实际跟顾客讲过的话；每次保存为独立历史，不覆盖旧稿。")
     +'<section class="card form-card"><p class="notice">目前仅保存在这台设备的浏览器中，尚未跨设备同步或备份。请勿将本功能当成正式安全档案库；避免输入身份证等不必要的敏感资料。</p>'
-    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
+    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><input type="hidden" name="editRecordId" id="speech-edit-record-id" value=""><p id="speech-edit-indicator" style="display:none;color:#80612d;font-weight:600">正在编辑已保存的记录；保存前的旧版本会保留。</p>'<div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
     +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><div role="toolbar" aria-label="文字编辑历史" style="display:flex;gap:8px;align-items:center;margin:8px 0"><button type="button" class="btn btn-light" data-speech-undo disabled>↶ 撤销</button><button type="button" class="btn btn-light" data-speech-redo disabled>↷ 重做</button><small>误删文字可立即撤销</small></div><textarea id="speech-text" name="text" rows="3" style="min-height:96px;overflow:hidden;resize:vertical" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
-    +'<div class="actions"><button type="submit" class="btn btn-primary">保存为新的一次讲话记录</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
+    +'<div class="actions"><button type="submit" class="btn btn-primary" id="speech-save-button">保存为新的一次讲话记录</button><button type="button" class="btn btn-light" data-speech-cancel-edit style="display:none">取消编辑</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
     +'<section class="card"><h2>以往讲话记录（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p></article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
+    +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><div class="actions"><button type="button" class="btn btn-light" data-speech-edit="'+escapeLibraryHtml(x.id||"")+'">编辑这篇记录</button></div><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p>'+(Array.isArray(x.versions)&&x.versions.length?'<details><summary>查看旧版本（'+x.versions.length+'）</summary>'+x.versions.slice().reverse().map((v,i)=>'<div style="padding:12px 0;border-top:1px solid #eee"><small>'+escapeLibraryHtml(v.savedAt||"时间未知")+'</small><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(v.text||"")+'</div><button type="button" class="btn btn-light" data-speech-restore="'+escapeLibraryHtml(x.id||"")+'" data-speech-version="'+(x.versions.length-1-i)+'">恢复这个版本</button></div>').join("")+'</details>':"")+'</article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
@@ -862,6 +862,34 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  const editSpeech=event.target.closest("[data-speech-edit]");
+  const restoreSpeech=event.target.closest("[data-speech-restore]");
+  const cancelSpeech=event.target.closest("[data-speech-cancel-edit]");
+  if(editSpeech||restoreSpeech||cancelSpeech){
+    const form=document.querySelector("#speech-record-form");
+    if(!form)return;
+    if(cancelSpeech){form.reset();form.querySelector("#speech-edit-record-id").value="";form.querySelector("#speech-edit-indicator").style.display="none";form.querySelector("#speech-save-button").textContent="保存为新的一次讲话记录";cancelSpeech.style.display="none";return;}
+    const id=form.dataset.customerId,recordId=editSpeech?.dataset.speechEdit||restoreSpeech?.dataset.speechRestore;
+    const record=readSpeechRecords(id).find(x=>String(x.id)===recordId);
+    if(!record)return;
+    let topic=record.topic,text=record.text;
+    if(restoreSpeech){
+      const index=Number(restoreSpeech.dataset.speechVersion);
+      const version=record.versions?.[index];
+      if(!version)return;
+      if(!window.confirm("恢复这个旧版本？当前版本会先保存到历史，不会丢失。"))return;
+      topic=version.topic;text=version.text;
+    }
+    form.querySelector("#speech-edit-record-id").value=recordId;
+    form.querySelector("#speech-topic").value=topic;
+    const area=form.querySelector("#speech-text");area.value=text;area.dispatchEvent(new Event("input",{bubbles:true}));
+    form.querySelector("#speech-edit-indicator").style.display="block";
+    form.querySelector("#speech-save-button").textContent="保存修改（保留旧版本）";
+    form.querySelector("[data-speech-cancel-edit]").style.display="";
+    form.scrollIntoView({behavior:"smooth",block:"start"});
+    showToast("已载入记录，修改后请按保存");
+    return;
+  }
   const fStage=event.target.closest("[data-followup-stage]");
   if(fStage){
     const id=fStage.dataset.followupId,stage=fStage.dataset.followupStage;
@@ -1044,7 +1072,19 @@ document.addEventListener("submit", event => {
     const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),text=String(fd.get("text")||"").trim();
     if(!text){showToast("请先输入咨询讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
-    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,text}];
+    const editId=String(fd.get("editRecordId")||"");
+    let next;
+    if(editId){
+      const index=existing.findIndex(x=>String(x.id)===editId);
+      if(index<0){showToast("找不到原始记录，未执行覆盖");return;}
+      const original=existing[index];
+      const versions=Array.isArray(original.versions)?original.versions.slice():[];
+      versions.push({topic:original.topic,text:original.text,savedAt:new Date().toISOString()});
+      next=existing.slice();
+      next[index]={...original,topic,text,versions,updatedAt:new Date().toISOString()};
+    }else{
+      next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,text}];
+    }
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
     showToast("讲话记录已保存于本机");
     render();
