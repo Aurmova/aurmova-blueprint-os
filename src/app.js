@@ -686,10 +686,32 @@ function history(){
     const rows=loadCustomers().map(c=>{
       const bd=birthdayDayInfo(c.birthday);
       const dayLabel=bd.profile?(bd.day+"号 · "+bd.profile.title):(bd.day?(bd.day+"号"):"—");
-      return `<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}<br><small>生日数字 ${dayLabel}</small></td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${c.id}" style="color:var(--gold)">開啟</a></td></tr>`;
+      return `<tr><td><strong>${c.name}</strong></td><td>${c.gender}</td><td>${c.birthday}<br><small>生日数字 ${dayLabel}</small></td><td>${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</td><td>${c.status}</td><td><a href="#workspace?id=${encodeURIComponent(c.id)}" style="color:var(--gold)">開啟</a> · <a href="#speech-records?id=${encodeURIComponent(c.id)}" style="color:var(--gold)">讲话记录</a></td></tr>`;
     }).join("");
     return `${header("Private Archive","歷史顧客檔案","所有顧客紀錄都只儲存在此裝置的瀏覽器中。正式上線前需連接安全後端。")}<section class="card table-wrap">${rows?`<table class="customer-table"><thead><tr><th>顧客</th><th>性別</th><th>生日／生日数字</th><th>諮詢項目</th><th>狀態</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:`<div class="empty"><div class="empty-mark">A</div><h3>還沒有顧客檔案</h3><p>建立第一份檔案，開始整理諮詢資料。</p><a class="btn btn-primary" href="#new">建立顧客檔案</a></div>`}</section>`;
   }
+// Consultation speech records are owner-device-only until an authenticated sync API is approved.
+// Separate key: never overwrite legacy aurmova.customers or follow-up records.
+function speechRecordsKey(id){return "aurmova.speech-records."+encodeURIComponent(id);}
+function readSpeechRecords(id){
+  try {
+    const data=JSON.parse(localStorage.getItem(speechRecordsKey(id))||"[]");
+    return Array.isArray(data)?data.filter(x=>x&&typeof x==="object"&&typeof x.text==="string"):[];
+  } catch { return []; }
+}
+function speechRecordsPage(){
+  const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");
+  const customer=loadCustomers().find(c=>String(c.id)===id);
+  if(!customer)return header("PRIVATE NOTES","咨询讲话记录","请先从顾客档案选择顾客。")+'<section class="card"><a class="btn btn-light" href="#history">返回顾客档案</a></section>';
+  const records=readSpeechRecords(id).slice().reverse();
+  return header("PRIVATE CONSULTATION RECORD","咨询讲话记录｜"+escapeLibraryHtml(customer.name),"记录你实际跟顾客讲过的话；每次保存为独立历史，不覆盖旧稿。")
+    +'<section class="card form-card"><p class="notice">目前仅保存在这台设备的浏览器中，尚未跨设备同步或备份。请勿将本功能当成正式安全档案库；避免输入身份证等不必要的敏感资料。</p>'
+    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
+    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><textarea id="speech-text" name="text" rows="9" maxlength="30000" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
+    +'<div class="actions"><button type="submit" class="btn btn-primary">保存为新的一次讲话记录</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
+    +'<section class="card"><h2>以往讲话记录（'+records.length+'）</h2>'
+    +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p></article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
+}
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
   const inner=a&&a.innerEnergy&&a.innerEnergy.counts?a.innerEnergy.counts:{};
@@ -784,7 +806,7 @@ function workspace(){
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
    <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · <b>生日数字 ${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</b> · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
-   <div class="quick-actions"><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+   <div class="quick-actions"><a class="btn btn-primary" href="#speech-records?id=${encodeURIComponent(c.id)}">记录／查看讲过的话</a><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
  <section id="v26-opportunity-navigator" class="card opportunity-navigator"><div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div><p class="op-intro">这里会根据顾客的职业／身份与她真正想问的问题，生成关键词、追问、可选出路、7天／30天验证动作。正在载入顾客专属分析…</p></section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
@@ -827,6 +849,7 @@ function render() {
   });
   if (route === "new") app.innerHTML = newCustomer();
   else if (route === "history" || route === "delete") app.innerHTML = history();
+  else if (route === "speech-records") app.innerHTML = speechRecordsPage();
   else if (route === "workspace") app.innerHTML = workspace();
   else if (route === "firstconsult") { app.innerHTML = firstConsultPage(); setTimeout(initFirstConsult,0); }
   else if (route === "library") { app.innerHTML = libraryPage(); setTimeout(initLibrarySearch,0); }
@@ -952,6 +975,19 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("submit", event => {
+  if(event.target.id==="speech-record-form"){
+    event.preventDefault();
+    const id=event.target.dataset.customerId;
+    if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
+    const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),text=String(fd.get("text")||"").trim();
+    if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
+    const key=speechRecordsKey(id),existing=readSpeechRecords(id);
+    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,text}];
+    try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
+    showToast("讲话记录已保存于本机");
+    render();
+    return;
+  }
   if (event.target.id !== "customer-form") return;
   event.preventDefault();
   const fd = new FormData(event.target);
