@@ -744,7 +744,7 @@ function speechRecordsPage(){
     +'<div class="field"><label for="speech-editor">咨询正文｜所有问题、回答和回应都写在这里</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" style="min-height:350px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p><br></p></div><small>点击折叠问答或表格，会直接插入到上方同一篇笔记中；保存一次即可。</small></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
+    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="padding:16px 0"><button type="button" class="btn btn-light" data-speech-presentation-toggle aria-pressed="false">PPT 风格展示</button><div data-speech-original style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div data-speech-presentation hidden style="margin-top:18px;background:#fff;border:1px solid #e4d9c8;border-radius:14px;overflow:hidden"><div style="border-bottom:3px solid #c9a35e;padding:clamp(20px,5vw,44px)"><div style="letter-spacing:3px;color:#b29357;font-size:11px;font-weight:700">AURMOVA · CONSULTATION NOTES</div><h2 style="font-size:clamp(24px,4vw,38px);line-height:1.3;margin:22px 0 10px;color:#4d4033">'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</h2><p style="color:#8a7657;font-size:14px">'+escapeLibraryHtml(customer.name)+" · "+escapeLibraryHtml(dateLabel(x.createdAt))+'</p></div><div style="padding:clamp(20px,5vw,48px);color:#3e3831;font-size:clamp(17px,2.5vw,21px);line-height:1.9;overflow-wrap:anywhere;white-space:normal">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div style="padding:16px 28px;border-top:1px solid #eee6da;color:#b29357;font-size:12px;letter-spacing:2px;text-align:right">AURMOVA · PRIVATE CONSULTATION</div></div></div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
@@ -896,6 +896,19 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  const presentationButton=event.target.closest("[data-speech-presentation-toggle]");
+  if(presentationButton){
+    const wrapper=presentationButton.parentElement;
+    const original=wrapper.querySelector("[data-speech-original]");
+    const presentation=wrapper.querySelector("[data-speech-presentation]");
+    if(!original||!presentation)return;
+    const show=presentation.hidden;
+    presentation.hidden=!show;
+    original.hidden=show;
+    presentationButton.textContent=show?"返回原始笔记":"PPT 风格展示";
+    presentationButton.setAttribute("aria-pressed",String(show));
+    return;
+  }
   const removeSpeechBlock=event.target.closest("[data-speech-remove]");
   if(removeSpeechBlock){
     const block=removeSpeechBlock.closest("[data-speech-block]");
