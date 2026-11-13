@@ -707,7 +707,7 @@ function safeSpeechRichHtml(html){
     if(node.nodeType===3)return escapeLibraryHtml(node.nodeValue);
     if(node.nodeType!==1)return "";
     const tag=node.tagName;
-    if(["SCRIPT","STYLE","IFRAME","OBJECT","SVG","MATH","FORM","IMG"].includes(tag))return "";
+    if(["SCRIPT","STYLE","IFRAME","OBJECT","SVG","MATH","FORM","IMG","BUTTON"].includes(tag))return "";
     const children=[...node.childNodes].map(clean).join("");
     return allowed.has(tag)?"<"+tag.toLowerCase()+">"+children+"</"+tag.toLowerCase()+">":children;
   }
@@ -896,6 +896,15 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  const removeSpeechBlock=event.target.closest("[data-speech-remove]");
+  if(removeSpeechBlock){
+    const block=removeSpeechBlock.closest("[data-speech-block]");
+    const editor=document.querySelector("#speech-editor");
+    if(block&&editor?.contains(block)){
+      if(window.confirm("只删除这个尚未保存的区块？其他咨询内容会保留。"))block.remove();
+    }
+    return;
+  }
   const speechTool=event.target.closest("[data-speech-tool]");
   if(speechTool){
     const editor=document.querySelector("#speech-editor");
@@ -906,6 +915,14 @@ document.addEventListener("click", event => {
     if(!range||!editor.contains(range.commonAncestorContainer)){
       range=document.createRange();range.selectNodeContents(editor);range.collapse(false);
     }
+    const addRemoveControl=(block)=>{
+      block.dataset.speechBlock="true";
+      const remove=document.createElement("button");
+      remove.type="button";remove.dataset.speechRemove="true";remove.contentEditable="false";
+      remove.textContent="删除这个区块";
+      remove.style.cssText="display:block;margin:10px 0 0 auto;padding:6px 10px;border:1px solid #cdbfa9;border-radius:6px;background:#fff;color:#684b3a;font-size:13px";
+      block.append(remove);
+    };
     const insertBlock=(block)=>{
       range.deleteContents();
       range.insertNode(block);
@@ -920,13 +937,15 @@ document.addEventListener("click", event => {
       const summary=document.createElement("summary");summary.contentEditable="true";summary.textContent="问题：点击这里输入问题";
       const answer=document.createElement("div");answer.contentEditable="true";answer.style.padding="12px 0";
       answer.textContent="顾客回答：\n我的回应：";
-      details.append(summary,answer);insertBlock(details);
+      details.append(summary,answer);addRemoveControl(details);insertBlock(details);
       editor.focus();return;
     }
     if(tool==="table"){
       const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;margin:12px 0";
       for(let i=0;i<3;i++){const tr=document.createElement("tr");for(let j=0;j<2;j++){const td=document.createElement("td");td.style.cssText="border:1px solid #d9cbb5;padding:10px";td.textContent=i===0?(j===0?"项目":"内容"):"点击填写";tr.append(td);}table.append(tr);}
-      insertBlock(table);editor.focus();return;
+      const wrapper=document.createElement("div");
+      wrapper.style.cssText="border:1px solid #d9cbb5;border-radius:8px;padding:8px;margin:10px 0";
+      wrapper.append(table);addRemoveControl(wrapper);insertBlock(wrapper);editor.focus();return;
     }
     editor.focus();
     selection.removeAllRanges();selection.addRange(range);
