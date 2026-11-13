@@ -861,6 +861,35 @@ function initFirstConsult(){
   };
   document.querySelectorAll("[data-fc-check],[data-fc-field]").forEach(x=>x.addEventListener("input",save));
 }
+
+// Existing customer editing: keep the original ID and all attached notes/history.
+function editCustomerPage(){
+ const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");
+ const c=loadCustomers().find(x=>String(x.id)===String(id));
+ if(!c)return '<section class="card empty"><h3>找不到顾客档案</h3><a class="btn btn-light" href="#history">返回顾客档案</a></section>';
+ return newCustomer().replace('id="customer-form"','id="customer-edit-form" data-customer-id="'+escapeLibraryHtml(id)+'"')
+   .replace("建立顧客檔案","编辑顾客资料").replace("建立私人檔案","保存资料修改")
+   .replace('href="#home">取消','href="#workspace?id='+encodeURIComponent(id)+'">取消');
+}
+function initEditCustomer(){
+ const form=document.querySelector("#customer-edit-form");if(!form)return;
+ const c=loadCustomers().find(x=>String(x.id)===String(form.dataset.customerId));if(!c)return;
+ const [day,month,year]=String(c.birthday||"").split("/");
+ const values={...c,day:String(Number(day)),month:String(Number(month)),year:String(year)};
+ for(const [key,value] of Object.entries(values)){
+  const el=form.elements.namedItem(key);
+  if(el&&typeof value==="string"&&el.tagName!=="RADIONODELIST")el.value=value;
+ }
+ for(const key of ["consultationTypes","consultationFocus"]){
+  const valuesSet=new Set(Array.isArray(c[key])?c[key]:(key==="consultationTypes"?[c.consultationType]:[]));
+  form.querySelectorAll('input[name="'+key+'"]').forEach(el=>{el.checked=valuesSet.has(el.value)});
+ }
+ const yearSelect=form.elements.namedItem("year");
+ if(yearSelect&&year&&!Array.from(yearSelect.options).some(o=>o.value===year)){
+  yearSelect.add(new Option(year,year));yearSelect.value=year;
+ }
+}
+
 function workspace(){
  const id=new URLSearchParams(location.hash.split('?')[1]).get('id');
  const c=loadCustomers().find(x=>x.id===id);
@@ -884,7 +913,7 @@ function workspace(){
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
    <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · <b>生日数字 ${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</b> · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
-   <div class="quick-actions"><a class="btn btn-primary" href="#speech-records?id=${encodeURIComponent(c.id)}">记录／查看讲过的话</a><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+   <div class="quick-actions"><a class="btn btn-light" href="#edit-customer?id=${encodeURIComponent(c.id)}">✎ 编辑顾客资料</a><a class="btn btn-primary" href="#speech-records?id=${encodeURIComponent(c.id)}">记录／查看讲过的话</a><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
  <section id="v26-opportunity-navigator" class="card opportunity-navigator"><div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div><p class="op-intro">这里会根据顾客的职业／身份与她真正想问的问题，生成关键词、追问、可选出路、7天／30天验证动作。正在载入顾客专属分析…</p></section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
@@ -929,6 +958,7 @@ function render() {
   else if (route === "history" || route === "delete") app.innerHTML = history();
   else if (route === "speech-records") app.innerHTML = speechRecordsPage();
   else if (route === "workspace") app.innerHTML = workspace();
+  else if (route === "edit-customer") { app.innerHTML = editCustomerPage(); initEditCustomer(); }
   else if (route === "firstconsult") { app.innerHTML = firstConsultPage(); setTimeout(initFirstConsult,0); }
   else if (route === "library") { app.innerHTML = libraryPage(); setTimeout(initLibrarySearch,0); }
   else if (route === "whiteboard") { app.innerHTML = whiteboardPage(); setTimeout(initWhiteboard,0); }
@@ -1178,6 +1208,26 @@ document.addEventListener("submit", event => {
     }
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
     showToast("讲话记录已保存于本机");
+    render();
+    return;
+  }
+  if(event.target.id==="customer-edit-form"){
+    event.preventDefault();
+    const form=event.target,id=String(form.dataset.customerId||"");
+    const fd=new FormData(form),formData=Object.fromEntries(fd.entries());
+    formData.consultationTypes=fd.getAll("consultationTypes");
+    formData.consultationFocus=fd.getAll("consultationFocus");
+    const error=validateCustomer(formData);if(error){showToast(error);return;}
+    const customers=loadCustomers(),index=customers.findIndex(c=>String(c.id)===id);
+    if(index<0){showToast("找不到原顾客资料，未做任何修改");return;}
+    const original=customers[index];
+    const updated=createCustomer(formData);
+    const revision={savedAt:new Date().toISOString(),data:{name:original.name,birthday:original.birthday,gender:original.gender,officialName:original.officialName,formerName:original.formerName,nameChangedYear:original.nameChangedYear,birthCity:original.birthCity,occupation:original.occupation,whatsapp:original.whatsapp,consultationTheme:original.consultationTheme,customerQuestion:original.customerQuestion,consultationTypes:original.consultationTypes,consultationFocus:original.consultationFocus}};
+    const next=customers.slice();
+    next[index]={...original,...updated,id:original.id,createdAt:original.createdAt,status:original.status,profileRevisions:[...(Array.isArray(original.profileRevisions)?original.profileRevisions:[]),revision],updatedAt:new Date().toISOString()};
+    try{saveCustomers(next)}catch{showToast("保存失败，原资料未改变");return;}
+    showToast("顾客资料已修改，旧版本已保留");
+    location.hash="workspace?id="+encodeURIComponent(id);
     render();
     return;
   }
