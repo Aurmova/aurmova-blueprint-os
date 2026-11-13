@@ -700,34 +700,43 @@ function readSpeechRecords(id){
   } catch { return []; }
 }
 let speechSavedSelection=null;
-document.addEventListener("selectionchange",()=>{
+function rememberSpeechSelection(){
   const selection=window.getSelection();
-  if(!selection?.rangeCount)return;
+  if(!selection?.rangeCount||selection.isCollapsed)return;
   const range=selection.getRangeAt(0);
   const editor=document.querySelector("#speech-editor");
   if(editor&&editor.contains(range.commonAncestorContainer))speechSavedSelection=range.cloneRange();
-});
-document.addEventListener("change",event=>{
-  if(event.target.id!=="speech-font-size")return;
+}
+document.addEventListener("selectionchange",rememberSpeechSelection);
+document.addEventListener("pointerup",rememberSpeechSelection);
+document.addEventListener("touchend",rememberSpeechSelection);
+function applySpeechFontSize(size){
   const editor=document.querySelector("#speech-editor");
-  const size=Number(event.target.value);
   if(!editor||![14,16,18,20,24,28,32].includes(size))return;
-  const range=speechSavedSelection;
+  const range=speechSavedSelection?.cloneRange();
   if(!range||range.collapsed||!editor.contains(range.commonAncestorContainer)){
-    showToast("请先选中要调整大小的文字");
-    event.target.value="";return;
+    showToast("请先长按并选中要调整大小的文字");return;
   }
-  const selection=window.getSelection();
-  selection.removeAllRanges();selection.addRange(range);
   const span=document.createElement("span");span.style.fontSize=size+"px";
   try{
     span.append(range.extractContents());range.insertNode(span);
+    speechSavedSelection=null;
     const next=document.createRange();next.selectNodeContents(span);
-    selection.removeAllRanges();selection.addRange(next);
+    const selection=window.getSelection();
+    selection?.removeAllRanges();selection?.addRange(next);
     speechSavedSelection=next.cloneRange();
-    editor.focus();
-  }catch(e){showToast("无法调整此段文字，请选中较短的内容重试");}
-  event.target.value="";
+    showToast("已调整为 "+size+"px，保存笔记后保留");
+  }catch(e){showToast("调整失败，请选择较短的文字重试");}
+}
+document.addEventListener("pointerdown",event=>{
+  if(event.target.closest("[data-speech-font]"))rememberSpeechSelection();
+},true);
+document.addEventListener("click",event=>{
+  const button=event.target.closest("[data-speech-font]");
+  if(button){event.preventDefault();applySpeechFontSize(Number(button.dataset.speechFont));}
+});
+document.addEventListener("change",event=>{
+  if(event.target.id==="speech-font-size")applySpeechFontSize(Number(event.target.value));
 });
 function safeSpeechRichHtml(html){
   const template=document.createElement("template");
@@ -775,7 +784,7 @@ function speechRecordsPage(){
     +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
     +'<div style="margin:16px 0 8px"><small>直接编辑文字：选中内容后点粗体或标题，不需要输入代码。折叠问答、表格可在下方直接填写。</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
     +[['h2','标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['toggle','▸ 折叠问答'],['table','▦ 表格']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
-    +'<div class="field" style="max-width:260px;margin:12px 0"><label for="speech-font-size">选中文字后调整字体大小</label><select id="speech-font-size" aria-label="选中文字后调整字体大小"><option value="">选择字号</option>'+[14,16,18,20,24,28,32].map(n=>'<option value="'+n+'">'+n+'px</option>').join("")+'</select></div>'
+    +'<div class="field" style="margin:12px 0"><label>选中文字后，直接点字号（手机无需打开下拉菜单）</label><div role="group" aria-label="字号快捷按钮" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px">'+[14,16,18,20,24,28,32].map(n=>'<button type="button" class="btn btn-light" data-speech-font="'+n+'" style="padding:9px 12px;touch-action:manipulation">'+n+'px</button>').join("")+'</div></div>'
     +'<div class="field"><label for="speech-editor">咨询正文｜所有问题、回答和回应都写在这里</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" style="min-height:350px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p><br></p></div><small>点击折叠问答或表格，会直接插入到上方同一篇笔记中；保存一次即可。</small></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
