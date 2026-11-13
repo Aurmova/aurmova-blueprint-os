@@ -718,6 +718,7 @@ function speechRecordsPage(){
     +'<div style="margin:16px 0 8px"><small>编辑工具｜选中文字后可套用格式；列表、折叠和表格会插入可编辑模板</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
     +[['h2','H2 标题'],['h3','H3 标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['todo','☐ 待办'],['toggle','▸ 折叠'],['quote','❝ 引用'],['divider','— 分隔线'],['table','▦ 表格'],['link','链接']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
     +'<div class="field"><label for="speech-text">正文 · 可分段写问题、回答、回应 *</label><textarea id="speech-text" name="text" rows="17" maxlength="30000" required style="width:100%;font-size:17px;line-height:1.85;padding:18px;resize:vertical" placeholder="开场介绍\n\n今天我们先从你的人生蓝图开始……\n\n问题 01｜当别人提出不同意见时……\n顾客回答｜……\n我的回应｜……\n\n下次继续｜……"></textarea></div>'
+    +'<div id="speech-blocks" aria-label="折叠问答与表格编辑区"></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
     +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+escapeLibraryHtml(x.text)+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
@@ -876,22 +877,72 @@ document.addEventListener("click", event => {
   if(speechTool){
     const area=document.querySelector("#speech-text");
     if(!area)return;
+    const tool=speechTool.dataset.speechTool;
+    if(tool==="toggle"){
+      const holder=document.querySelector("#speech-blocks");
+      if(!holder)return;
+      const details=document.createElement("details");
+      details.open=true;
+      details.className="speech-toggle-block";
+      details.style.cssText="border:1px solid #d9cbb5;border-radius:10px;padding:14px;margin:12px 0;background:#fff";
+      const summary=document.createElement("summary");
+      summary.textContent="点击展开／收起这道问题";
+      summary.style.cssText="font-weight:600;cursor:pointer;margin-bottom:12px";
+      const label=document.createElement("label");
+      label.textContent="问题／标题";
+      const title=document.createElement("input");
+      title.className="speech-block-title";
+      title.maxLength=300;
+      title.placeholder="例如：当别人意见不同时，你会怎么做？";
+      title.style.cssText="display:block;width:100%;margin:8px 0 14px;padding:10px";
+      const answerLabel=document.createElement("label");
+      answerLabel.textContent="顾客回答／我的回应";
+      const answer=document.createElement("textarea");
+      answer.className="speech-block-answer";
+      answer.rows=5;
+      answer.maxLength=10000;
+      answer.placeholder="在这里记录顾客回答和你的实际回应";
+      answer.style.cssText="display:block;width:100%;margin:8px 0;padding:12px;line-height:1.7";
+      const remove=document.createElement("button");
+      remove.type="button";
+      remove.textContent="移除这个尚未保存的折叠区块";
+      remove.className="btn btn-light";
+      remove.addEventListener("click",()=>details.remove());
+      title.addEventListener("input",()=>{summary.textContent=title.value.trim()||"点击展开／收起这道问题";});
+      details.append(summary,label,title,answerLabel,answer,remove);
+      holder.append(details);
+      title.focus();
+      return;
+    }
+    if(tool==="table"){
+      const holder=document.querySelector("#speech-blocks");
+      if(!holder)return;
+      const block=document.createElement("div");
+      block.className="speech-table-block";
+      block.style.cssText="padding:14px;border:1px solid #d9cbb5;border-radius:10px;margin:12px 0";
+      const heading=document.createElement("strong");heading.textContent="咨询记录表格";
+      const table=document.createElement("table");table.style.width="100%";
+      for(let i=0;i<3;i++){
+        const tr=document.createElement("tr");
+        for(let j=0;j<2;j++){
+          const td=document.createElement("td");td.style.padding="5px";
+          const input=document.createElement("input");input.className="speech-table-cell";input.maxLength=1000;
+          input.placeholder=i===0?(j===0?"项目":"内容"):"填写内容";
+          input.style.cssText="width:100%;padding:8px";
+          td.append(input);tr.append(td);
+        }table.append(tr);
+      }
+      const remove=document.createElement("button");remove.type="button";remove.className="btn btn-light";remove.textContent="移除表格";remove.addEventListener("click",()=>block.remove());
+      block.append(heading,table,remove);holder.append(block);
+      block.querySelector("input").focus();return;
+    }
     const start=area.selectionStart,end=area.selectionEnd,selected=area.value.slice(start,end);
-    const defaults={h2:"小标题",h3:"小节标题",bold:"重点内容",italic:"补充说明",bullet:"列表内容",number:"第一项",todo:"待完成事项",toggle:"问题／顾客回答",quote:"顾客原话",link:"链接文字"};
-    const text=selected||defaults[speechTool.dataset.speechTool]||"";
-    const snippets={
-      h2:"## "+text,h3:"### "+text,bold:"**"+text+"**",italic:"*"+text+"*",
-      bullet:"- "+text,number:"1. "+text,todo:"- [ ] "+text,
-      toggle:"<details>\\n<summary>"+text+"</summary>\\n\\n在这里记录回答或后续说明\\n</details>",
-      quote:"> "+text,divider:"---",table:"| 项目 | 记录 |\\n| --- | --- |\\n| 问题 | 顾客回应 |",
-      link:"["+text+"](https://example.com)"
-    };
-    const insertion=(snippets[speechTool.dataset.speechTool]||text).replace(/\\n/g,"\n");
+    const defaults={h2:"小标题",h3:"小节标题",bold:"重点内容",italic:"补充说明",bullet:"列表内容",number:"第一项",todo:"待完成事项",quote:"顾客原话",link:"链接文字"};
+    const text=selected||defaults[tool]||"";
+    const snippets={h2:"【"+text+"】",h3:"［"+text+"］",bold:"「"+text+"」",italic:"（"+text+"）",bullet:"• "+text,number:"1. "+text,todo:"☐ "+text,quote:"顾客原话：「"+text+"」",divider:"────────",link:text+"（请粘贴链接）"};
+    const insertion=snippets[tool]||text;
     if(area.value.length+insertion.length-(end-start)>30000){showToast("笔记已达到30000字限制");return;}
-    area.setRangeText(insertion,start,end,"end");
-    area.focus();
-    area.dispatchEvent(new Event("input",{bubbles:true}));
-    return;
+    area.setRangeText(insertion,start,end,"end");area.focus();return;
   }
   const fStage=event.target.closest("[data-followup-stage]");
   if(fStage){
@@ -1010,7 +1061,18 @@ document.addEventListener("submit", event => {
     event.preventDefault();
     const id=event.target.dataset.customerId;
     if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
-    const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120),text=String(fd.get("text")||"").trim();
+    const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120);
+    const parts=[String(fd.get("text")||"").trim()];
+    event.target.querySelectorAll(".speech-toggle-block").forEach(block=>{
+      const q=block.querySelector(".speech-block-title")?.value.trim()||"未命名问题";
+      const answer=block.querySelector(".speech-block-answer")?.value.trim()||"";
+      parts.push("▸ "+q+"\\n"+answer);
+    });
+    event.target.querySelectorAll(".speech-table-block").forEach(block=>{
+      const cells=[...block.querySelectorAll(".speech-table-cell")].map(input=>input.value.trim());
+      parts.push("咨询记录表格\\n"+[0,2,4].map(i=>(cells[i]||"—")+" ｜ "+(cells[i+1]||"—")).join("\\n"));
+    });
+    const text=parts.filter(Boolean).join("\\n\\n");
     if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
     const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text}];
