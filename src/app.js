@@ -778,17 +778,17 @@ function speechRecordsPage(){
     +'<h2 style="font-size:clamp(26px,4vw,38px);margin-bottom:6px">'+escapeLibraryHtml(customer.name)+'</h2>'
     +'<p style="color:var(--muted,#777);margin-bottom:28px">人生蓝图 · 黄金流年 · 关系 · 亲子 · 合作</p>'
     +'<div class="notice">目前仅储存在这台设备的浏览器，尚未跨设备同步或备份。请定期另行备份重要记录；不要输入不必要的敏感资料。</div>'
-    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'" style="margin-top:25px">'
+    +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'" style="margin-top:25px"><input type="hidden" name="editRecordId" id="speech-edit-record-id"><p id="speech-edit-indicator" hidden>正在修改旧笔记。保存后会保留旧版本。</p>'
     +'<div class="field"><label for="speech-title">笔记标题</label><input id="speech-title" name="title" maxlength="120" placeholder="例如：第一次人生蓝图咨询｜开场与主性格"></div>'
     +'<div class="field"><label for="speech-topic">咨询类型</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
     +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
     +'<div style="margin:16px 0 8px"><small>直接编辑文字：选中内容后点粗体或标题，不需要输入代码。折叠问答、表格可在下方直接填写。</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
     +[['h2','标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['toggle','▸ 折叠问答'],['table','▦ 表格']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
     +'<div class="field" style="margin:12px 0"><label>选中文字后，直接点字号（手机无需打开下拉菜单）</label><div role="group" aria-label="字号快捷按钮" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px">'+[14,16,18,20,24,28,32].map(n=>'<button type="button" class="btn btn-light" data-speech-font="'+n+'" style="padding:9px 12px;touch-action:manipulation">'+n+'px</button>').join("")+'</div></div>'
-    +'<div class="field"><label for="speech-editor">咨询正文｜所有问题、回答和回应都写在这里</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" style="min-height:350px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p><br></p></div><small>点击折叠问答或表格，会直接插入到上方同一篇笔记中；保存一次即可。</small></div>'
-    +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
+    +'<div class="field"><label for="speech-editor">咨询正文｜所有问题、回答和回应都写在这里</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" style="min-height:96px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p><br></p></div><small>点击折叠问答或表格，会直接插入到上方同一篇笔记中；保存一次即可。</small></div>'
+    +'<div class="actions"><button class="btn btn-primary" type="submit" id="speech-save-button">保存这篇笔记</button><button type="button" class="btn btn-light" data-speech-cancel-edit hidden>取消编辑</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="padding:16px 0"><button type="button" class="btn btn-light" data-speech-presentation-toggle aria-pressed="false">PPT 风格展示</button><div data-speech-original style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div data-speech-presentation hidden style="margin-top:18px;background:#fff;border:1px solid #e4d9c8;border-radius:14px;overflow:hidden"><div style="border-bottom:3px solid #c9a35e;padding:clamp(20px,5vw,44px)"><div style="letter-spacing:3px;color:#b29357;font-size:11px;font-weight:700">AURMOVA · CONSULTATION NOTES</div><h2 style="font-size:clamp(24px,4vw,38px);line-height:1.3;margin:22px 0 10px;color:#4d4033">'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</h2><p style="color:#8a7657;font-size:14px">'+escapeLibraryHtml(customer.name)+" · "+escapeLibraryHtml(dateLabel(x.createdAt))+'</p></div><div style="padding:clamp(20px,5vw,48px);color:#3e3831;font-size:clamp(17px,2.5vw,21px);line-height:1.9;overflow-wrap:anywhere;white-space:normal">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div style="padding:16px 28px;border-top:1px solid #eee6da;color:#b29357;font-size:12px;letter-spacing:2px;text-align:right">AURMOVA · PRIVATE CONSULTATION</div></div></div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
+    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="padding:16px 0"><button type="button" class="btn btn-light" data-speech-edit="'+escapeLibraryHtml(x.id||"")+'">编辑笔记</button> <button type="button" class="btn btn-light" data-speech-presentation-toggle aria-pressed="false">PPT 风格展示</button><div data-speech-original style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div data-speech-presentation hidden style="margin-top:18px;background:#fff;border:1px solid #e4d9c8;border-radius:14px;overflow:hidden"><div style="border-bottom:3px solid #c9a35e;padding:clamp(20px,5vw,44px)"><div style="letter-spacing:3px;color:#b29357;font-size:11px;font-weight:700">AURMOVA · CONSULTATION NOTES</div><h2 style="font-size:clamp(24px,4vw,38px);line-height:1.3;margin:22px 0 10px;color:#4d4033">'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</h2><p style="color:#8a7657;font-size:14px">'+escapeLibraryHtml(customer.name)+" · "+escapeLibraryHtml(dateLabel(x.createdAt))+'</p></div><div style="padding:clamp(20px,5vw,48px);color:#3e3831;font-size:clamp(17px,2.5vw,21px);line-height:1.9;overflow-wrap:anywhere;white-space:normal">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div><div style="padding:16px 28px;border-top:1px solid #eee6da;color:#b29357;font-size:12px;letter-spacing:2px;text-align:right">AURMOVA · PRIVATE CONSULTATION</div></div></div>'+(Array.isArray(x.versions)&&x.versions.length?'<details style="margin-top:12px"><summary>旧版本（'+x.versions.length+'）</summary>'+x.versions.map((v,i)=>'<div style="border-top:1px solid #ddd;padding:12px"><small>'+escapeLibraryHtml(v.savedAt||"")+'</small><div style="white-space:pre-wrap;overflow-wrap:anywhere">'+(v.richHtml?safeSpeechRichHtml(v.richHtml):renderSavedSpeechText(v.text||""))+'</div><button type="button" class="btn btn-light" data-speech-restore="'+escapeLibraryHtml(x.id||"")+'" data-speech-version="'+i+'">载入此版本编辑</button></div>').join("")+'</details>':"")+'</details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
@@ -1123,6 +1123,36 @@ document.addEventListener("input", event => {
   saveFollowupState(id,state);
 });
 
+document.addEventListener("click",event=>{
+  const edit=event.target.closest("[data-speech-edit],[data-speech-restore]");
+  const cancel=event.target.closest("[data-speech-cancel-edit]");
+  const form=document.querySelector("#speech-record-form");
+  if(!form||(!edit&&!cancel))return;
+  if(cancel){
+    form.reset();form.querySelector("#speech-edit-record-id").value="";
+    form.querySelector("#speech-editor").innerHTML="<p><br></p>";
+    form.querySelector("#speech-edit-indicator").hidden=true;
+    form.querySelector("#speech-save-button").textContent="保存这篇笔记";
+    cancel.hidden=true;return;
+  }
+  const id=form.dataset.customerId,recordId=edit.dataset.speechEdit||edit.dataset.speechRestore;
+  const record=readSpeechRecords(id).find(x=>String(x.id)===recordId);
+  if(!record)return;
+  let source=record;
+  if(edit.hasAttribute("data-speech-restore")){
+    source=record.versions?.[Number(edit.dataset.speechVersion)];
+    if(!source)return;
+  }
+  form.querySelector("#speech-edit-record-id").value=recordId;
+  form.querySelector("#speech-title").value=source.title||"";
+  form.querySelector("#speech-topic").value=source.topic||"其他／综合";
+  form.querySelector("#speech-kind").value=source.kind||"实际咨询记录";
+  form.querySelector("#speech-editor").innerHTML=source.richHtml?safeSpeechRichHtml(source.richHtml):escapeLibraryHtml(source.text||"").replace(/\n/g,"<br>");
+  form.querySelector("#speech-edit-indicator").hidden=false;
+  form.querySelector("#speech-save-button").textContent="保存修改（保留旧版本）";
+  form.querySelector("[data-speech-cancel-edit]").hidden=false;
+  form.scrollIntoView({behavior:"smooth",block:"start"});
+});
 document.addEventListener("submit", event => {
   if(event.target.id==="speech-record-form"){
     event.preventDefault();
@@ -1131,9 +1161,21 @@ document.addEventListener("submit", event => {
     const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120);
     const editor=event.target.querySelector("#speech-editor");
     const text=(editor?.innerText||editor?.textContent||"").trim();
-    if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
+    if(!text){showToast("请先输入咨询笔记");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
-    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text,richHtml:editor?.innerHTML||""}];
+    const editId=String(fd.get("editRecordId")||"");
+    let next;
+    if(editId){
+      const index=existing.findIndex(x=>String(x.id)===editId);
+      if(index<0){showToast("找不到原笔记，没有覆盖任何资料");return;}
+      const original=existing[index];
+      const versions=Array.isArray(original.versions)?original.versions.slice():[];
+      versions.push({title:original.title,topic:original.topic,kind:original.kind,text:original.text,richHtml:original.richHtml,savedAt:new Date().toISOString()});
+      next=existing.slice();
+      next[index]={...original,title,topic,kind,text,richHtml:editor?.innerHTML||"",versions,updatedAt:new Date().toISOString()};
+    }else{
+      next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text,richHtml:editor?.innerHTML||""}];
+    }
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
     showToast("讲话记录已保存于本机");
     render();
