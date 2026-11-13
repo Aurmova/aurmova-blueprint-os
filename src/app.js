@@ -715,6 +715,8 @@ function speechRecordsPage(){
     +'<div class="field"><label for="speech-title">笔记标题</label><input id="speech-title" name="title" maxlength="120" placeholder="例如：第一次人生蓝图咨询｜开场与主性格"></div>'
     +'<div class="field"><label for="speech-topic">咨询类型</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
     +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
+    +'<div style="margin:16px 0 8px"><small>编辑工具｜选中文字后可套用格式；列表、折叠和表格会插入可编辑模板</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
+    +[['h2','H2 标题'],['h3','H3 标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['todo','☐ 待办'],['toggle','▸ 折叠'],['quote','❝ 引用'],['divider','— 分隔线'],['table','▦ 表格'],['link','链接']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
     +'<div class="field"><label for="speech-text">正文 · 可分段写问题、回答、回应 *</label><textarea id="speech-text" name="text" rows="17" maxlength="30000" required style="width:100%;font-size:17px;line-height:1.85;padding:18px;resize:vertical" placeholder="开场介绍\n\n今天我们先从你的人生蓝图开始……\n\n问题 01｜当别人提出不同意见时……\n顾客回答｜……\n我的回应｜……\n\n下次继续｜……"></textarea></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
@@ -870,6 +872,27 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  const speechTool=event.target.closest("[data-speech-tool]");
+  if(speechTool){
+    const area=document.querySelector("#speech-text");
+    if(!area)return;
+    const start=area.selectionStart,end=area.selectionEnd,selected=area.value.slice(start,end);
+    const defaults={h2:"小标题",h3:"小节标题",bold:"重点内容",italic:"补充说明",bullet:"列表内容",number:"第一项",todo:"待完成事项",toggle:"问题／顾客回答",quote:"顾客原话",link:"链接文字"};
+    const text=selected||defaults[speechTool.dataset.speechTool]||"";
+    const snippets={
+      h2:"## "+text,h3:"### "+text,bold:"**"+text+"**",italic:"*"+text+"*",
+      bullet:"- "+text,number:"1. "+text,todo:"- [ ] "+text,
+      toggle:"<details>\\n<summary>"+text+"</summary>\\n\\n在这里记录回答或后续说明\\n</details>",
+      quote:"> "+text,divider:"---",table:"| 项目 | 记录 |\\n| --- | --- |\\n| 问题 | 顾客回应 |",
+      link:"["+text+"](https://example.com)"
+    };
+    const insertion=(snippets[speechTool.dataset.speechTool]||text).replace(/\\n/g,"\n");
+    if(area.value.length+insertion.length-(end-start)>30000){showToast("笔记已达到30000字限制");return;}
+    area.setRangeText(insertion,start,end,"end");
+    area.focus();
+    area.dispatchEvent(new Event("input",{bubbles:true}));
+    return;
+  }
   const fStage=event.target.closest("[data-followup-stage]");
   if(fStage){
     const id=fStage.dataset.followupId,stage=fStage.dataset.followupStage;
