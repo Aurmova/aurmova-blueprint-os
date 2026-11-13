@@ -699,6 +699,20 @@ function readSpeechRecords(id){
     return Array.isArray(data)?data.filter(x=>x&&typeof x==="object"&&typeof x.text==="string"):[];
   } catch { return []; }
 }
+function safeSpeechRichHtml(html){
+  const template=document.createElement("template");
+  template.innerHTML=String(html||"").slice(0,120000);
+  const allowed=new Set(["P","DIV","BR","STRONG","B","EM","I","H2","H3","UL","OL","LI","BLOCKQUOTE"]);
+  function clean(node){
+    if(node.nodeType===3)return escapeLibraryHtml(node.nodeValue);
+    if(node.nodeType!==1)return "";
+    const tag=node.tagName;
+    if(["SCRIPT","STYLE","IFRAME","OBJECT","SVG","MATH","FORM","IMG"].includes(tag))return "";
+    const children=[...node.childNodes].map(clean).join("");
+    return allowed.has(tag)?"<"+tag.toLowerCase()+">"+children+"</"+tag.toLowerCase()+">":children;
+  }
+  return [...template.content.childNodes].map(clean).join("");
+}
 function renderSavedSpeechText(value){
   const chunks=String(value||"").split(/(?=^▸ )/m);
   return chunks.map(chunk=>{
@@ -731,7 +745,7 @@ function speechRecordsPage(){
     +'<div id="speech-blocks" aria-label="折叠问答与表格编辑区"></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+renderSavedSpeechText(x.text)+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
+    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
@@ -1085,7 +1099,7 @@ document.addEventListener("submit", event => {
     const text=parts.filter(Boolean).join("\\n\\n");
     if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
-    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text}];
+    const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text,richHtml:editor?.innerHTML||""}];
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
     showToast("讲话记录已保存于本机");
     render();
