@@ -707,7 +707,7 @@ function speechRecordsPage(){
   return header("PRIVATE CONSULTATION RECORD","咨询讲话记录｜"+escapeLibraryHtml(customer.name),"记录你实际跟顾客讲过的话；每次保存为独立历史，不覆盖旧稿。")
     +'<section class="card form-card"><p class="notice">目前仅保存在这台设备的浏览器中，尚未跨设备同步或备份。请勿将本功能当成正式安全档案库；避免输入身份证等不必要的敏感资料。</p>'
     +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
-    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><textarea id="speech-text" name="text" rows="3" style="min-height:96px;overflow:hidden;resize:vertical" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
+    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><div role="toolbar" aria-label="文字编辑历史" style="display:flex;gap:8px;align-items:center;margin:8px 0"><button type="button" class="btn btn-light" data-speech-undo disabled>↶ 撤销</button><button type="button" class="btn btn-light" data-speech-redo disabled>↷ 重做</button><small>误删文字可立即撤销</small></div><textarea id="speech-text" name="text" rows="3" style="min-height:96px;overflow:hidden;resize:vertical" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
     +'<div class="actions"><button type="submit" class="btn btn-primary">保存为新的一次讲话记录</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
     +'<section class="card"><h2>以往讲话记录（'+records.length+'）</h2>'
     +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p></article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
@@ -974,9 +974,65 @@ document.addEventListener("input", event => {
   saveFollowupState(id,state);
 });
 
+const speechUndoState=new WeakMap();
+function speechHistory(area){
+  let history=speechUndoState.get(area);
+  if(!history){history={past:[],future:[],last:{value:area.value,start:area.selectionStart,end:area.selectionEnd}};speechUndoState.set(area,history);}
+  return history;
+}
+function speechUpdateUndoButtons(area){
+  const form=area.closest("form");
+  if(!form)return;
+  const history=speechHistory(area);
+  const undo=form.querySelector("[data-speech-undo]");
+  const redo=form.querySelector("[data-speech-redo]");
+  if(undo)undo.disabled=!history.past.length;
+  if(redo)redo.disabled=!history.future.length;
+}
+function speechRestore(area,direction){
+  const history=speechHistory(area);
+  const from=direction==="undo"?history.past:history.future;
+  const to=direction==="undo"?history.future:history.past;
+  if(!from.length)return;
+  const current={value:area.value,start:area.selectionStart,end:area.selectionEnd};
+  to.push(current);
+  const snapshot=from.pop();
+  area.value=snapshot.value;
+  area.focus();
+  area.setSelectionRange(Math.min(snapshot.start,area.value.length),Math.min(snapshot.end,area.value.length));
+  history.last=snapshot;
+  area.dispatchEvent(new Event("input",{bubbles:true}));
+  speechUpdateUndoButtons(area);
+}
+document.addEventListener("beforeinput",event=>{
+  if(event.target.id!=="speech-text"||event.isComposing)return;
+  const area=event.target,history=speechHistory(area);
+  history.last={value:area.value,start:area.selectionStart,end:area.selectionEnd};
+});
+document.addEventListener("click",event=>{
+  const button=event.target.closest("[data-speech-undo],[data-speech-redo]");
+  if(!button)return;
+  const area=button.closest("form")?.querySelector("#speech-text");
+  if(area)speechRestore(area,button.hasAttribute("data-speech-undo")?"undo":"redo");
+});
+document.addEventListener("keydown",event=>{
+  if(event.target.id!=="speech-text"||!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=="z")return;
+  event.preventDefault();
+  speechRestore(event.target,event.shiftKey?"redo":"undo");
+});
 document.addEventListener("input",event=>{
   if(event.target.id!=="speech-text")return;
   const area=event.target;
+  const history=speechHistory(area);
+  if(history.last.value!==area.value){
+    if(!history.past.length||history.past[history.past.length-1].value!==history.last.value){
+      history.past.push(history.last);
+      if(history.past.length>100)history.past.shift();
+    }
+    history.future.length=0;
+    history.last={value:area.value,start:area.selectionStart,end:area.selectionEnd};
+  }
+  speechUpdateUndoButtons(area);
   area.style.height="auto";
   area.style.height=Math.max(96,area.scrollHeight)+"px";
 });
