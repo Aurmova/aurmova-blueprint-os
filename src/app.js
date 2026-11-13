@@ -699,6 +699,16 @@ function readSpeechRecords(id){
     return Array.isArray(data)?data.filter(x=>x&&typeof x==="object"&&typeof x.text==="string"):[];
   } catch { return []; }
 }
+function renderSavedSpeechText(value){
+  const chunks=String(value||"").split(/(?=^▸ )/m);
+  return chunks.map(chunk=>{
+    if(!chunk.startsWith("▸ "))return '<div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85">'+escapeLibraryHtml(chunk)+'</div>';
+    const pos=chunk.indexOf("\n");
+    const title=(pos<0?chunk.slice(2):chunk.slice(2,pos)).trim();
+    const answer=pos<0?"":chunk.slice(pos+1).trim();
+    return '<details style="border:1px solid #e1d8cb;border-radius:8px;margin:12px 0;padding:12px"><summary style="cursor:pointer;font-weight:600">'+escapeLibraryHtml(title)+'</summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;padding:12px 0;line-height:1.8">'+escapeLibraryHtml(answer)+'</div></details>';
+  }).join("");
+}
 function speechRecordsPage(){
   const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");
   const customer=loadCustomers().find(c=>String(c.id)===id);
@@ -721,7 +731,7 @@ function speechRecordsPage(){
     +'<div id="speech-blocks" aria-label="折叠问答与表格编辑区"></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
-    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+escapeLibraryHtml(x.text)+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
+    +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+renderSavedSpeechText(x.text)+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
 }
 function firstConsultStorageKey(id){return "aurmova.firstconsult."+id;}
 function firstConsultProfile(a){
