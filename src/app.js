@@ -707,7 +707,7 @@ function speechRecordsPage(){
   return header("PRIVATE CONSULTATION RECORD","咨询讲话记录｜"+escapeLibraryHtml(customer.name),"记录你实际跟顾客讲过的话；每次保存为独立历史，不覆盖旧稿。")
     +'<section class="card form-card"><p class="notice">目前仅保存在这台设备的浏览器中，尚未跨设备同步或备份。请勿将本功能当成正式安全档案库；避免输入身份证等不必要的敏感资料。</p>'
     +'<form id="speech-record-form" data-customer-id="'+escapeLibraryHtml(id)+'"><div class="field"><label for="speech-topic">本次咨询主题</label><select id="speech-topic" name="topic"><option>人生蓝图</option><option>黄金流年蓝图</option><option>合作蓝图</option><option>关系蓝图</option><option>亲子蓝图</option><option>其他／综合</option></select></div>'
-    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><textarea id="speech-text" name="text" rows="9" maxlength="30000" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
+    +'<div class="field"><label for="speech-text">我实际跟顾客讲过的话 *</label><textarea id="speech-text" name="text" rows="3" style="min-height:96px;overflow:hidden;resize:vertical" required placeholder="例如：今天先解释了坐镇码、主性格与顾客回应；尽量按实际说过的内容记录。"></textarea></div>'
     +'<div class="actions"><button type="submit" class="btn btn-primary">保存为新的一次讲话记录</button><a class="btn btn-light" href="#history">返回顾客档案</a></div></form></section>'
     +'<section class="card"><h2>以往讲话记录（'+records.length+'）</h2>'
     +(records.length?records.map(x=>'<article class="form-section"><small>'+escapeLibraryHtml(x.createdAt||"时间未知")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small><p style="white-space:pre-wrap;overflow-wrap:anywhere">'+escapeLibraryHtml(x.text)+'</p></article>').join(""):'<p>还没有保存过讲话记录。</p>')+'</section>';
@@ -974,13 +974,19 @@ document.addEventListener("input", event => {
   saveFollowupState(id,state);
 });
 
+document.addEventListener("input",event=>{
+  if(event.target.id!=="speech-text")return;
+  const area=event.target;
+  area.style.height="auto";
+  area.style.height=Math.max(96,area.scrollHeight)+"px";
+});
 document.addEventListener("submit", event => {
   if(event.target.id==="speech-record-form"){
     event.preventDefault();
     const id=event.target.dataset.customerId;
     if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
     const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),text=String(fd.get("text")||"").trim();
-    if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
+    if(!text){showToast("请先输入咨询讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
     const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,text}];
     try{localStorage.setItem(key,JSON.stringify(next));}catch{showToast("保存失败：浏览器空间不足或禁止储存");return;}
