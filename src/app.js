@@ -702,7 +702,7 @@ function readSpeechRecords(id){
 function safeSpeechRichHtml(html){
   const template=document.createElement("template");
   template.innerHTML=String(html||"").slice(0,120000);
-  const allowed=new Set(["P","DIV","BR","STRONG","B","EM","I","H2","H3","UL","OL","LI","BLOCKQUOTE"]);
+  const allowed=new Set(["P","DIV","BR","STRONG","B","EM","I","H2","H3","UL","OL","LI","BLOCKQUOTE","DETAILS","SUMMARY","TABLE","TBODY","THEAD","TR","TH","TD"]);
   function clean(node){
     if(node.nodeType===3)return escapeLibraryHtml(node.nodeValue);
     if(node.nodeType!==1)return "";
@@ -741,8 +741,7 @@ function speechRecordsPage(){
     +'<div class="field"><label for="speech-kind">记录性质</label><select id="speech-kind" name="kind"><option>实际咨询记录</option><option>咨询前准备稿</option><option>顾客回应与追问</option><option>下次跟进事项</option></select></div>'
     +'<div style="margin:16px 0 8px"><small>直接编辑文字：选中内容后点粗体或标题，不需要输入代码。折叠问答、表格可在下方直接填写。</small><div role="toolbar" aria-label="咨询笔记编辑工具" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
     +[['h2','标题'],['bold','粗体'],['italic','斜体'],['bullet','• 列表'],['number','1. 编号'],['toggle','▸ 折叠问答'],['table','▦ 表格']].map(([key,label])=>'<button type="button" class="btn btn-light" data-speech-tool="'+key+'" style="padding:8px 11px;font-size:13px">'+label+'</button>').join("")+'</div></div>'
-    +'<div class="field"><label for="speech-editor">咨询正文（直接输入，像普通笔记一样编辑）</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" data-placeholder="在这里输入咨询内容" style="min-height:320px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p> </p></div></div>'
-    +'<div id="speech-blocks" aria-label="折叠问答与表格编辑区"></div>'
+    +'<div class="field"><label for="speech-editor">咨询正文｜所有问题、回答和回应都写在这里</label><div id="speech-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="咨询正文" style="min-height:350px;width:100%;border:1px solid #d9cbb5;border-radius:8px;padding:18px;font-size:17px;line-height:1.85;background:#fff;overflow-wrap:anywhere"><p><br></p></div><small>点击折叠问答或表格，会直接插入到上方同一篇笔记中；保存一次即可。</small></div>'
     +'<div class="actions"><button class="btn btn-primary" type="submit">保存这篇笔记</button></div></form></section>'
     +'<section class="card" style="max-width:900px;margin:22px auto;padding:clamp(20px,5vw,48px)"><h2>以往笔记（'+records.length+'）</h2>'
     +(records.length?records.map(x=>'<details style="border-bottom:1px solid #ddd;padding:18px 0"><summary style="cursor:pointer;line-height:1.6"><b>'+escapeLibraryHtml(x.title||x.topic||"咨询笔记")+'</b><br><small>'+escapeLibraryHtml(dateLabel(x.createdAt))+' · '+escapeLibraryHtml(x.kind||"实际咨询记录")+' · '+escapeLibraryHtml(x.topic||"未分类")+'</small></summary><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;font-size:16px;padding:18px 0">'+(x.richHtml?safeSpeechRichHtml(x.richHtml):renderSavedSpeechText(x.text))+'</div></details>').join(""):'<p style="padding:16px 0">还没有保存过笔记。上方填写并保存后，会按时间显示在这里。</p>')+'</section>';
@@ -899,71 +898,41 @@ window.addEventListener("hashchange", render);
 document.addEventListener("click", event => {
   const speechTool=event.target.closest("[data-speech-tool]");
   if(speechTool){
-    const tool=speechTool.dataset.speechTool;
-    if(tool==="toggle"){
-      const holder=document.querySelector("#speech-blocks");
-      if(!holder)return;
-      const details=document.createElement("details");
-      details.open=true;
-      details.className="speech-toggle-block";
-      details.style.cssText="border:1px solid #d9cbb5;border-radius:10px;padding:14px;margin:12px 0;background:#fff";
-      const summary=document.createElement("summary");
-      summary.textContent="点击展开／收起这道问题";
-      summary.style.cssText="font-weight:600;cursor:pointer;margin-bottom:12px";
-      const label=document.createElement("label");
-      label.textContent="问题／标题";
-      const title=document.createElement("input");
-      title.className="speech-block-title";
-      title.maxLength=300;
-      title.placeholder="例如：当别人意见不同时，你会怎么做？";
-      title.style.cssText="display:block;width:100%;margin:8px 0 14px;padding:10px";
-      const answerLabel=document.createElement("label");
-      answerLabel.textContent="顾客回答／我的回应";
-      const answer=document.createElement("textarea");
-      answer.className="speech-block-answer";
-      answer.rows=5;
-      answer.maxLength=10000;
-      answer.placeholder="在这里记录顾客回答和你的实际回应";
-      answer.style.cssText="display:block;width:100%;margin:8px 0;padding:12px;line-height:1.7";
-      const remove=document.createElement("button");
-      remove.type="button";
-      remove.textContent="移除这个尚未保存的折叠区块";
-      remove.className="btn btn-light";
-      remove.addEventListener("click",()=>details.remove());
-      title.addEventListener("input",()=>{summary.textContent=title.value.trim()||"点击展开／收起这道问题";});
-      details.append(summary,label,title,answerLabel,answer,remove);
-      holder.append(details);
-      title.focus();
-      return;
-    }
-    if(tool==="table"){
-      const holder=document.querySelector("#speech-blocks");
-      if(!holder)return;
-      const block=document.createElement("div");
-      block.className="speech-table-block";
-      block.style.cssText="padding:14px;border:1px solid #d9cbb5;border-radius:10px;margin:12px 0";
-      const heading=document.createElement("strong");heading.textContent="咨询记录表格";
-      const table=document.createElement("table");table.style.width="100%";
-      for(let i=0;i<3;i++){
-        const tr=document.createElement("tr");
-        for(let j=0;j<2;j++){
-          const td=document.createElement("td");td.style.padding="5px";
-          const input=document.createElement("input");input.className="speech-table-cell";input.maxLength=1000;
-          input.placeholder=i===0?(j===0?"项目":"内容"):"填写内容";
-          input.style.cssText="width:100%;padding:8px";
-          td.append(input);tr.append(td);
-        }table.append(tr);
-      }
-      const remove=document.createElement("button");remove.type="button";remove.className="btn btn-light";remove.textContent="移除表格";remove.addEventListener("click",()=>block.remove());
-      block.append(heading,table,remove);holder.append(block);
-      block.querySelector("input").focus();return;
-    }
     const editor=document.querySelector("#speech-editor");
     if(!editor)return;
+    const tool=speechTool.dataset.speechTool;
+    const selection=window.getSelection();
+    let range=selection?.rangeCount?selection.getRangeAt(0):null;
+    if(!range||!editor.contains(range.commonAncestorContainer)){
+      range=document.createRange();range.selectNodeContents(editor);range.collapse(false);
+    }
+    const insertBlock=(block)=>{
+      range.deleteContents();
+      range.insertNode(block);
+      const paragraph=document.createElement("p");paragraph.append(document.createElement("br"));
+      block.after(paragraph);
+      const next=document.createRange();next.selectNodeContents(paragraph);next.collapse(true);
+      selection.removeAllRanges();selection.addRange(next);
+    };
+    if(tool==="toggle"){
+      const details=document.createElement("details");details.open=true;
+      details.style.cssText="border:1px solid #d9cbb5;border-radius:8px;padding:12px;margin:10px 0";
+      const summary=document.createElement("summary");summary.contentEditable="true";summary.textContent="问题：点击这里输入问题";
+      const answer=document.createElement("div");answer.contentEditable="true";answer.style.padding="12px 0";
+      answer.textContent="顾客回答：\n我的回应：";
+      details.append(summary,answer);insertBlock(details);
+      editor.focus();return;
+    }
+    if(tool==="table"){
+      const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;margin:12px 0";
+      for(let i=0;i<3;i++){const tr=document.createElement("tr");for(let j=0;j<2;j++){const td=document.createElement("td");td.style.cssText="border:1px solid #d9cbb5;padding:10px";td.textContent=i===0?(j===0?"项目":"内容"):"点击填写";tr.append(td);}table.append(tr);}
+      insertBlock(table);editor.focus();return;
+    }
     editor.focus();
+    selection.removeAllRanges();selection.addRange(range);
     const commands={h2:["formatBlock","h2"],bold:["bold",null],italic:["italic",null],bullet:["insertUnorderedList",null],number:["insertOrderedList",null]};
     const command=commands[tool];
-    if(command){document.execCommand(command[0],false,command[1]);}
+    if(command)document.execCommand(command[0],false,command[1]);
     return;
   }
   const fStage=event.target.closest("[data-followup-stage]");
@@ -1085,18 +1054,7 @@ document.addEventListener("submit", event => {
     if(!loadCustomers().some(c=>String(c.id)===id)){showToast("找不到顾客档案");return;}
     const fd=new FormData(event.target),topic=String(fd.get("topic")||"其他／综合"),kind=String(fd.get("kind")||"实际咨询记录"),title=String(fd.get("title")||"").trim().slice(0,120);
     const editor=event.target.querySelector("#speech-editor");
-    const bodyText=editor?.innerText?.trim()||"";
-    const parts=[bodyText];
-    event.target.querySelectorAll(".speech-toggle-block").forEach(block=>{
-      const q=block.querySelector(".speech-block-title")?.value.trim()||"未命名问题";
-      const answer=block.querySelector(".speech-block-answer")?.value.trim()||"";
-      parts.push("▸ "+q+"\\n"+answer);
-    });
-    event.target.querySelectorAll(".speech-table-block").forEach(block=>{
-      const cells=[...block.querySelectorAll(".speech-table-cell")].map(input=>input.value.trim());
-      parts.push("咨询记录表格\\n"+[0,2,4].map(i=>(cells[i]||"—")+" ｜ "+(cells[i+1]||"—")).join("\\n"));
-    });
-    const text=parts.filter(Boolean).join("\\n\\n");
+    const text=(editor?.innerText||editor?.textContent||"").trim();
     if(!text||text.length>30000){showToast("请输入1至30000字的实际讲话记录");return;}
     const key=speechRecordsKey(id),existing=readSpeechRecords(id);
     const next=[...existing,{id:"note-"+Date.now()+"-"+Math.random().toString(36).slice(2,10),createdAt:new Date().toISOString(),topic,kind,title,text,richHtml:editor?.innerHTML||""}];
