@@ -30,6 +30,7 @@ const routes = [
   ["new","建立顾客","add"],
   ["history","顾客档案","history"],
   ["workspace","咨询工作台","work"],
+  ["local-consult","现场咨询助手","work"],
   ["firstconsult","首次咨询模式","work"],
   ["library","完整资料库","work"],
   ["whiteboard","咨询白板","work"],
@@ -982,7 +983,10 @@ function localConsultBuild(c,q,reply){
 function localConsultPage(){
  const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");
  const c=loadCustomers().find(x=>String(x.id)===String(id));
- if(!c)return '<section class="card empty"><h3>找不到顾客</h3><a class="btn btn-light" href="#history">返回档案</a></section>';
+ if(!c){const customers=loadCustomers();return header("AURMOVA · PRIVATE CONSULTATION","现场咨询助手","先选择本机已保存的顾客档案")
++'<section class="card" style="max-width:900px;margin:0 auto;padding:24px"><div class="notice">没有找到链接指定的顾客。可能是这台平板尚未保存该档案，或链接中的编号来自另一台设备。原有顾客记录没有被修改或删除。</div>'
++(customers.length?'<h3>选择本机顾客</h3>'+customers.map(x=>'<p><a class="btn btn-light" href="#local-consult?id='+encodeURIComponent(x.id)+'">'+localConsultEscape(x.name)+' · '+localConsultEscape(x.birthday)+'</a></p>').join(""):'<p>这台浏览器暂时没有本地顾客档案。请返回顾客档案确认是否使用了同一台设备、同一个浏览器。</p>')
++'<p><a class="btn btn-light" href="#history">查看顾客档案</a></p></section>';}
  const entries=readLocalConsult(id);
  const latest=entries[entries.length-1];
  return header("AURMOVA · PRIVATE CONSULTATION","现场咨询助手","平板专用 · 零额外 API 费用 · 资料只保存在本机")
