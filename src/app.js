@@ -913,7 +913,7 @@ function workspace(){
    <div class="client-avatar">${c.name.slice(0,1).toUpperCase()}</div>
    <div class="client-main"><small>本次咨询顾客</small><h2>${c.name}</h2><p>${c.gender} · ${c.birthday} · <b>生日数字 ${birthdayDay.day||"—"}号${birthdayDay.profile?" · "+birthdayDay.profile.title:""}</b> · ${age}岁 · ${simpleZodiac(c.birthday)} · ${c.occupation||"职业未填"} · ${c.whatsapp||"号码未填"} · ${(c.consultationTypes?.length?c.consultationTypes:[c.consultationType]).filter(Boolean).join(" / ")}</p></div>
    <div class="client-number"><small>主性格</small><strong>${a.mainPersonality}</strong><span>${profile?.title.split("｜")[1]||""}</span></div>
-   <div class="quick-actions"><a class="btn btn-light" href="#edit-customer?id=${encodeURIComponent(c.id)}">✎ 编辑顾客资料</a><a class="btn btn-primary" href="#speech-records?id=${encodeURIComponent(c.id)}">记录／查看讲过的话</a><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
+   <div class="quick-actions"><a class="btn btn-primary" href="#local-consult?id=${encodeURIComponent(c.id)}">现场咨询助手</a><a class="btn btn-light" href="#edit-customer?id=${encodeURIComponent(c.id)}">✎ 编辑顾客资料</a><a class="btn btn-primary" href="#speech-records?id=${encodeURIComponent(c.id)}">记录／查看讲过的话</a><a class="btn btn-primary" href="#firstconsult?id=${c.id}">开始首次咨询</a><button type="button" class="btn btn-light" data-v26-jump>出路导航器</button><a class="btn btn-light" href="#new">＋ 新增顾客</a><a class="btn btn-light" href="#history">历史档案</a></div>
  </section>
  <section id="v26-opportunity-navigator" class="card opportunity-navigator"><div class="card-heading"><div><small>AURMOVA OPPORTUNITY NAVIGATOR</small><h2>出路导航器｜问题 × 行业 × 蓝图</h2></div><span>现实优先 · 数字辅助</span></div><p class="op-intro">这里会根据顾客的职业／身份与她真正想问的问题，生成关键词、追问、可选出路、7天／30天验证动作。正在载入顾客专属分析…</p></section>
  <section class="module-tabs">${CONSULTATION_TYPES.map(x=>`<button class="module-tab ${x===c.consultationType?'active':''}">${x.replace("解析","")}</button>`).join("")}</section>
@@ -940,6 +940,69 @@ function workspace(){
  <div class="internal-footer">完整计算、父母基因、坐镇码、位置码、联合码与咨询话术仅供 Josephine 后台使用，不自动出现在顾客报告。</div>`;
 }
 
+
+/* Tablet-friendly, zero-API consultation companion.
+   Does not send customer information to any server and never overwrites legacy notes. */
+function localConsultKey(id){return "aurmova.local-consult.v1."+encodeURIComponent(id);}
+function readLocalConsult(id){try{const x=JSON.parse(localStorage.getItem(localConsultKey(id))||"[]");return Array.isArray(x)?x:[]}catch{return[]}}
+function localConsultEscape(x){return escapeLibraryHtml(String(x??""))}
+function localConsultTopic(q){
+ if(/开店|创业|生意|经营|做老板|租店/.test(q))return "business";
+ if(/工作|事业|辞职|转行/.test(q))return "career";
+ if(/感情|伴侣|结婚|老公|老婆|关系/.test(q))return "relationship";
+ if(/孩子|小孩|亲子|父母|家庭/.test(q))return "family";
+ return "general";
+}
+function localConsultBuild(c,q,reply){
+ const a=calculateBlueprint(c.birthday);
+ const topic=localConsultTopic(q+" "+reply);
+ const title={business:"创业与经营",career:"事业与工作",relationship:"关系与沟通",family:"家庭与责任",general:"当前困惑"}[topic];
+ const actual=reply.trim();
+ const prompts={
+  business:["你现在最担心的是资金、客源，还是经营能力？","先把家庭必要开销与创业资金分开，计算最坏情况下可以承担多少损失。","如果还没有验证客源，先考虑低成本、合法的小规模测试，再决定是否承担店租和固定开销。"],
+  career:["你目前最想改变的是收入、工作内容，还是工作环境？","把现状与想要的改变分别写下来，确认哪些条件可以谈、哪些必须改变。","先了解替代工作的要求与收入风险，再决定是否转换。"],
+  relationship:["最近哪一件具体的事情，让你觉得最难沟通？","先把事实、自己的感受和希望对方配合的事情分开说。","不要只根据数字判断对方的意图；听完双方经历再讨论界限。"],
+  family:["你目前最需要家人在哪一件事上支持你？","先厘清谁承担什么责任，以及每个人实际能够付出多少。","重要的家庭决定需要共同讨论，不能只让一个人默默承担。"],
+  general:["这件事情现在最让你困扰的部分是什么？","先区分已经发生的事实与自己担心的可能性。","从一个可执行的小步骤开始，再根据结果调整。"]
+ }[topic];
+ const familyMoney=/亏钱|家庭|家人|生活费|储蓄|孩子/.test(actual);
+ const intro=actual?"你刚刚告诉我：「"+actual+"」。我先从你亲口说的这件事来谈，不急着替你下结论。":"你提出的问题是：「"+q+"」。我想先听听你最担心的实际情况。";
+ const numbers="你的坐镇码与主性格由当前档案重新计算；主性格是"+a.mainPersonality+"号。数字只能作为讨论性格倾向的参考，不能预测这件事的结果。";
+ const concern=familyMoney&&topic==="business"?"你提到家庭责任和亏损风险，所以先保护家里的基本生活，比急着决定租店更重要。":"我们先确认真正的压力来自哪里，再决定哪些部分需要准备、沟通或尝试。";
+ const parts=[
+  {heading:"01｜先回应顾客",body:intro},
+  {heading:"02｜数字与现实分开看",body:numbers+" 你先前分享的真实经历，比任何数字推测更值得优先考虑。"},
+  {heading:"03｜正面优势与需要留意的地方",body:"愿意认真考虑风险，可以帮助你避免冲动决定；但如果只在脑中反复担心、没有验证事实，也可能迟迟无法行动。这只是可能的模式，需要你自己确认是否符合。"},
+  {heading:"04｜现实影响",body:concern},
+  {heading:"05｜具体改善建议",body:prompts[1]+" "+prompts[2]},
+  {heading:"06｜下一句追问",body:familyMoney&&topic==="business"?"你准备投入开店的钱，是另外存好的创业资金，还是需要动用家里的生活储蓄？":prompts[0]}
+ ];
+ return {title,parts,text:parts.map(x=>x.heading+"\n"+x.body).join("\n\n")};
+}
+function localConsultPage(){
+ const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");
+ const c=loadCustomers().find(x=>String(x.id)===String(id));
+ if(!c)return '<section class="card empty"><h3>找不到顾客</h3><a class="btn btn-light" href="#history">返回档案</a></section>';
+ const entries=readLocalConsult(id);
+ const latest=entries[entries.length-1];
+ return header("AURMOVA · PRIVATE CONSULTATION","现场咨询助手","平板专用 · 零额外 API 费用 · 资料只保存在本机")
+ +'<section class="card" style="max-width:1000px;margin:0 auto;padding:clamp(18px,4vw,36px)">'
+ +'<div class="notice"><b>本地讲稿模式（非生成式 AI）</b>：可在本网页直接显示结构化回应，但不能理解所有自由问题，也不能代替完整教材解读。请核对数字与顾客真实经历。不会上传顾客资料。</div>'
+ +'<p><a class="btn btn-light" href="#workspace?id='+encodeURIComponent(id)+'">← 返回顾客工作台</a></p>'
+ +'<h2>'+localConsultEscape(c.name)+'</h2><p>生日 '+localConsultEscape(c.birthday)+' · 主性格 '+calculateBlueprint(c.birthday).mainPersonality+'</p>'
+ +'<form id="local-consult-form" data-customer-id="'+localConsultEscape(id)+'">'
+ +'<div class="field"><label for="local-question">顾客现在问什么？</label><textarea id="local-question" name="question" rows="3" required placeholder="例如：我想自己开店，但担心失败"></textarea></div>'
+ +'<div class="field"><label for="local-reply">顾客刚才的真实回答（可留空）</label><textarea id="local-reply" name="reply" rows="3" placeholder="例如：我最怕亏钱，因为还有家庭要照顾"></textarea></div>'
+ +'<div class="actions"><button class="btn btn-primary" type="submit">在本页生成咨询回应</button><button class="btn btn-light" type="button" data-local-consult-export="'+localConsultEscape(id)+'">备份咨询记录</button></div></form>'
+ +'<div id="local-consult-output" aria-live="polite">'+(latest?localConsultRender(latest):'<p class="notice">输入顾客的问题后，讲稿会直接出现在这里。</p>')+'</div>'
+ +'<p style="color:var(--muted);margin-top:18px">本机已保存 '+entries.length+' 次回应；不修改原有讲话记录及顾客档案。</p></section>';
+}
+function localConsultRender(entry){
+ return '<article style="margin-top:24px;line-height:1.9"><h2>'+localConsultEscape(entry.title)+'</h2>'
+ +entry.parts.map(x=>'<section style="margin:22px 0"><h3>'+localConsultEscape(x.heading)+'</h3><p style="white-space:pre-wrap">'+localConsultEscape(x.body)+'</p></section>').join("")
+ +'<div class="actions"><button class="btn btn-light" type="button" data-local-consult-copy>复制整篇讲稿</button></div></article>';
+}
+
 function showToast(message) {
   const toast = document.querySelector("#toast");
   if (!toast) return;
@@ -958,6 +1021,7 @@ function render() {
   else if (route === "history" || route === "delete") app.innerHTML = history();
   else if (route === "speech-records") app.innerHTML = speechRecordsPage();
   else if (route === "workspace") app.innerHTML = workspace();
+  else if (route === "local-consult") app.innerHTML = localConsultPage();
   else if (route === "edit-customer") { app.innerHTML = editCustomerPage(); initEditCustomer(); }
   else if (route === "firstconsult") { app.innerHTML = firstConsultPage(); setTimeout(initFirstConsult,0); }
   else if (route === "library") { app.innerHTML = libraryPage(); setTimeout(initLibrarySearch,0); }
@@ -970,6 +1034,8 @@ function render() {
 window.addEventListener("hashchange", render);
 
 document.addEventListener("click", event => {
+  if(event.target.closest("[data-local-consult-copy]")){const id=new URLSearchParams(location.hash.split("?")[1]||"").get("id");const e=readLocalConsult(id).at(-1);if(e){navigator.clipboard?.writeText(e.text).then(()=>showToast("讲稿已复制")).catch(()=>showToast("复制失败"));}return;}
+  const exportButton=event.target.closest("[data-local-consult-export]");if(exportButton){const id=exportButton.dataset.localConsultExport;const blob=new Blob([JSON.stringify(readLocalConsult(id),null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="AURMOVA-consult-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
   const presentationButton=event.target.closest("[data-speech-presentation-toggle]");
   if(presentationButton){
     const wrapper=presentationButton.parentElement;
@@ -1184,6 +1250,7 @@ document.addEventListener("click",event=>{
   form.scrollIntoView({behavior:"smooth",block:"start"});
 });
 document.addEventListener("submit", event => {
+  if(event.target.id==="local-consult-form"){event.preventDefault();const id=event.target.dataset.customerId;const c=loadCustomers().find(x=>String(x.id)===id);if(!c){showToast("顾客档案不存在");return;}const fd=new FormData(event.target);const question=String(fd.get("question")||"").trim().slice(0,2000),reply=String(fd.get("reply")||"").trim().slice(0,2000);if(!question){showToast("请输入顾客问题");return;}const result=localConsultBuild(c,question,reply);const entry={...result,question,reply,createdAt:new Date().toISOString()};const previous=readLocalConsult(id);try{localStorage.setItem(localConsultKey(id),JSON.stringify([...previous,entry]));}catch{showToast("储存失败，请先备份");return;}document.querySelector("#local-consult-output").innerHTML=localConsultRender(entry);showToast("咨询讲稿已生成并保存在本机");return;}
   if(event.target.id==="speech-record-form"){
     event.preventDefault();
     const id=event.target.dataset.customerId;
