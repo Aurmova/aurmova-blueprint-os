@@ -46,10 +46,24 @@ export function buildCustomerReport({type,customer={},other={},year,includeNumbe
  }else if(type==="year"){
  const target=Number(year)||activeFlowYear();
  if(!Number.isInteger(target)||target<1900||target>2200)throw new Error("请输入1900–2200之间的流年年度。");
- const snap=calculateGoldenYearSnapshot(customer.birthday,target),n=snap.personal.number,v=PUBLIC_YEAR[n],range=flowYearRange(target);
- yearNumber=n;
- subtitle=target+" 流年｜"+range.start+" 至 "+range.end+(includeNumbers?"｜个人流年 "+n+"号":"");
- sections=[{title:"年度关注方向 · "+v[0],body:v[1]},{title:"需要留意",body:v[2]},{title:"本周行动",body:v[3]},{title:"使用方式",body:"年度主题用于安排关注重点，不代表某一年必然发生某件事；请结合现实条件、已有计划与实际进展调整。"}];
+ // AURMOVA year report is always a three-year report: previous, current and next.
+ // Recalculate each year separately; never reuse the current year's personal number.
+ if(target<1901||target>2199)throw new Error("三年报告的中心年份请选择1901–2199。");
+ subtitle=(target-1)+" · "+target+" · "+(target+1)+"｜去年回顾 · 今年重点 · 明年规划";
+ const yearLabels=["去年｜回顾与验证","今年｜现状与调整","明年｜规划与准备"];
+ for(let i=0;i<3;i++){
+  const y=target+i-1;
+  const snap=calculateGoldenYearSnapshot(customer.birthday,y),n=snap.personal.number,v=PUBLIC_YEAR[n],range=flowYearRange(y);
+  const environment=String(y).split("").reduce((sum,d)=>sum+Number(d),0);
+  const reduce=n=>{while(n>9)n=String(n).split("").reduce((sum,d)=>sum+Number(d),0);return n;};
+  const prefix=yearLabels[i]+" · "+y;
+  sections.push({title:prefix,body:"流年期间："+range.start+" 至 "+range.end+"。"+(includeNumbers?"个人流年："+n+"号；大环境流年："+reduce(environment)+"号。":"")});
+  const base=[{title:"年度关注方向 · "+v[0],body:v[1]},{title:"需要留意",body:v[2]},{title:"本周行动",body:v[3]},{title:"使用方式",body:"年度主题用于安排关注重点，不代表某一年必然发生某件事；请结合现实条件、已有计划与实际进展调整。"}];
+  const details=detail==="full"?detailedReportSections({type:"year",a,b,yearNumber:n,base,customerName:String(customer.name),otherName:"",birthday:""}):base;
+  for(const section of details)sections.push({title:y+"｜"+section.title,body:section.body});
+  sections.push({title:y+"｜咨询核对",body:i===0?"请顾客回顾实际发生的事情，核对哪些符合、哪些不符合；不要事后硬套。":i===1?"请结合顾客当前的工作、财务、关系与家庭情况，确定一项可执行的调整。":"这是提前规划的讨论方向，不是对事业、财富、健康或关系的结果预测。"});
+ }
+ sections.push({title:"三年整合与下一步",body:"回顾去年真实经历，整理今年最需要处理的课题，再为明年设一个可验证的小目标。所有解读以顾客的实际情况和选择为准。"});
  }else{
  const contexts={relationship:["理解彼此 · 沟通与相处","表达需要与相处节奏","各说一个希望对方具体做到的行为，并确认双方愿意实践的范围。"],
  family:["理解孩子 · 亲子沟通与支持","家长怎么说，孩子怎样接得住","选一个年龄合适的小任务，让孩子先试；家长给清楚的一步指引，并具体回应努力。"],
@@ -62,7 +76,7 @@ export function buildCustomerReport({type,customer={},other={},year,includeNumbe
  {title:ctx[1],body:a===b?"双方观察方向相近，可以验证共同需要是否被看见；相近也可能让两个人重复承担同一角色。":"双方观察方向不同，可以先找互补，也确认哪一个说话或行动差异容易产生误会。"},
  {title:"共同练习",body:ctx[2]}];
  }
- if(detail==="full")sections=detailedReportSections({type,a,b,yearNumber,base:sections,customerName:String(customer.name),otherName:String(other.name||""),birthday:other.birthday});
+ if(detail==="full"&&type!=="year")sections=detailedReportSections({type,a,b,yearNumber,base:sections,customerName:String(customer.name),otherName:String(other.name||""),birthday:other.birthday});
  if(summary.trim())sections.splice(sections.length-1,0,{title:"本次咨询总结",body:String(summary).trim()});
  if(action.trim())sections=sections.filter(s=>!["本周行动","共同练习"].includes(s.title)).concat({title:"约定的行动",body:String(action).trim()});
  // Build only explicitly allowed output fields. Never spread the raw customer or internal blueprint.
@@ -142,7 +156,7 @@ export function mountCustomerReportTool(panel,{customer,defaultType="life",defau
  const key="aurmova.customerReportOptions."+customer.id;
  let saved={};try{saved=JSON.parse(localStorage.getItem(key)||"{}")||{};}catch{}
  const type=Object.hasOwn(CUSTOMER_REPORT_TYPES,defaultType)?defaultType:"life";
- root.innerHTML='<summary>生成顾客报告图｜切换项目、预览、下载</summary><div class="report-controls"><p>先保存最新顾客资料。报告项目由你选择，预览并确认内容后才能下载。</p><label>要给顾客哪一种报告<select data-report-type>'+Object.entries(CUSTOMER_REPORT_TYPES).map(([id,title])=>'<option value="'+id+'" '+(id===type?"selected":"")+'>'+title+'</option>').join("")+'</select></label><label>报告内容<select data-report-detail><option value="full" selected>完整版｜场景解读与行动计划</option><option value="brief">重点版｜简短摘要</option></select></label><label data-report-year-wrap>流年年度<input data-report-year type="number" min="1900" max="2200" value="'+e(defaultYear)+'"></label><label data-report-pair-wrap>报告中的双方<select data-report-pair></select></label><label><input type="checkbox" data-report-numbers checked>人生／流年报告显示主性格或个人流年号码</label><label><input type="checkbox" data-report-birthday>报告显示生日</label><label>本次咨询总结（可自行修改）<textarea rows="3" maxlength="1200" data-report-summary placeholder="只写你决定给顾客看的重点"></textarea></label><label>约定的行动（可自行修改）<textarea rows="3" maxlength="1200" data-report-action placeholder="例如：本周先练习一次清楚表达需要"></textarea></label><button type="button" class="btn btn-primary" data-report-preview>生成报告预览</button><p data-report-status role="status" aria-live="polite"></p><div data-report-images></div><label><input type="checkbox" data-report-confirm disabled>我已检查以上内容，确认可以交给顾客</label><div data-report-downloads></div><p class="panel-note">高清PNG：每页2480 × 3508像素，适合A4打印。手机也可长按预览图保存。三角形、联合码、父母基因、坐镇码、姓名算法和咨询提词不会自动放入顾客报告。</p></div>';
+ root.innerHTML='<summary>生成顾客报告图｜切换项目、预览、下载</summary><div class="report-controls"><p>先保存最新顾客资料。报告项目由你选择，预览并确认内容后才能下载。</p><label>要给顾客哪一种报告<select data-report-type>'+Object.entries(CUSTOMER_REPORT_TYPES).map(([id,title])=>'<option value="'+id+'" '+(id===type?"selected":"")+'>'+title+'</option>').join("")+'</select></label><label>报告内容<select data-report-detail><option value="full" selected>完整版｜场景解读与行动计划</option><option value="brief">重点版｜简短摘要</option></select></label><label data-report-year-wrap>三年报告中心年份（去年／今年／明年）<input data-report-year type="number" min="1900" max="2200" value="'+e(defaultYear)+'"></label><label data-report-pair-wrap>报告中的双方<select data-report-pair></select></label><label><input type="checkbox" data-report-numbers checked>人生／流年报告显示主性格或个人流年号码</label><label><input type="checkbox" data-report-birthday>报告显示生日</label><label>本次咨询总结（可自行修改）<textarea rows="3" maxlength="1200" data-report-summary placeholder="只写你决定给顾客看的重点"></textarea></label><label>约定的行动（可自行修改）<textarea rows="3" maxlength="1200" data-report-action placeholder="例如：本周先练习一次清楚表达需要"></textarea></label><button type="button" class="btn btn-primary" data-report-preview>生成报告预览</button><p data-report-status role="status" aria-live="polite"></p><div data-report-images></div><label><input type="checkbox" data-report-confirm disabled>我已检查以上内容，确认可以交给顾客</label><div data-report-downloads></div><p class="panel-note">高清PNG：每页2480 × 3508像素，适合A4打印。手机也可长按预览图保存。三角形、联合码、父母基因、坐镇码、姓名算法和咨询提词不会自动放入顾客报告。</p></div>';
  const style=panel.ownerDocument.createElement("style");
  style.textContent=".customer-report-tool{border:1px solid #c9b38c;border-radius:12px;margin:0 0 22px;padding:16px;background:#fffdf9}.customer-report-tool summary{font-weight:650;cursor:pointer;color:#80633b}.report-controls>label{display:block;margin:15px 0}.report-controls select,.report-controls input[type=number],.report-controls textarea{display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:7px;border:1px solid #d6c39b;border-radius:8px;background:white;font:inherit}.report-controls input[type=checkbox]{margin-right:8px}.report-controls img{display:block;max-width:100%;height:auto;border:1px solid #e6ddcf;margin:12px 0}.report-controls [data-report-downloads] a{display:inline-block;margin:6px;padding:12px 18px;background:#a68750;color:white;border-radius:8px;text-decoration:none}";
  root.prepend(style);panel.prepend(root);
