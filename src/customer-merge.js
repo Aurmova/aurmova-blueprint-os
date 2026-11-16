@@ -1,7 +1,33 @@
 /** Offline-only dry-run reconciliation. Never writes a database or browser storage. */
+/**
+ * Canonical comparison for offline conflict detection.
+ * Object key order is irrelevant, but array order and value types are preserved.
+ * Reject unsupported/cyclic payloads instead of silently treating them as equal.
+ */
+function canonical(value, stack = new Set()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return JSON.stringify(value);
+  if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
+  if (typeof value !== 'object') throw new TypeError('Unsupported customer field; refusing merge');
+  if (stack.has(value)) throw new TypeError('Cyclic customer record; refusing merge');
+  if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)
+    throw new TypeError('Unsupported customer object; refusing merge');
+  stack.add(value);
+  let result;
+  if (Array.isArray(value)) {
+    if (Object.keys(value).length !== value.length) throw new TypeError('Sparse or extended array; refusing merge');
+    result = '[' + value.map(v => canonical(v, stack)).join(',') + ']';
+  } else {
+    result = '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical(value[key], stack)).join(',') + '}';
+  }
+  stack.delete(value);
+  return result;
+}
+
 export function planCustomerMerge(existing, incoming) {
   if (!Array.isArray(existing) || !Array.isArray(incoming)) throw new TypeError('Expected customer arrays');
   const byId = new Map();
+  // Validate all records before constructing a plan; this function never applies changes.
+  for (const record of [...existing, ...incoming]) canonical(record);
   for (const customer of existing) {
     if (!customer || typeof customer.id !== 'string' || !customer.id.trim()) throw new Error('Existing record missing ID; refusing merge');
     if (byId.has(customer.id)) throw new Error('Duplicate existing ID; refusing merge');
@@ -15,7 +41,7 @@ export function planCustomerMerge(existing, incoming) {
     seen.add(customer.id);
     if (!byId.has(customer.id)) { additions.push(customer); continue; }
     const original = byId.get(customer.id);
-    if (JSON.stringify(original) === JSON.stringify(customer)) duplicates.push(customer.id);
+    if (canonical(original) === canonical(customer)) duplicates.push(customer.id);
     else conflicts.push({id:customer.id, existing:original, incoming:customer});
   }
   return { additions, duplicates, conflicts, canAutoApply: conflicts.length === 0 };
