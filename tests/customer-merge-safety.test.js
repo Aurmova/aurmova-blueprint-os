@@ -67,7 +67,7 @@ test('ambiguous customer IDs fail closed rather than creating shadow records', (
   const valid = [{id:'fake-201', name:'虚构甲'}];
   assert.throws(() => planCustomerMerge(valid, [{id:' fake-201', name:'虚构乙'}]), /missing ID/);
   assert.throws(() => planCustomerMerge(valid, [{id:'fake-201 ', name:'虚构乙'}]), /missing ID/);
-  assert.throws(() => planCustomerMerge(valid, [{id:'fake-201\\n', name:'虚构乙'}]), /missing ID/);
-  assert.throws(() => planCustomerMerge([{id:'fake-201\\u0000'}], []), /missing ID/);
+  assert.throws(() => planCustomerMerge(valid, [{id:'fake-201\n', name:'虚构乙'}]), /missing ID/);
+  assert.throws(() => planCustomerMerge([{id:'fake-201\u0000'}], []), /missing ID/);
   assert.equal(valid[0].name, '虚构甲');
 });
