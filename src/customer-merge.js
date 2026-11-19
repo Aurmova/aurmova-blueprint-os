@@ -11,6 +11,12 @@ function canonical(value, stack = new Set()) {
   if (stack.has(value)) throw new TypeError('Cyclic customer record; refusing merge');
   if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)
     throw new TypeError('Unsupported customer object; refusing merge');
+  // Never invoke accessors during a supposedly read-only dry run. Getters can mutate records or trigger side effects.
+  if (Reflect.ownKeys(value).some(key => typeof key === 'symbol'))
+    throw new TypeError('Unsupported customer field; refusing merge');
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  if (Reflect.ownKeys(descriptors).some(key => !Object.hasOwn(descriptors[key], 'value')))
+    throw new TypeError('Unsupported customer field; refusing merge');
   stack.add(value);
   let result;
   if (Array.isArray(value)) {
