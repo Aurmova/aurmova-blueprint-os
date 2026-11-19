@@ -71,3 +71,17 @@ test('ambiguous customer IDs fail closed rather than creating shadow records', (
   assert.throws(() => planCustomerMerge([{id:'fake-201\u0000'}], []), /missing ID/);
   assert.equal(valid[0].name, '虚构甲');
 });
+
+test('accessor and symbol fields are rejected without running getters', () => {
+  let called = 0;
+  const accessor = {id:'fake-accessor'};
+  Object.defineProperty(accessor, 'notes', {enumerable:true, get(){called++; throw new Error('getter executed');}});
+  assert.throws(() => planCustomerMerge([accessor], []), /Unsupported customer field/);
+  assert.equal(called, 0);
+  const symbol = Symbol('private');
+  assert.throws(() => planCustomerMerge([{id:'fake-symbol', [symbol]:'hidden'}], []), /Unsupported customer field/);
+  const nested = {id:'fake-nested', meta:{}};
+  Object.defineProperty(nested.meta, 'status', {enumerable:true, get(){called++; return 'changed';}});
+  assert.throws(() => planCustomerMerge([nested], []), /Unsupported customer field/);
+  assert.equal(called, 0);
+});
