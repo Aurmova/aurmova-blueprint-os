@@ -85,3 +85,17 @@ test('accessor and symbol fields are rejected without running getters', () => {
   assert.throws(() => planCustomerMerge([nested], []), /Unsupported customer field/);
   assert.equal(called, 0);
 });
+
+test('hidden fields and extended arrays fail closed rather than being silently ignored', () => {
+  const hidden = {id:'fake-hidden', name:'虚构甲'};
+  Object.defineProperty(hidden, 'privateNote', {value:'different', enumerable:false});
+  assert.throws(() => planCustomerMerge([hidden], [{id:'fake-hidden',name:'虚构甲'}]), /Unsupported customer field/);
+
+  const extra = [{text:'原始记录'}];
+  Object.defineProperty(extra, 'privateNote', {value:'hidden', enumerable:false});
+  assert.throws(() => planCustomerMerge([{id:'fake-array', notes:extra}], []), /Sparse or extended array/);
+
+  const sparse = new Array(2);
+  sparse[0] = 'record';
+  assert.throws(() => planCustomerMerge([{id:'fake-sparse', notes:sparse}], []), /Sparse or extended array/);
+});
