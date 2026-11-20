@@ -17,6 +17,17 @@ function canonical(value, stack = new Set()) {
   const descriptors = Object.getOwnPropertyDescriptors(value);
   if (Reflect.ownKeys(descriptors).some(key => !Object.hasOwn(descriptors[key], 'value')))
     throw new TypeError('Unsupported customer field; refusing merge');
+  // Non-enumerable data properties and array extras must not disappear from comparison.
+  // Reject them instead of potentially treating two different customer records as identical.
+  const keys = Reflect.ownKeys(value);
+  if (Array.isArray(value)) {
+    if (keys.some(key => key !== 'length' && (!/^(0|[1-9]\\d*)$/.test(key) || Number(key) >= value.length)))
+      throw new TypeError('Sparse or extended array; refusing merge');
+    if (Object.keys(value).length !== value.length || keys.length !== value.length + 1)
+      throw new TypeError('Sparse or extended array; refusing merge');
+  } else if (keys.some(key => !descriptors[key].enumerable)) {
+    throw new TypeError('Unsupported customer field; refusing merge');
+  }
   stack.add(value);
   let result;
   if (Array.isArray(value)) {
