@@ -44,8 +44,11 @@ export function planCustomerMerge(existing, incoming) {
   if (!Array.isArray(existing) || !Array.isArray(incoming)) throw new TypeError('Expected customer arrays');
   const byId = new Map();
   const validId = id => typeof id === 'string' && id.length > 0 && id === id.trim() && !/[\u0000-\u001f\u007f]/.test(id);
-  // Validate all records before constructing a plan; this function never applies changes.
-  for (const record of [...existing, ...incoming]) canonical(record);
+  // Validate container arrays BEFORE iterating them. Spreading an untrusted array first
+  // can invoke accessor properties (or silently skip custom hidden fields).
+  canonical(existing);
+  canonical(incoming);
+  // The dry run only returns a plan; it never applies additions or changes.
   for (const customer of existing) {
     if (!customer || !validId(customer.id)) throw new Error('Existing record missing ID; refusing merge');
     if (byId.has(customer.id)) throw new Error('Duplicate existing ID; refusing merge');
