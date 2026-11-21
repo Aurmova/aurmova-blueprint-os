@@ -99,3 +99,25 @@ test('hidden fields and extended arrays fail closed rather than being silently i
   sparse[0] = 'record';
   assert.throws(() => planCustomerMerge([{id:'fake-sparse', notes:sparse}], []), /Sparse or extended array/);
 });
+
+test('top-level merge arrays reject getters before they can run', () => {
+  let called = 0;
+  const incoming = [{id:'fake-new'}];
+  Object.defineProperty(incoming, '0', {configurable:true, enumerable:true, get(){called++; throw new Error('unsafe getter');}});
+  assert.throws(() => planCustomerMerge([], incoming), /Unsupported customer field/);
+  assert.equal(called, 0);
+
+  const existing = [{id:'fake-old'}];
+  Object.defineProperty(existing, '0', {configurable:true, enumerable:true, get(){called++; throw new Error('unsafe getter');}});
+  assert.throws(() => planCustomerMerge(existing, []), /Unsupported customer field/);
+  assert.equal(called, 0);
+});
+
+test('top-level merge arrays reject hidden metadata and extra fields', () => {
+  const incoming = [{id:'fake-new'}];
+  Object.defineProperty(incoming, 'hidden', {value:'must not be discarded', enumerable:false});
+  assert.throws(() => planCustomerMerge([], incoming), /Sparse or extended array/);
+  const existing = [{id:'fake-old'}];
+  existing.extra = 'not a customer';
+  assert.throws(() => planCustomerMerge(existing, []), /Sparse or extended array/);
+});
