@@ -121,3 +121,15 @@ test('top-level merge arrays reject hidden metadata and extra fields', () => {
   existing.extra = 'not a customer';
   assert.throws(() => planCustomerMerge(existing, []), /Sparse or extended array/);
 });
+
+test('dense arrays with 11 or more entries remain valid, while sparse arrays are rejected', () => {
+  const notes = Array.from({length: 12}, (_, i) => ({text: '虚构记录' + i}));
+  const old = [{id:'fake-many', notes}];
+  const incoming = [{notes:notes.map(note => ({...note})),id:'fake-many'}];
+  const plan = planCustomerMerge(old, incoming);
+  assert.deepEqual(plan.duplicates, ['fake-many']);
+  assert.equal(plan.conflicts.length, 0);
+  const sparse = Array.from({length: 12}, (_, i) => ({text: String(i)}));
+  delete sparse[10];
+  assert.throws(() => planCustomerMerge([{id:'fake-sparse-long', notes:sparse}], []), /Sparse or extended array/);
+});
