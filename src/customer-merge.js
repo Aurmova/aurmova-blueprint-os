@@ -9,6 +9,8 @@ function canonical(value, stack = new Set()) {
   if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value);
   if (typeof value !== 'object') throw new TypeError('Unsupported customer field; refusing merge');
   if (stack.has(value)) throw new TypeError('Cyclic customer record; refusing merge');
+  if (Array.isArray(value) && Object.getPrototypeOf(value) !== Array.prototype)
+    throw new TypeError('Unsupported customer array prototype; refusing merge');
   if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)
     throw new TypeError('Unsupported customer object; refusing merge');
   // Never invoke accessors during a supposedly read-only dry run. Getters can mutate records or trigger side effects.
