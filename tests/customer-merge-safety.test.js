@@ -133,3 +133,18 @@ test('dense arrays with 11 or more entries remain valid, while sparse arrays are
   delete sparse[10];
   assert.throws(() => planCustomerMerge([{id:'fake-sparse-long', notes:sparse}], []), /Sparse or extended array/);
 });
+
+test('subclassed arrays cannot execute overridden map during dry-run', () => {
+  let called = 0;
+  class HostileArray extends Array {
+    map() { called++; throw new Error('unsafe map executed'); }
+  }
+  const notes = new HostileArray();
+  notes.push({text:'虚构记录'});
+  assert.throws(() => planCustomerMerge([{id:'fake-subclass', notes}], []), /Unsupported customer array prototype/);
+  assert.equal(called, 0);
+  const topLevel = new HostileArray();
+  topLevel.push({id:'fake-top'});
+  assert.throws(() => planCustomerMerge(topLevel, []), /Unsupported customer array prototype/);
+  assert.equal(called, 0);
+});
